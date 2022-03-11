@@ -1,0 +1,13 @@
+name = "ComputerAdaptiveTesting"
+uuid = "5a0d4f34-1f62-4a66-80fe-87aba0485488"
+authors = ["Frankie Robertson"]
+version = "0.1.0"
+
+[compat]
+julia = "1.7.2"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

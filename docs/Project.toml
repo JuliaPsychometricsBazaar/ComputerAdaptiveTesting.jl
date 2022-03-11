@@ -1,0 +1,3 @@
+[deps]
+ComputerAdaptiveTesting = "5a0d4f34-1f62-4a66-80fe-87aba0485488"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
