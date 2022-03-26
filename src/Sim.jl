@@ -1,9 +1,7 @@
 module Sim
 
-using Reexport, FromFile
-
-@from "./CatConfig.jl" using CatConfig: CatLoopConfig
-@from "./item_banks/ItemBanks.jl" using ItemBanks: AbstractItemBank
+using ..CatConfig: CatLoopConfig
+using ..ItemBanks: AbstractItemBank
 
 export run_cat
 

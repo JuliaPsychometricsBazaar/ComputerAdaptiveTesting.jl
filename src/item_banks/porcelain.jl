@@ -1,4 +1,4 @@
-@from "../maths/ExtraDistributions.jl" using ExtraDistributions: NormalScaledLogistic
+using ..ExtraDistributions: NormalScaledLogistic
 
 function FixedGuessSlipItemBank(guess::Float64, slip::Float64, item_bank)
     FixedSlipItemBank(slip, FixedGuessItemBank(guess, item_bank))

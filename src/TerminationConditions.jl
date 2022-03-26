@@ -1,9 +1,8 @@
 module TerminationConditions
-using Reexport, FromFile
 
-@from "./item_banks/ItemBanks.jl" using ItemBanks: AbstractItemBank
-@from "./aggregators/Aggregators.jl" using Aggregators: TrackedResponses
-@from "./ConfigBase.jl" using ConfigBase: CatConfigBase
+using ..ItemBanks: AbstractItemBank
+using ..Aggregators: TrackedResponses
+using ..ConfigBase: CatConfigBase
 
 abstract type TerminationCondition <: CatConfigBase end
 

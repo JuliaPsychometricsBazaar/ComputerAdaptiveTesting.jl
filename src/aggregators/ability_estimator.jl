@@ -1,5 +1,5 @@
-@from "../Responses.jl" using Responses: Response
-@from "../maths/IntegralCoeffs.jl" import IntegralCoeffs
+using ..Responses: Response
+import ..IntegralCoeffs
 using Distributions: ContinuousUnivariateDistribution
 
 """

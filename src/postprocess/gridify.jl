@@ -1,7 +1,6 @@
-using Reexport, FromFile
 using ParallelKMeans, Interpolations, Base.Filesystem
 
-@from "../item_banks/ItemBanks.jl" using ItemBanks: load_bootstrapped_item_bank, save_gridify
+using ..ItemBanks: load_bootstrapped_item_bank, save_gridify
 
 function make_cdf(num_resamples)
     cdf = Array{Float64}(undef, num_resamples)

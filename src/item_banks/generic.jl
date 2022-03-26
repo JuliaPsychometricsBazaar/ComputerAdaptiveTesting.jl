@@ -1,6 +1,6 @@
 abstract type LikelihoodFunction end
 
-@from "../maths/Integrators.jl" using Integrators: ContinuousDomain, DiscreteDomain, DomainType
+using ..Integrators: ContinuousDomain, DiscreteDomain, DomainType
 
 struct ItemResponse{ItemBankT <: AbstractItemBank, IntT <: Integer} <: LikelihoodFunction 
     item_bank::ItemBankT

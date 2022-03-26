@@ -1,3 +1,7 @@
+module IOUtils
+
+# TODO: Possibly remove this module
+
 function get_word_list_idxs(word_list, labels)
     word_set = Set(word_list)
     idxs = []
@@ -35,4 +39,6 @@ function get_full_responses(item_bank, df)
         push!(responses, Response(idx, knows))
     end
     responses
+end
+
 end

@@ -1,11 +1,10 @@
 module DummyData
 
-using Reexport, FromFile
 using Distributions: Normal
 using Faker: sentence
 using Random
 
-@from "./item_banks/ItemBanks.jl" using ItemBanks: ItemBank3PL, ItemResponse
+using ..ItemBanks: ItemBank3PL, ItemResponse
 
 const DEFAULT_NUM_QUESTIONS = 8000
 const DEFAULT_NUM_TESTEES = 30

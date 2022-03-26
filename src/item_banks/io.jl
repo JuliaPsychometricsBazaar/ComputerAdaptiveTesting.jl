@@ -1,5 +1,5 @@
 using Mmap, SparseMatricesCSR, SparseArrays
-@from "../Responses.jl" using Responses: Response
+using ..Responses: Response
 
 function mmap_vec(path, typ)
 	io = open(path);

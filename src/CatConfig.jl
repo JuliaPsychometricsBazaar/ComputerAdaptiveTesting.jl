@@ -2,12 +2,12 @@ module CatConfig
 
 export CatLoopConfig
 
-using Reexport, FromFile, Parameters
+using Parameters
 
-@from "./aggregators/Aggregators.jl" using Aggregators: AbilityEstimator, AbilityTracker, NullAbilityTracker
-@from "./next_item_rules/NextItemRules.jl" using NextItemRules: NextItemRule
-@from "./TerminationConditions.jl" using TerminationConditions: TerminationCondition
-@from "./ConfigBase.jl" using ConfigBase: CatConfigBase
+using ..Aggregators: AbilityEstimator, AbilityTracker, NullAbilityTracker
+using ..NextItemRules: NextItemRule
+using ..TerminationConditions: TerminationCondition
+using ..ConfigBase: CatConfigBase
 
 """
 Configuration for a CAT.

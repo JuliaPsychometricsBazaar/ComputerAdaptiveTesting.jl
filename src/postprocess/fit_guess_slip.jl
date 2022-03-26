@@ -2,7 +2,7 @@ using NLSolversBase
 using ForwardDiff
 using Optim
 
-@from "../utils.jl" import get_full_responses
+using ..IOUtils: get_full_responses
 
 function loglik(item_bank, responses_df)
     function(θ, guess, slip)

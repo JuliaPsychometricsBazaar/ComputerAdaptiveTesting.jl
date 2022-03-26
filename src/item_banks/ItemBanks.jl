@@ -8,9 +8,9 @@ module ItemBanks
 
 export ItemResponse, AbilityLikelihood, GuessItemBank, SlipItemBank, TransferItemBank, ItemResponse
 
-using Reexport, FromFile, ResumableFunctions
-@from "../Responses.jl" using Responses: Response
-@from "../utils.jl" import get_word_list_idxs
+using ResumableFunctions
+using ..Responses: Response
+using ..IOUtils: get_word_list_idxs
 
 abstract type AbstractItemBank end
 

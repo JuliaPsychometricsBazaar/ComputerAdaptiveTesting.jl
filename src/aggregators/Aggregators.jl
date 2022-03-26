@@ -5,8 +5,7 @@ test.
 """
 module Aggregators
 
-using Reexport, FromFile
-@from "../item_banks/ItemBanks.jl" using ItemBanks: AbstractItemBank
+using ..ItemBanks: AbstractItemBank
 
 # Basic types
 abstract type AbilityEstimator end

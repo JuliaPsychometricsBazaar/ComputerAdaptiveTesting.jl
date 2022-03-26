@@ -12,11 +12,11 @@ module NextItemRules
 
 using Reexport, FromFile
 
-@from "../Responses.jl" using Responses: Response
-@from "../ConfigBase.jl" using ConfigBase: CatConfigBase
-@from "../maths/IntegralCoeffs.jl" import IntegralCoeffs
-@from "../item_banks/ItemBanks.jl" using ItemBanks: AbstractItemBank
-@from "../aggregators/Aggregators.jl" using Aggregators: AbilityEstimator, TrackedResponses, AbilityTracker
+using ..Responses: Response
+using ..ConfigBase: CatConfigBase
+import ..IntegralCoeffs
+using ..ItemBanks: AbstractItemBank
+using ..Aggregators: AbilityEstimator, TrackedResponses, AbilityTracker
 
 include("./objective_function.jl")
 
