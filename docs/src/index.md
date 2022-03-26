@@ -10,5 +10,5 @@ Documentation for [ComputerAdaptiveTesting](https://github.com/frankier/Computer
 ```
 
 ```@autodocs
-Modules = [ComputerAdaptiveTesting]
+Modules = [ComputerAdaptiveTesting, ComputerAdaptiveTesting.Aggregators, ComputerAdaptiveTesting.ItemBanks, ComputerAdaptiveTesting.Postprocess, ComputerAdaptiveTesting.Config, ComputerAdaptiveTesting.Responses, ComputerAdaptiveTesting.Sim, ComputerAdaptiveTesting.TerminationConditions, ComputerAdaptiveTesting.Plots]
 ```
