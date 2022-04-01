@@ -39,8 +39,8 @@ function Base.length(responses::TrackedResponses)
 end
 
 # Defaults
-const OPTIM_TOL = 1e-12
-const INT_TOL = 1e-8
+const optim_tol = 1e-12
+const int_tol = 1e-8
 
 # Includes
 include("./ability_estimator.jl")

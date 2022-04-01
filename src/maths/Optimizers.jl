@@ -8,7 +8,7 @@ optimize(
     lo,
     hi,
     NelderMead(),
-    Optim.Options(g_tol = OPTIM_TOL)
+    Optim.Options(g_tol = optim_tol)
 )[1]
 =#
 

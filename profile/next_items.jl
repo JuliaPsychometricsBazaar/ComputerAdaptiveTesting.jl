@@ -1,4 +1,4 @@
-using ComputerAdaptiveTesting.DummyData: dummy_3pl, STD_NORMAL
+using ComputerAdaptiveTesting.DummyData: dummy_3pl, std_normal
 using ComputerAdaptiveTesting.ItemBanks: iter_item_idxs
 using ComputerAdaptiveTesting.Responses
 using ComputerAdaptiveTesting.Aggregators
@@ -9,7 +9,7 @@ using Distributions: Normal
 using ArgParse
 using StatProfilerHTML
 
-const ABILITY_ESTIMATOR = PriorAbilityEstimator(Normal())
+const ability_estimator = PriorAbilityEstimator(Normal())
 
 function profile_objective(run_profile::RunProfile, objective::Objective) where {RunProfile, Objective}
     (item_bank, question_labels_, abilities_, responses) = dummy_3pl(;num_questions=100, num_testees=1)
@@ -18,7 +18,7 @@ function profile_objective(run_profile::RunProfile, objective::Objective) where 
             BareResponses(),
             item_bank,
             NullAbilityTracker(),
-            ABILITY_ESTIMATOR
+            ability_estimator
         )
         criterion_state = init_thread(objective, responses)
         for item_idx in iter_item_idxs(item_bank)
@@ -95,7 +95,7 @@ function main()
             required = true
     end
     args = parse_args(settings)
-    next_item_rule = NEXT_ITEM_ALIASES[args["next_item_rule"]](ABILITY_ESTIMATOR)
+    next_item_rule = NEXT_ITEM_ALIASES[args["next_item_rule"]](ability_estimator)
     if args["profiling_mode"] == "track_allocs" && !haskey(ENV, "TRACK_ALLOCS")
         cmdline = get_cmdline()
         insert!(cmdline, findfirst(x -> endswith(x, ".jl"), cmdline), "--track-allocation=all")

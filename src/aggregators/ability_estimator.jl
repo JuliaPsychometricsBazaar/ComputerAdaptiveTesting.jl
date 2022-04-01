@@ -107,7 +107,7 @@ function integrate(
     comp_f = let f=f, lh_function=lh_function
         x -> f(x) * lh_function(x)
     end
-    quadgk(comp_f, -10.0, 10.0, INT_TOL)[1]
+    quadgk(comp_f, -10.0, 10.0, int_tol)[1]
 end
 
 function integrate(

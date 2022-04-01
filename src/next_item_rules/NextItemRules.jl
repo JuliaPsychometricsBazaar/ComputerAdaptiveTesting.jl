@@ -11,6 +11,7 @@ Springer, New York, NY.
 module NextItemRules
 
 using Reexport, FromFile
+using Parameters
 
 using ..Responses: Response
 using ..ConfigBase: CatConfigBase
@@ -25,7 +26,7 @@ include("./objective_function.jl")
 
 abstract type NextItemRule <: CatConfigBase end
 
-const DEFAULT_PRIOR = IntegralCoeffs.Prior(Cauchy(5, 2))
+const default_prior = IntegralCoeffs.Prior(Cauchy(5, 2))
 
 #=
 
@@ -34,18 +35,18 @@ function lh_abil_given_resps(responses::AbstractVector{Response}, items::Abstrac
 end
 
 function int_lh_g_abil_given_resps{F}(f::F, responses::AbstractVector{Response}, items::AbstractItemBank; lo=0.0, hi=10.0, irf_states_storage=nothing)::Float64 where {F}
-    int_lh_abil_given_resps(IntegralCoeffs.PriorApply(DEFAULT_PRIOR, f), responses, items; lo=lo, hi=hi, irf_states_storage=irf_states_storage)
+    int_lh_abil_given_resps(IntegralCoeffs.PriorApply(default_prior, f), responses, items; lo=lo, hi=hi, irf_states_storage=irf_states_storage)
 end
 
 function max_lh_g_abil_given_resps{F}(f::F, responses::AbstractVector{Response}, items::AbstractItemBank; lo=0.0, hi=10.0) where {F}
-    max_lh_abil_given_resps(IntegralCoeffs.PriorApply(DEFAULT_PRIOR, f), responses, items; lo=lo, hi=hi)
+    max_lh_abil_given_resps(IntegralCoeffs.PriorApply(default_prior, f), responses, items; lo=lo, hi=hi)
 end
 
 """
 Unnormalised version of equation (1.8) from [1]
 """
 function g_abil_given_resps(responses::AbstractVector{Response}, items::AbstractItemBank, θ::Float64)
-    IntegralCoeffs.PriorApply(DEFAULT_PRIOR, θ -> lh_abil_given_resps(responses, items, θ))
+    IntegralCoeffs.PriorApply(default_prior, θ -> lh_abil_given_resps(responses, items, θ))
 end
 =#
 
@@ -114,10 +115,16 @@ end
 function choose_item_1ply(
     objective::ItemCriterionT,
     responses::TrackedResponses{ItemBankT, AbilityTrackerT, AbilityEstimatorT},
-    items::AbstractItemBank
+    items::AbstractItemBank,
+    parallel=true
 ) where {ItemBankT <: AbstractItemBank, AbilityTrackerT <: AbilityTracker, AbilityEstimatorT <: AbilityEstimator, ItemCriterionT <: ItemCriterion}
     #pre_next_item(expectation_tracker, items)
-    @floop for item_idx in iter_item_idxs(items)
+    if parallel
+        ex = ThreadedEx(simd=:ivdep)
+    else
+        ex = SequentialEx(simd=:ivdep)
+    end
+    @floop ex for item_idx in iter_item_idxs(items)
         # TODO: Add these back in
         @init objective_state = init_thread(objective, responses)
         #@init irf_states_storage = zeros(Int, length(responses) + 1)
@@ -151,7 +158,9 @@ end
 
 abstract type NextItemStrategy <: CatConfigBase end
 
-struct ExhaustiveSearch1Ply <: NextItemStrategy end
+@with_kw struct ExhaustiveSearch1Ply <: NextItemStrategy
+    parallel::Bool
+end
 
 struct ItemStrategyNextItemRule{NextItemStrategyT <: NextItemStrategy, ItemCriterionT <: ItemCriterion} <: NextItemRule
     strategy::NextItemStrategyT 
@@ -162,7 +171,7 @@ function (rule::ItemStrategyNextItemRule{ExhaustiveSearch1Ply, ItemCriterionT})(
     responses::TrackedResponses{ItemBankT, AbilityTrackerT, AbilityEstimatorT},
     items::AbstractItemBank
 ) where {ItemBankT <: AbstractItemBank, AbilityTrackerT <: AbilityTracker, AbilityEstimatorT <: AbilityEstimator, ItemCriterionT <: ItemCriterion}
-    choose_item_1ply(rule.criterion, responses, items)[1]
+    choose_item_1ply(rule.criterion, responses, items, rule.strategy.parallel)[1]
 end
 
 function (item_criterion::ItemCriterion)(::Nothing, tracked_responses::TrackedResponses, item_idx)
@@ -205,7 +214,7 @@ NEXT_ITEM_ALIASES = Dict(
     #"MLWI",
     #"MPWI",
     #"MEI",
-    "MEPV" => ability_estimator -> ItemStrategyNextItemRule(ExhaustiveSearch1Ply(), ExpectationBasedItemCriterion(ability_estimator, AbilityVarianceStateCriterion())),
+    "MEPV" => (ability_estimator; parallel=true) -> ItemStrategyNextItemRule(ExhaustiveSearch1Ply(parallel), ExpectationBasedItemCriterion(ability_estimator, AbilityVarianceStateCriterion())),
     #"progressive",
     #"proportional",
     #"KL",

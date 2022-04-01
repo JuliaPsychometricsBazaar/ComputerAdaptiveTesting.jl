@@ -7,6 +7,14 @@ using AlgebraOfGraphics
 using DataFrames
 using Makie
 
+# Allows hline! on AlgebraOfGraphics plots. May be better way in future.
+# See: https://github.com/JuliaPlots/AlgebraOfGraphics.jl/issues/299
+function Makie.hlines!(fg::AlgebraOfGraphics.FigureGrid, args...; kws...)
+	for axis in fg.grid
+		hlines!(axis.axis, args...; kws...)
+	end
+	return fg
+end
 
 function curve_data(responses; include_posterior=false)
 	θs = Float64[]

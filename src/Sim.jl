@@ -16,7 +16,8 @@ function prompt_response(index_, label)
 end
 
 """
-This function constructs 
+This function constructs a next item function which automatically responds
+according to `responses`.
 """
 function auto_responder(responses)
     function(index, label_)
@@ -59,7 +60,9 @@ function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank)::Float6
         response = cat_config.get_response(next_index, next_label)
         @debug "Got response" response
         add_response!(responses, Response(next_index, response))
-        if cat_config.termination_condition(responses, item_bank)
+        terminating = cat_config.termination_condition(responses, item_bank)
+        cat_config.new_response_callback(responses, terminating)
+        if terminating
             @debug "Met termination condition"
             break
         end

@@ -6,9 +6,9 @@ using Random
 
 using ..ItemBanks: ItemBank3PL, ItemResponse
 
-const DEFAULT_NUM_QUESTIONS = 8000
-const DEFAULT_NUM_TESTEES = 30
-const STD_NORMAL = Normal()
+const default_num_questions = 8000
+const default_num_testees = 30
+const std_normal = Normal()
 
 function sent()
     sentence(number_words=12, variable_nb_words=true)
@@ -17,16 +17,16 @@ end
 function dummy_3pl_item_bank(num_questions)
     discrim_normal = Normal(1.0, 0.2)
     guess_normal = Normal(0.0, 0.2)
-    difficulties = rand(STD_NORMAL, num_questions)
+    difficulties = rand(std_normal, num_questions)
     discriminations = abs.(rand(discrim_normal, num_questions))
     guesses = clamp.(rand(guess_normal, num_questions), 0, 1)
     ItemBank3PL(difficulties, discriminations, guesses)
 end
 
-function dummy_3pl(;num_questions=DEFAULT_NUM_QUESTIONS, num_testees=DEFAULT_NUM_TESTEES)
+function dummy_3pl(;num_questions=default_num_questions, num_testees=default_num_testees)
     item_bank = dummy_3pl_item_bank(num_questions)
     question_labels = [sent() for _ in 1:num_questions]
-    abilities = rand(STD_NORMAL, num_testees)
+    abilities = rand(std_normal, num_testees)
     @inline ir(idx, ability) = ItemResponse(item_bank, idx)(ability)
     # Should be a faster way to do this without allocation
     responses = (

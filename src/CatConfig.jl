@@ -34,6 +34,10 @@ Configuration for a CAT.
     The ability tracker, which tracks the testee's current ability level.
     """
     ability_tracker::AbilityTracker = NullAbilityTracker()
+    """
+    A callback called each time there is a new responses
+    """
+    new_response_callback = nothing
 end
 
 end
