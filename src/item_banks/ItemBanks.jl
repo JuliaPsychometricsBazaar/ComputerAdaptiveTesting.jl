@@ -9,10 +9,11 @@ module ItemBanks
 export ItemResponse, AbilityLikelihood, GuessItemBank, SlipItemBank, TransferItemBank, ItemResponse
 
 using ResumableFunctions
-using ..Responses: Response
+using ..Responses: Response, BareResponses
 using ..IOUtils: get_word_list_idxs
 
 abstract type AbstractItemBank end
+const MaybeLabels = Union{Vector{String}, Nothing}
 
 include("./io.jl")
 include("./generic.jl")

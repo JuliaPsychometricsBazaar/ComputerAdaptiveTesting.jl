@@ -10,7 +10,7 @@ end
 struct GriddedItemBank <: AbstractItemBank
     xs::Vector{Float64}
     ys::Matrix{Float64}
-    labels::Union{Vector{String}, Nothing}
+    labels::MaybeLabels
 end
 
 DomainType(::GriddedItemBank) = DiscreteIndexableDomain
@@ -20,11 +20,12 @@ function Base.length(item_bank::GriddedItemBank)
 end
 
 function subset_item_bank(item_bank::GriddedItemBank, word_list)::GriddedItemBank
-    word_idxs = get_word_list_idxs(word_list, item_bank.labels)
+    ib_labels = labels(item_bank)
+    word_idxs = get_word_list_idxs(word_list, ib_labels)
     GriddedItemBank(
         item_bank.xs,
         item_bank.ys[:, word_idxs],
-        item_bank.labels[word_idxs]
+        ib_labels[word_idxs]
     )
 end
 
@@ -35,26 +36,20 @@ end
 
 function cb_abil_given_resps(
     cb::F,
-    responses::AbstractVector{Response},
+    responses::BareResponses,
     items::GriddedItemBank;
     lo=0.0,
     hi=10.0,
     irf_states_storage=nothing
 ) where {F}
-    response_values = [r.value > 0 for r in responses]
-
-    cb(lo, any(response_values) ? 0.0 : 1.0)
+    cb(lo, any(responses.values) ? 0.0 : 1.0)
     for idx in 1:length(items.xs)
         y = prod(
-            pick_outcome(items.ys[idx, resp.index], resp.value > 0)
-            for resp in responses;
+            pick_outcome(items.ys[idx, responses.indices[ridx]], responses.values[ridx] > 0)
+            for ridx in axes(responses.values, 2);
             init=1.0
         )
         cb(items.xs[idx], y)
     end
-    cb(hi, all(response_values) ? 1.0 : 0.0)
-end
-
-function iter_item_idxs(item_bank::GriddedItemBank)
-    axes(item_bank.ys, 2)
+    cb(hi, all(responses.values) ? 1.0 : 0.0)
 end

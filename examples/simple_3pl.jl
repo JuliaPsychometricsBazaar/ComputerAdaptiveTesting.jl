@@ -26,7 +26,7 @@ current_figure()
 
 # Now we are read to generate our synthetic data.
 using ComputerAdaptiveTesting.DummyData: dummy_3pl, STD_NORMAL
-(item_bank, question_labels, abilities, responses) = dummy_3pl()
+(item_bank, question_labels, abilities, responses) = dummy_3pl(;num_questions=100, num_testees=5)
 
 # Now let's simulate the CAT for our data and find the error versus the true
 # values and the values estimated from all points
@@ -37,9 +37,11 @@ for resp_idx in axes(responses, 2)
             @view responses[:, resp_idx]
         ),
         next_item=NEXT_ITEM_ALIASES["MEPV"](ability_estimator),
-        termination_condition=FixedItemsTerminationCondition(20),
+        termination_condition=FixedItemsTerminationCondition(80),
         ability_estimator=ability_estimator,
     )
     θ = run_cat(config, item_bank)
-    @info "got θ" θ=θ
+    true_θ = abilities[resp_idx]
+    abs_err = abs(θ - true_θ)
+    @info "final estimated ability" resp_idx θ true_θ abs_err
 end

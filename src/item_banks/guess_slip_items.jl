@@ -31,10 +31,10 @@ y_offset(item_bank::SlipItemBank, item_idx) = item_bank.slips[item_idx]
 
 const AnySlipItemBank = Union{SlipItemBank, FixedSlipItemBank}
 const AnyGuessItemBank = Union{GuessItemBank, FixedGuessItemBank}
-const AnySlipGuessItemBank = Union{AnySlipItemBank, AnyGuessItemBank}
-const AnySlipOfGuessItemBank = Union{SlipItemBank{AnyGuessItemBank}, FixedSlipItemBank{AnyGuessItemBank}}
+const AnySlipOrGuessItemBank = Union{AnySlipItemBank, AnyGuessItemBank}
+const AnySlipAndGuessItemBank = Union{SlipItemBank{AnyGuessItemBank}, FixedSlipItemBank{AnyGuessItemBank}}
 
-DomainType(item_bank::AnySlipGuessItemBank) = DomainType(item_bank.inner_bank)
+DomainType(item_bank::AnySlipOrGuessItemBank) = DomainType(item_bank.inner_bank)
 
 # Ensure we always have Slip{Guess{ItemBank}}
 function FixedGuessItemBank(guess::Float64, inner_bank::AnySlipItemBank)
@@ -58,7 +58,7 @@ function (ir::ItemResponse{<:SlipItemBank})(θ::Float64)::Float64
     transform_irf_y(0.0, y_offset(ir.item_bank, ir.index), ItemResponse(ir.item_bank.inner_bank, ir.index)(θ))
 end
 
-function (ir::ItemResponse{<:AnySlipOfGuessItemBank})(θ::Float64)::Float64
+function (ir::ItemResponse{<:AnySlipAndGuessItemBank})(θ::Float64)::Float64
     transform_irf_y(
         y_offset(ir.item_bank.inner_bank, ir.index),
         y_offset(ir.item_bank, ir.index),
@@ -80,8 +80,8 @@ function cb_abil_given_resps(
     end
     cb_abil_given_resps(cb_wrap, responses, item_bank; lo=lo, hi=hi, irf_states_storage=irf_states_storage)
 end
-
-function iter_item_idxs(item_bank::GuessSlipItemBank)
-    iter_item_idxs(item_bank)
-end
 =#
+
+function labels(item_bank::AnySlipOrGuessItemBank)
+    labels(item_bank.inner_bank)
+end

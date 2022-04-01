@@ -17,7 +17,7 @@ end
 
 struct BootstrappedItemBank <: AbstractItemBank
     resamples::Matrix{Float64}
-    labels::Union{Vector{String}, Nothing}
+    labels::MaybeLabels
 end
 
 function Base.length(item_bank::BootstrappedItemBank)
@@ -26,10 +26,11 @@ end
 
 function subset_item_bank(item_bank::BootstrappedItemBank, word_list)::BootstrappedItemBank
     # XXX: Investigate views/AbstractBootstrappedItemBank
-    word_idxs = get_word_list_idxs(word_list, item_bank.labels)
+    ib_labels = labels(item_bank)
+    word_idxs = get_word_list_idxs(word_list, ib_labels)
     BootstrappedItemBank(
         item_bank.resamples[:, word_idxs],
-        item_bank.labels[word_idxs]
+        ib_labels[word_idxs]
     )
 end
 
@@ -59,23 +60,20 @@ end
 
 function cb_abil_given_resps(
     cb::F,
-    responses::AbstractVector{Response},
+    responses::BareResponses,
     items::BootstrappedItemBank;
     lo=0.0,
     hi=10.0,
     irf_states_storage=nothing
 ) where {F}
-    item_indices = [r.index for r in responses]
-    response_values = [r.value > 0 for r in responses]
-
     if irf_states_storage === nothing
-        resp_length = length(item_indices)
+        resp_length = length(responses.indices)
         irf_states::Vector{Int32} = zeros(Int, resp_length)
     else
         irf_states = irf_states_storage 
         fill!(irf_states, 0)
     end
-    cb(lo, any(response_values) ? 0.0 : 1.0)
+    cb(lo, any(responses.values) ? 0.0 : 1.0)
     num_resamples = size(items.resamples, 1)
     while true
         min_θ = Inf
@@ -85,7 +83,7 @@ function cb_abil_given_resps(
             if resample_index >= num_resamples
                 continue
             end
-            item_index = item_indices[curve_idx]
+            item_index = responses.indices[curve_idx]
             θ = items.resamples[resample_index, item_index ]
             if θ < min_θ
                 min_θ = θ
@@ -93,19 +91,15 @@ function cb_abil_given_resps(
             end
         end
         if min_curve_idx === nothing
-            cb(hi, all(response_values) ? 1.0 : 0.0)
+            cb(hi, all(responses.values) ? 1.0 : 0.0)
             return
         end
         y = prod(
             pick_outcome(irf / num_resamples, resp)
             for (irf, resp)
-            in zip(irf_states, response_values)
+            in zip(irf_states, responses.values)
         )
         cb(min_θ, y)
         irf_states[min_curve_idx] += 1
     end
-end
-
-function iter_item_idxs(item_bank::BootstrappedItemBank)
-    axes(item_bank.resamples, 2)
 end

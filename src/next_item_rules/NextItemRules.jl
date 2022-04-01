@@ -15,22 +15,17 @@ using Reexport, FromFile
 using ..Responses: Response
 using ..ConfigBase: CatConfigBase
 import ..IntegralCoeffs
-using ..ItemBanks: AbstractItemBank
-using ..Aggregators: AbilityEstimator, TrackedResponses, AbilityTracker
+using ..ItemBanks: AbstractItemBank, iter_item_idxs
+using ..Aggregators
+using QuadGK, Distributions, Optim, Base.Threads, Base.Order, ResumableFunctions, FLoops, StaticArrays
+
+export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, NEXT_ITEM_ALIASES, init_thread, ItemStrategyNextItemRule
 
 include("./objective_function.jl")
 
-using QuadGK, Distributions, Optim, Base.Threads, Base.Order, ResumableFunctions, FLoops
-
 abstract type NextItemRule <: CatConfigBase end
 
-const OPTIM_TOL = 1e-12
-const INT_TOL = 1e-8
 const DEFAULT_PRIOR = IntegralCoeffs.Prior(Cauchy(5, 2))
-
-@inline function pick_outcome(p::Float64, outcome::Bool)::Float64
-    outcome ? p : 1.0 - p
-end
 
 #=
 
@@ -54,6 +49,7 @@ function g_abil_given_resps(responses::AbstractVector{Response}, items::Abstract
 end
 =#
 
+#=
 function var_abil(responses::AbstractVector{Response}, items::AbstractItemBank; mean::Union{Float64, Nothing}=nothing, denom::Union{Float64, Nothing}=nothing, irf_states_storage=nothing)::Float64
     # XXX: Profiling suggests many allocations here but not sure why
     # OTT type annotations are mainly a workaround for https://github.com/JuliaLang/julia/issues/15276
@@ -101,6 +97,7 @@ function expected_variance_one(responses::AbstractVector{Response}, items::Abstr
     exp_resp = irf(items, item_idx, θ_mean)
     expected_variance!([responses; Response(0, 0)], items, item_idx, exp_resp; irf_states_storage=irf_states_storage)
 end
+=#
 
 #=
 function (obj_func::ObjectiveFunction)()
@@ -108,23 +105,23 @@ function (obj_func::ObjectiveFunction)()
 end
 =#
 
-function init_thread(_::ItemCriterion, expected_num_responses)
-    nothing
-end
+#function init_thread(_::ItemCriterion, expected_num_responses)
+    #nothing
+#end
 #[responses; Response(0, 0)]
 
 #ability_estimator::AbilityEstimatorT, AbilityEstimatorT, 
 function choose_item_1ply(
     objective::ItemCriterionT,
-    responses,::TrackedResponses{ItemBankT, AbilityTrackerT, AbilityEstimatorT},
+    responses::TrackedResponses{ItemBankT, AbilityTrackerT, AbilityEstimatorT},
     items::AbstractItemBank
 ) where {ItemBankT <: AbstractItemBank, AbilityTrackerT <: AbilityTracker, AbilityEstimatorT <: AbilityEstimator, ItemCriterionT <: ItemCriterion}
     #pre_next_item(expectation_tracker, items)
     @floop for item_idx in iter_item_idxs(items)
         # TODO: Add these back in
-        #@init item_criterion_thread_state = init_thread(item_criterion)
+        @init objective_state = init_thread(objective, responses)
         #@init irf_states_storage = zeros(Int, length(responses) + 1)
-        if (findfirst(resp -> resp.index == item_idx, responses) !== nothing)
+        if (findfirst(idx -> idx == item_idx, responses.responses.indices) !== nothing)
             continue
         end
 
@@ -136,7 +133,7 @@ function choose_item_1ply(
         )
         var = expected_variance!(working_responses, items, item_idx, exp_resp, irf_states_storage=irf_states_storage)
         =#
-        obj_val = objective(responses, item_idx)
+        obj_val = objective(objective_state, responses, item_idx)
         
         @reduce() do (min_obj_idx = -1; item_idx), (min_obj_val = Inf; obj_val)
             if obj_val < min_obj_val
@@ -148,6 +145,10 @@ function choose_item_1ply(
     (min_obj_idx, min_obj_val)
 end
 
+function init_thread(::ItemCriterion, ::TrackedResponses)
+    nothing
+end
+
 abstract type NextItemStrategy <: CatConfigBase end
 
 struct ExhaustiveSearch1Ply <: NextItemStrategy end
@@ -157,11 +158,23 @@ struct ItemStrategyNextItemRule{NextItemStrategyT <: NextItemStrategy, ItemCrite
     criterion::ItemCriterionT
 end
 
-function (rule::ItemStrategyNextItemRule{ExhaustiveSearch1Ply, ItemCriterion})(
-    responses,::TrackedResponses{ItemBankT, AbilityTrackerT, AbilityEstimatorT},
+function (rule::ItemStrategyNextItemRule{ExhaustiveSearch1Ply, ItemCriterionT})(
+    responses::TrackedResponses{ItemBankT, AbilityTrackerT, AbilityEstimatorT},
     items::AbstractItemBank
 ) where {ItemBankT <: AbstractItemBank, AbilityTrackerT <: AbilityTracker, AbilityEstimatorT <: AbilityEstimator, ItemCriterionT <: ItemCriterion}
-    choose_item_1ply(rule.criterion, responses, items)
+    choose_item_1ply(rule.criterion, responses, items)[1]
+end
+
+function (item_criterion::ItemCriterion)(::Nothing, tracked_responses::TrackedResponses, item_idx)
+    item_criterion(tracked_responses, item_idx)
+end
+
+function (item_criterion::ItemCriterion)(tracked_responses::TrackedResponses, item_idx)
+    criterion_state = init_thread(item_criterion, tracked_responses)
+    if criterion_state === nothing
+        error("Tried to run an state-requiring item criterion $(typeof(item_criterion)), but init_thread(...) returned nothing")
+    end
+    item_criterion(criterion_state, tracked_responses, item_idx)
 end
 
 #=

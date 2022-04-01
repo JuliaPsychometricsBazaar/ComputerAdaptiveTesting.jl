@@ -33,8 +33,9 @@ end
 
 function get_full_responses(item_bank, df)
     responses = Response[]
-    sizehint!(responses, length(item_bank.labels))
-    for (idx, word) in enumerate(item_bank.labels)
+    ib_labels = labels(item_bank)
+    sizehint!(responses, length(ib_labels))
+    for (idx, word) in enumerate(ib_labels)
         knows = df[df[!, :word] .== word, :knows][1]
         push!(responses, Response(idx, knows))
     end

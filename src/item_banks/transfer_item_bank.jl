@@ -5,6 +5,7 @@ struct TransferItemBank{DistT <: ContinuousUnivariateDistribution} <: AbstractIt
     distribution::DistT
     difficulties::Vector{Float64}
     discriminations::Vector{Float64}
+    labels::MaybeLabels
 end
 
 DomainType(::TransferItemBank) = ContinuousDomain
@@ -17,8 +18,16 @@ function norm_abil(θ, difficulty, discrimination)
     (θ - difficulty) / discrimination
 end
 
+function norm_abil(ir::ItemResponse{<:TransferItemBank}, θ::Float64)::Float64
+    norm_abil(θ, ir.item_bank.difficulties[ir.index], ir.item_bank.discriminations[ir.index])
+end
+
 function (ir::ItemResponse{<:TransferItemBank})(θ::Float64)::Float64
-    cdf(ir.item_bank.distribution, norm_abil(θ, ir.item_bank.difficulties[ir.index], ir.item_bank.discriminations[ir.index]))
+    cdf(ir.item_bank.distribution, norm_abil(ir, θ))
+end
+
+function log_response(ir::ItemResponse{<:TransferItemBank}, θ::Float64)::Float64
+    logcdf(ir.item_bank.distribution, norm_abil(ir, θ))
 end
 
 #=
@@ -56,9 +65,5 @@ function max_abil_lh_given_resps(
         end
     end
     (cur_argmax[], cur_max[])
-end
-
-function iter_item_idxs(item_bank::GriddedItemBank)
-    axes(item_bank.ys, 2)
 end
 =#

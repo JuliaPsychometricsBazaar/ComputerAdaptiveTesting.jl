@@ -12,24 +12,27 @@ end
 
 function ItemBank2PL(
     difficulties,
-    discriminations
+    discriminations;
+    labels=nothing
 )
-    TransferItemBank(NormalScaledLogistic(), difficulties, discriminations)
+    TransferItemBank(NormalScaledLogistic(), difficulties, discriminations, labels)
 end
 
 function ItemBank3PL(
     difficulties,
     discriminations,
-    guesses
+    guesses;
+    labels=nothing
 )
-    GuessItemBank(guesses, ItemBank2PL(difficulties, discriminations))
+    GuessItemBank(guesses, ItemBank2PL(difficulties, discriminations; labels=labels))
 end
 
 function ItemBank4PL(
     difficulties,
     discriminations,
     guesses,
-    slips
+    slips;
+    labels=nothing
 )
-    SlipItemBank(slips, ItemBank3PL(difficulties, discriminations, guesses))
+    SlipItemBank(slips, ItemBank3PL(difficulties, discriminations, guesses; labels=labels))
 end

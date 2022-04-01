@@ -1,7 +1,9 @@
 module Sim
 
+using ..Responses: BareResponses, Response
 using ..CatConfig: CatLoopConfig
-using ..ItemBanks: AbstractItemBank
+using ..ItemBanks: AbstractItemBank, labels
+using ..Aggregators: TrackedResponses, add_response!, Speculator
 
 export run_cat
 
@@ -28,9 +30,15 @@ abstract type NextItemError <: Exception end
 Run a given CatLoopConfig
 """
 function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank)::Float64
-    responses = []
-    # TrackedResponses()
+    responses = TrackedResponses(
+        BareResponses(),
+        item_bank,
+        cat_config.ability_tracker,
+        cat_config.ability_estimator
+    )
+    ib_labels = labels(item_bank)
     while true
+        local next_index
         try
             next_index = cat_config.next_item(responses, item_bank)
         catch exc
@@ -41,13 +49,16 @@ function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank)::Float6
                 rethrow()
             end
         end
-        next_label = get(item_bank.labels, next_index) do 
-            "<<item #$next_index>>"
+        default_next_label(next_index) = "<<item #$next_index>>"
+        if ib_labels === nothing
+            next_label = default_next_label(next_index)
+        else
+            next_label = get(default_next_label, ib_labels, next_index)
         end
         @debug "Querying" next_label
         response = cat_config.get_response(next_index, next_label)
         @debug "Got response" response
-        add_response(responses, Response(next_index, response))
+        add_response!(responses, Response(next_index, response))
         if cat_config.termination_condition(responses, item_bank)
             @debug "Met termination condition"
             break
