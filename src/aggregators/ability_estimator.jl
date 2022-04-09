@@ -1,9 +1,11 @@
 using ..Responses: Response
 import ..IntegralCoeffs
-using ..Integrators: ContinuousDomain, DiscreteIterableDomain, DiscreteIndexableDomain, DomainType
+using ..Integrators: ContinuousDomain, DiscreteIterableDomain, DiscreteIndexableDomain, DomainType, fixed_gk
 using Distributions: ContinuousUnivariateDistribution
 using QuadGK
+using QuadGK: Segment
 using HCubature
+using Base.Threads
 
 """
 Integrate over the ability likihood given a set of responses with a given
@@ -50,17 +52,28 @@ end
 
 struct LikelihoodAbilityEstimator <: DistributionAbilityEstimator end
 
+function pdf(
+    ::LikelihoodAbilityEstimator,
+    tracked_responses::TrackedResponses,
+    x::Float64
+)::Float64
+    ability_lh = AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)
+    ability_lh(x)
+end
+
 function integrate(
     f::F,
-    est_::LikelihoodAbilityEstimator,
+    ::LikelihoodAbilityEstimator,
     tracked_responses::TrackedResponses
 )::Float64 where {F}
-    int_abil_lh_given_resps(
+    ability_lh = AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)
+    integrate(f, ability_lh)
+    #=int_abil_lh_given_resps(
         f,
         tracked_responses.responses,
         tracked_responses.item_bank;
         lo=0.0, hi=10.0, irf_states_storage=nothing
-    )
+    )=#
 end
 
 function maximize(
@@ -80,6 +93,16 @@ struct PriorAbilityEstimator{PriorT <: ContinuousUnivariateDistribution} <: Dist
     prior::PriorT
 end
 
+function pdf(
+    est::PriorAbilityEstimator,
+    tracked_responses::TrackedResponses,
+    x::Float64
+)::Float64
+    ability_lh = AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)
+    prior_f = IntegralCoeffs.PriorApply(IntegralCoeffs.Prior(est.prior), ability_lh)
+    prior_f(x)
+end
+
 function integrate(
     f::F,
     est::PriorAbilityEstimator,
@@ -97,17 +120,25 @@ function integrate(
     integrate(DomainType(lh_function), f, lh_function)
 end
 
+# This could be unsafe if quadgk performed i/o. It might be wise to switch to
+# explicitly passing this through from the caller at some point.
+const quadgk_order = 20
+const segbufs = [Vector{Segment{Float64, Float64, Float64}}(undef, quadgk_order - 1) for _ in Threads.nthreads()]
+
 function integrate(
     ::ContinuousDomain,
     f::F,
-    lh_function::LikelihoodFunction
+    lh_function::LikelihoodFunction;
+    buf=nothing
 )::Float64 where {F}
     # TODO: Make integration range configurable
     # TODO: Make integration technique configurable
     comp_f = let f=f, lh_function=lh_function
         x -> f(x) * lh_function(x)
     end
-    quadgk(comp_f, -10.0, 10.0, int_tol)[1]
+    segbuf = segbufs[Threads.threadid()]
+    quadgk(comp_f, -10.0, 10.0, rtol=1e-4, segbuf=segbuf, order=quadgk_order)[1]
+    #fixed_gk(comp_f, -10.0, 10.0, 100)[1]
 end
 
 function integrate(

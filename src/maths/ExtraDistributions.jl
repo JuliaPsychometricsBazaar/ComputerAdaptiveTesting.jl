@@ -1,7 +1,7 @@
 module ExtraDistributions
 
 using Random: AbstractRNG
-using Distributions: Normal, UnivariateDistribution
+using Distributions: Logistic, UnivariateDistribution
 
 using Lazy: @forward
 
@@ -10,8 +10,8 @@ using Lazy: @forward
 const scaling_factor = 1.702
 
 struct NormalScaledLogistic
-    inner::Normal
-    NormalScaledLogistic(μ, σ) = Normal(μ * scaling_factor, σ * scaling_factor)
+    inner::Logistic
+    NormalScaledLogistic(μ, σ) = Logistic(μ / scaling_factor, σ / scaling_factor)
 end
 
 NormalScaledLogistic() = NormalScaledLogistic(0.0, 1.0)

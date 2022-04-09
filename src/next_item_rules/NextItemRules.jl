@@ -113,16 +113,16 @@ end
 
 #ability_estimator::AbilityEstimatorT, AbilityEstimatorT, 
 function choose_item_1ply(
-    objective::ItemCriterionT,
-    responses::TrackedResponses{ItemBankT, AbilityTrackerT, AbilityEstimatorT},
+    objective::ItemCriterion,
+    responses::TrackedResponses,
     items::AbstractItemBank,
     parallel=true
-) where {ItemBankT <: AbstractItemBank, AbilityTrackerT <: AbilityTracker, AbilityEstimatorT <: AbilityEstimator, ItemCriterionT <: ItemCriterion}
+)
     #pre_next_item(expectation_tracker, items)
     if parallel
-        ex = ThreadedEx(simd=:ivdep)
+        ex = ThreadedEx()
     else
-        ex = SequentialEx(simd=:ivdep)
+        ex = SequentialEx()
     end
     @floop ex for item_idx in iter_item_idxs(items)
         # TODO: Add these back in
@@ -205,7 +205,7 @@ ConfigPurity(::MinExpectedVariance) = ImpureConfig
 
 """
 This mapping provides next item rules through the same names that they are
-available through in the `mirt` R package.
+available through in the `catR` R package. TODO compability with `mirtcat`
 """
 NEXT_ITEM_ALIASES = Dict(
     #"MFI",
