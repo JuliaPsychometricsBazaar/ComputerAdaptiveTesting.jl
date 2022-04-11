@@ -46,6 +46,7 @@ TypedPolynomials = "afbbf031-7a57-5f58-a1b9-b774a0fad08d"
 WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
 
 [compat]
+WGLMakie = "0.5"
 julia = "1.7.2"
 
 [extras]
