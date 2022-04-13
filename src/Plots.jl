@@ -1,8 +1,11 @@
+"""
+This module contains helpers for creating CAT/IRT related plots. This module
+requires the optional depedencies AlgebraOfGraphics, DataFrames and Makie to be
+installed.
+"""
 module Plots
 
-using QuadGK
 using Distributions
-using Mmap
 using AlgebraOfGraphics
 using DataFrames
 using Makie

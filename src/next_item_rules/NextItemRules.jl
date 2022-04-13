@@ -10,7 +10,7 @@ Springer, New York, NY.
 """
 module NextItemRules
 
-using Reexport, FromFile
+using Reexport
 using Parameters
 
 using ..Responses: Response

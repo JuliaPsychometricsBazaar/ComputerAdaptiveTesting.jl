@@ -1,9 +1,22 @@
+#md # Tutorial
+#md
+#md # [![](https://mybinder.org/badge_logo.svg)](@__BINDER_ROOT_URL__/generated/ability_convergence_3pl.ipynb)
+
 # # Running a CAT based on a synthetic correct/incorrect 3PL IRT model
 #
 # This example shows how to run a CAT based on a synthetic correct/incorrect 3PL
 # IRT model.
 
-# Start off with the main imports
+# Import order is important. We put ComputerAdaptiveTesting last so we get the extra dependencies.
+using Makie
+import Random
+using Distributions: Normal, cdf
+using AlgebraOfGraphics
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    using WGLMakie
+else
+    using GLMakie
+end
 using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.ExtraDistributions: NormalScaledLogistic
 using ComputerAdaptiveTesting.Sim: auto_responder
@@ -13,16 +26,6 @@ using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEst
 using ComputerAdaptiveTesting.Plots
 using ComputerAdaptiveTesting.ItemBanks: ItemResponse, pick_outcome
 import ComputerAdaptiveTesting.IntegralCoeffs
-import Random
-using Makie
-using Distributions: Normal, cdf
-using AlgebraOfGraphics
-
-if isdefined(Main, :IJulia) && Main.IJulia.inited
-    using WGLMakie
-else
-    using GLMakie
-end
 
 # We will use the 3PL model. We can construct such an item bank in two ways.
 # Typically, the logistic c.d.f. is used as the transfer function in IRT.
