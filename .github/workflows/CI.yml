@@ -46,12 +46,13 @@ jobs:
         with:
           version: '1'
       - uses: julia-actions/julia-buildpkg@v1
+      - run: |
+          julia --project=docs ./docs/install_pkgs.jl
       - uses: julia-actions/julia-docdeploy@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
       - run: |
-          julia --project=docs ./docs/install_pkgs.jl &&
           julia --project=docs -e '
             using Documenter: DocMeta, doctest
             using ComputerAdaptiveTesting
