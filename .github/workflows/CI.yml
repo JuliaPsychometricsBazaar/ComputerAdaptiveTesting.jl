@@ -51,6 +51,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
       - run: |
+          julia --project=docs ./docs/install_pkgs.jl &&
           julia --project=docs -e '
             using Documenter: DocMeta, doctest
             using ComputerAdaptiveTesting
