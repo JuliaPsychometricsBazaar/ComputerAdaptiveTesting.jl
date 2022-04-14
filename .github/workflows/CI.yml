@@ -47,7 +47,7 @@ jobs:
           version: '1'
       - uses: julia-actions/julia-buildpkg@v1
       - run: |
-          julia --project=docs ./install_pkgs.jl
+          julia --project=docs ./install_pkgs.jl headless
       - uses: julia-actions/julia-docdeploy@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
