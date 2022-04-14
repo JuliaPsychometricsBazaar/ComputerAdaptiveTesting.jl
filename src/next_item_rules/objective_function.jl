@@ -3,6 +3,10 @@ abstract type ItemCriterion end
 
 abstract type StateCriterion end
 
+"""
+This StateCriterion returns the variance of the ability estimate given a set of
+responses.
+"""
 struct AbilityVarianceStateCriterion <: StateCriterion end
 
 function (::AbilityVarianceStateCriterion)(tracked_responses::TrackedResponses)::Float64
@@ -18,6 +22,10 @@ function (::AbilityVarianceStateCriterion)(tracked_responses::TrackedResponses):
     expectation(IntegralCoeffs.SqDev(mean), est, tracked_responses, denom)
 end
 
+"""
+This ItemCriterion wraps a StateCriterion and looks at its expected value for a
+particular item 1-ply ahead.
+"""
 struct ExpectationBasedItemCriterion{AbilityEstimatorT <: AbilityEstimator, StateCriterionT <: StateCriterion} <: ItemCriterion
     ability_estimator::AbilityEstimatorT
     state_criterion::StateCriterionT
