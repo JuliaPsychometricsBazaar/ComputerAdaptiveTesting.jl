@@ -37,7 +37,7 @@ function item_bank_to_full_dummy(item_bank, num_testees)
     @inline ir(idx, ability) = ItemResponse(item_bank, idx)(ability)
     # Should be a faster way to do this without allocation
     responses = (
-        randn(num_questions, num_testees)
+        rand(num_questions, num_testees)
         .< ir.(reshape(1:num_questions, (:, 1)), reshape(abilities, (1, :)))
     )
     (item_bank, question_labels, abilities, responses)
