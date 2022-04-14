@@ -14,8 +14,10 @@ using Distributions: Normal, cdf
 using AlgebraOfGraphics
 if isdefined(Main, :IJulia) && Main.IJulia.inited
     using WGLMakie
-else
+elseif "GLMakie" in keys(Pkg.project().dependencies)
     using GLMakie
+else
+    using CarioMakie
 end
 using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.ExtraDistributions: NormalScaledLogistic

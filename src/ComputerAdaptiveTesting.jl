@@ -97,9 +97,9 @@ Installs groups of optional dependencies for specific functionality can be 'plot
 """
 function install_extra(extra)
     pkgs::Vector{PackageSpec} = []
-    if extra == "all"
+    if extra in ["all" "all_headless"]
         for (_, specs) in extras
-            append!(pkgs, specs)
+            append!(pkgs, [spec for spec in specs if extra != "all_headless" || spec.name != "GLMakie"])
         end
     else
         append!(pkgs, extras[extra])
