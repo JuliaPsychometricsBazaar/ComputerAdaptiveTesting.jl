@@ -10,6 +10,10 @@ end
 
 DomainType(::TransferItemBank) = ContinuousDomain
 
+function raw_difficulty(item_bank::TransferItemBank, item_idx)
+    item_bank.difficulties[item_idx]
+end
+
 function Base.length(item_bank::TransferItemBank)
     length(item_bank.difficulties)
 end

@@ -6,7 +6,7 @@ which can store cumulative results during a test.
 """
 module ItemBanks
 
-export ItemResponse, AbilityLikelihood, GuessItemBank, SlipItemBank, TransferItemBank, ItemResponse
+export ItemResponse, AbilityLikelihood, GuessItemBank, SlipItemBank, TransferItemBank, ItemResponse, raw_difficulty, pick_outcome
 
 using ResumableFunctions
 using ..Responses: Response, BareResponses

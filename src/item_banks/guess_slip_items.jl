@@ -85,3 +85,7 @@ end
 function labels(item_bank::AnySlipOrGuessItemBank)
     labels(item_bank.inner_bank)
 end
+
+function raw_difficulty(item_bank::AnySlipOrGuessItemBank, item_idx)
+    raw_difficulty(item_bank.inner_bank, item_idx)
+end

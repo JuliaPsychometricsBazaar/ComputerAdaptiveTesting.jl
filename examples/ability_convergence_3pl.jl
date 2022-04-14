@@ -1,5 +1,5 @@
 #md # Tutorial
-#md
+#
 #md # [![](https://mybinder.org/badge_logo.svg)](@__BINDER_ROOT_URL__/generated/ability_convergence_3pl.ipynb)
 
 # # Running a CAT based on a synthetic correct/incorrect 3PL IRT model
@@ -24,7 +24,7 @@ using ComputerAdaptiveTesting.NextItemRules: NEXT_ITEM_ALIASES
 using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
 using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEstimator, integrate, LikelihoodAbilityEstimator
 using ComputerAdaptiveTesting.Plots
-using ComputerAdaptiveTesting.ItemBanks: ItemResponse, pick_outcome
+using ComputerAdaptiveTesting.ItemBanks
 import ComputerAdaptiveTesting.IntegralCoeffs
 
 # We will use the 3PL model. We can construct such an item bank in two ways.
@@ -110,7 +110,7 @@ sim_cats(function (tracked_responses, resp_idx, terminating)
     item_correct = tracked_responses.responses.values[end] > 0
     ir = ItemResponse(item_bank, item_index)
     item_responses[:, col_idx] = pick_outcome.(ir.(xs), item_correct)
-    item_difficulties[step, resp_idx] = item_bank.inner_bank.difficulties[item_index]
+    item_difficulties[step, resp_idx] = raw_difficulty(item_bank, item_index)
     item_correctness[step, resp_idx] = item_correct
 
     col_idx += 1
@@ -131,16 +131,18 @@ plt = (
     visual(Lines) *
     mapping(:step, :ability_est, color = :respondent => nonnumeric)
 )
-fig = draw(plt)
-hlines!(fig, abilities)
-fig
+conv_lines_fig = draw(plt)
+hlines!(conv_lines_fig, abilities)
+conv_lines_fig
 
-# Make a series of animations showing how the ability likelihood evolves.
-fig = Figure()
-ax = Axis(fig[1, 1])
+# Make an interactive plot, showing how the distribution of the ability
+# likelihood evolves.
+
+conv_dist_fig = Figure()
+ax = Axis(conv_dist_fig[1, 1])
 
 lsgrid = labelslidergrid!(
-    fig,
+    conv_dist_fig,
     ["Respondent", "Time step"],
     [1:3, 1:99];
     formats = ["{:d}", "{:d}"],
@@ -155,16 +157,16 @@ toggle_labels = [
     "current item response",
     "previous responses"
 ]
-toggles = [Toggle(fig, active = true) for _ in toggle_labels]
+toggles = [Toggle(conv_dist_fig, active = true) for _ in toggle_labels]
 labels = [
-    Label(fig, lift(x -> x ? "Show $l" : "Hide $l", t.active))
+    Label(conv_dist_fig, lift(x -> x ? "Show $l" : "Hide $l", t.active))
     for (t, l) in zip(toggles, toggle_labels)
 ]
 toggle_by_name = Dict(zip(toggle_labels, toggles))
 
-fig[1, 2] = GridLayout()
-fig[1, 2][1, 1] = lsgrid.layout
-fig[1, 2][2, 1] = grid!(hcat(toggles, labels), tellheight = false)
+conv_dist_fig[1, 2] = GridLayout()
+conv_dist_fig[1, 2][1, 1] = lsgrid.layout
+conv_dist_fig[1, 2][2, 1] = grid!(hcat(toggles, labels), tellheight = false)
 
 respondent = lsgrid.sliders[1].value
 time_step = lsgrid.sliders[2].value
@@ -199,4 +201,4 @@ connect!(posterior_likelihood_line.visible, toggle_by_name["posterior ability es
 connect!(raw_likelihood_line.visible, toggle_by_name["raw ability estimate"].active)
 connect!(cur_item_response_curve.visible, toggle_by_name["current item response"].active)
 
-fig
+conv_dist_fig
