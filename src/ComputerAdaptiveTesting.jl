@@ -87,7 +87,8 @@ const extras = Dict(
     "dev" => [
         pkg("PProf", "e4faabce-9ead-11e9-39d9-4379958e3056"),
         pkg("StatProfilerHTML", "a8a75453-ed82-57c9-9e16-4cd1196ecbf5"),
-        pkg("JET", "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b")
+        pkg("JET", "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"),
+        pkg("Revise", "295af30f-e4ad-537b-8983-00126c2a3abe")
     ]
 )
 
