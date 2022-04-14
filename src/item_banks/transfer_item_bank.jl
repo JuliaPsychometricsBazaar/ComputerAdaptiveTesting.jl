@@ -15,7 +15,7 @@ function Base.length(item_bank::TransferItemBank)
 end
 
 function norm_abil(θ, difficulty, discrimination)
-    (θ - difficulty) / discrimination
+    (θ - difficulty) * discrimination
 end
 
 function norm_abil(ir::ItemResponse{<:TransferItemBank}, θ::Float64)::Float64
