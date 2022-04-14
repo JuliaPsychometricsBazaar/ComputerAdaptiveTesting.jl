@@ -1,7 +1,5 @@
 using ComputerAdaptiveTesting
 
-ComputerAdaptiveTesting.install_extra("all")
-
 using Documenter
 using Literate
 
