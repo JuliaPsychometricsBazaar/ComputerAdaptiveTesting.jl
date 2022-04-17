@@ -1,9 +1,7 @@
 using ..Responses: Response
 import ..IntegralCoeffs
-using ..Integrators: ContinuousDomain, DiscreteIterableDomain, DiscreteIndexableDomain, DomainType, fixed_gk
+using ..Integrators
 using Distributions: ContinuousUnivariateDistribution
-using QuadGK
-using QuadGK: Segment
 using HCubature
 using Base.Threads
 
@@ -18,7 +16,7 @@ function int_abil_lh_given_resps(
     lo=0.0,
     hi=10.0,
     irf_states_storage=nothing
-)::Float64 where {F}
+) where {F}
     result::Ref{Float64} = Ref(0.0)
     cb_abil_given_resps(responses, items; lo=lo, hi=hi, irf_states_storage=irf_states_storage) do (x, prob)
         # @inline 
@@ -50,24 +48,32 @@ function max_abil_lh_given_resps(
     (cur_argmax[], cur_max[])
 end
 
-struct LikelihoodAbilityEstimator <: DistributionAbilityEstimator end
+function pdf(
+    ability_est::DistributionAbilityEstimator,
+    tracked_responses::TrackedResponses,
+    x
+)
+    pdf(ability_est, tracked_responses)(x)
+end
+
+struct LikelihoodAbilityEstimator{IntegratorT <: Integrator} <: DistributionAbilityEstimator
+    integrator::IntegratorT
+end
 
 function pdf(
     ::LikelihoodAbilityEstimator,
-    tracked_responses::TrackedResponses,
-    x::Float64
-)::Float64
-    ability_lh = AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)
-    ability_lh(x)
+    tracked_responses::TrackedResponses
+)
+    AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)
 end
 
 function integrate(
     f::F,
-    ::LikelihoodAbilityEstimator,
+    est::LikelihoodAbilityEstimator,
     tracked_responses::TrackedResponses
-)::Float64 where {F}
+) where {F}
     ability_lh = AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)
-    integrate(f, ability_lh)
+    integrate(est.integrator, f, ability_lh)
     #=int_abil_lh_given_resps(
         f,
         tracked_responses.responses,
@@ -91,61 +97,55 @@ end
 
 struct PriorAbilityEstimator{PriorT <: ContinuousUnivariateDistribution} <: DistributionAbilityEstimator
     prior::PriorT
+    integrator::Integrator
 end
 
 function pdf(
     est::PriorAbilityEstimator,
     tracked_responses::TrackedResponses,
-    x::Float64
-)::Float64
+)
     ability_lh = AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)
-    prior_f = IntegralCoeffs.PriorApply(IntegralCoeffs.Prior(est.prior), ability_lh)
-    prior_f(x)
+    IntegralCoeffs.PriorApply(IntegralCoeffs.Prior(est.prior), ability_lh)
 end
 
 function integrate(
     f::F,
     est::PriorAbilityEstimator,
     tracked_responses::TrackedResponses
-)::Float64 where {F}
+) where {F}
     prior_f = IntegralCoeffs.PriorApply(IntegralCoeffs.Prior(est.prior), f)
     ability_lh = AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)
-    integrate(prior_f, ability_lh)
+    integrate(est.integrator, prior_f, ability_lh)
 end
 
 function integrate(
+    integrator::Integrator,
     f::F,
     lh_function::LikelihoodFunction
-)::Float64 where {F}
-    integrate(DomainType(lh_function), f, lh_function)
+) where {F}
+    integrate(DomainType(lh_function), integrator, f, lh_function)
 end
-
-# This could be unsafe if quadgk performed i/o. It might be wise to switch to
-# explicitly passing this through from the caller at some point.
-const quadgk_order = 20
-const segbufs = [Vector{Segment{Float64, Float64, Float64}}(undef, quadgk_order - 1) for _ in Threads.nthreads()]
 
 function integrate(
     ::ContinuousDomain,
+    integrator::Integrator,
     f::F,
     lh_function::LikelihoodFunction;
     buf=nothing
-)::Float64 where {F}
+) where {F}
     # TODO: Make integration range configurable
     # TODO: Make integration technique configurable
     comp_f = let f=f, lh_function=lh_function
         x -> f(x) * lh_function(x)
     end
-    segbuf = segbufs[Threads.threadid()]
-    quadgk(comp_f, -10.0, 10.0, rtol=1e-4, segbuf=segbuf, order=quadgk_order)[1]
-    #fixed_gk(comp_f, -10.0, 10.0, 100)[1]
+    integrator(comp_f)
 end
 
 function integrate(
     ::DiscreteIterableDomain,
     f::F,
     lh_function::LikelihoodFunction
-)::Float64 where {F}
+) where {F}
     error("TODO")
 end
 
@@ -153,7 +153,7 @@ function integrate(
     ::DiscreteIndexableDomain,
     f::F,
     lh_function::LikelihoodFunction
-)::Float64 where {F}
+) where {F}
     error("TODO")
 end
 
@@ -187,10 +187,20 @@ function expectation(
     f::F,
     est::DistributionAbilityEstimator,
     tracked_responses::TrackedResponses,
-    denom::Float64
+    denom
 ) where {F}
     integrate(f, est, tracked_responses) / denom
 end
+
+"""
+function observed_information_generic(ability_lh::AbilityLikelihood)
+    -ForwardDiff.hessian(θ -> log_likelihood(ability_lh, θ))
+end
+
+function fisher_information_generic(integrator, ability_lh::AbilityLikelihood)
+    integrator(θ -> θ * observed_information_generic(ability_lh))
+end
+"""
 
 struct ModeAbilityEstimator{DistEst <: DistributionAbilityEstimator} <: PointAbilityEstimator
     dist_est::DistEst

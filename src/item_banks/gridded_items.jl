@@ -29,7 +29,7 @@ function subset_item_bank(item_bank::GriddedItemBank, word_list)::GriddedItemBan
     )
 end
 
-function irf(item_bank::GriddedItemBank, index, θ::Float64)::Float64
+function irf(item_bank::GriddedItemBank, index, θ)
     loc = searchsorted(item_bank.xs, θ)
     item_bank.ys[loc.start, index]
 end

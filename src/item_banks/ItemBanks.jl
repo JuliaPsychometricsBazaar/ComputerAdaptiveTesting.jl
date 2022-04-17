@@ -6,11 +6,14 @@ which can store cumulative results during a test.
 """
 module ItemBanks
 
-export ItemResponse, AbilityLikelihood, GuessItemBank, SlipItemBank, TransferItemBank, ItemResponse, raw_difficulty, pick_outcome
+export ItemResponse, AbstractItemBank, AbilityLikelihood, GuessItemBank
+export SlipItemBank, TransferItemBank, raw_difficulty, pick_outcome
+export item_idxs, item_information
 
 using ResumableFunctions
 using ..Responses: Response, BareResponses
 using ..IOUtils: get_word_list_idxs
+import ForwardDiff
 
 abstract type AbstractItemBank end
 const MaybeLabels = Union{Vector{String}, Nothing}

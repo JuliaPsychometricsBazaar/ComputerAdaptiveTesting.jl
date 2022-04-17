@@ -5,9 +5,29 @@ end
 
 struct NullAbilityTracker <: AbilityTracker end
 
-struct GriddedAbilityTracker <: AbilityTracker
+struct PointAbilityTracker <: AbilityTracker
+    cur_ability::Float64
+end
+
+function track!(::TrackedResponses{IB, <: NullAbilityTracker}) where {IB} end
+
+function track!(tracked_responses::TrackedResponses{IB, <: PointAbilityTracker, <: PointAbilityEstimator}) where {IB}
+    tracked_responses.ability_tracker.cur_ability = tracked_responses.ability_estimator(tracked_responses)
+end
+
+struct GriddedAbilityTracker{GridT <: AbstractVector{Float64}} <: AbilityTracker
+    grid::GridT
     cur_ability::Vector{Float64}
 end
+
+function track!(tracked_responses::TrackedResponses{IB, <: GriddedAbilityTracker, <: DistributionAbilityEstimator}) where {IB}
+    ability_pdf = pdf(tracked_responses.ability_estimator, tracked_responses)
+    tracked_responses.ability_tracker.cur_ability = ability_pdf.(tracked_responses.ability_tracker.grid)
+end
+
+#struct LaplaceAbilityTracker <: AbilityTracker
+    #cur_approx::Normal
+#end
 
 function add_response!(responses::BareResponses, response::Response)::BareResponses
     push!(responses.indices, response.index)
@@ -17,6 +37,7 @@ end
 
 function add_response!(tracked_responses::TrackedResponses, response::Response)
     add_response!(tracked_responses.responses, response)
+    track!(tracked_responses)
 end
 
 function pop_response!(responses::BareResponses)::BareResponses

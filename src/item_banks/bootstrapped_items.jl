@@ -38,7 +38,7 @@ end
 The item-response function at a particular item and value of θ. This is the
 empirical/nonparametric variant.
 """
-function irf(items::BootstrappedItemBank, index, θ::Float64)::Float64
+function irf(items::BootstrappedItemBank, index, θ)
     loc = searchsorted((@view items.resamples[:, index]), θ)
     if loc.start < loc.stop
         avg_loc = (loc.stop - loc.start) / 2

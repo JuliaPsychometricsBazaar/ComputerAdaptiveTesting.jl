@@ -16,7 +16,7 @@ using Parameters
 using ..Responses: Response
 using ..ConfigBase: CatConfigBase
 import ..IntegralCoeffs
-using ..ItemBanks: AbstractItemBank, iter_item_idxs
+using ..ItemBanks
 using ..Aggregators
 using QuadGK, Distributions, Optim, Base.Threads, Base.Order, ResumableFunctions, FLoops, StaticArrays
 
@@ -30,7 +30,7 @@ const default_prior = IntegralCoeffs.Prior(Cauchy(5, 2))
 
 #=
 
-function lh_abil_given_resps(responses::AbstractVector{Response}, items::AbstractItemBank, θ::Float64)
+function lh_abil_given_resps(responses::AbstractVector{Response}, items::AbstractItemBank, θ)
     prod((resp -> pick_outcome(irf(items, resp.index, θ), resp.value)), responses; init=1.0)
 end
 
@@ -45,7 +45,7 @@ end
 """
 Unnormalised version of equation (1.8) from [1]
 """
-function g_abil_given_resps(responses::AbstractVector{Response}, items::AbstractItemBank, θ::Float64)
+function g_abil_given_resps(responses::AbstractVector{Response}, items::AbstractItemBank, θ)
     IntegralCoeffs.PriorApply(default_prior, θ -> lh_abil_given_resps(responses, items, θ))
 end
 =#
@@ -124,7 +124,7 @@ function choose_item_1ply(
     else
         ex = SequentialEx()
     end
-    @floop ex for item_idx in iter_item_idxs(items)
+    @floop ex for item_idx in item_idxs(items)
         # TODO: Add these back in
         @init objective_state = init_thread(objective, responses)
         #@init irf_states_storage = zeros(Int, length(responses) + 1)
@@ -208,8 +208,8 @@ This mapping provides next item rules through the same names that they are
 available through in the `catR` R package. TODO compability with `mirtcat`
 """
 NEXT_ITEM_ALIASES = Dict(
-    #"MFI",
-    #"bOpt",
+    "MFI" => (ability_estimator; parallel=true) -> ItemStrategyNextItemRule(ExhaustiveSearch1Ply(parallel), InformationItemCriterion(ability_estimator)),
+    "bOpt" => (ability_estimator; parallel=true) -> ItemStrategyNextItemRule(ExhaustiveSearch1Ply(parallel), UrryItemCriterion(ability_estimator)),
     #"thOpt",
     #"MLWI",
     #"MPWI",

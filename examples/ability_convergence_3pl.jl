@@ -28,6 +28,7 @@ using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondit
 using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEstimator, integrate, LikelihoodAbilityEstimator
 using ComputerAdaptiveTesting.Plots
 using ComputerAdaptiveTesting.ItemBanks
+using ComputerAdaptiveTesting.Integrators
 import ComputerAdaptiveTesting.IntegralCoeffs
 
 # We will use the 3PL model. We can construct such an item bank in two ways.
@@ -52,20 +53,28 @@ Random.seed!(42)
 # Define a function to simulate a CAT for each testee with a callback.
 # We'll then use this to draw different types of plots.
 const max_questions = 99
-const ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_normal))
+const integrator = FixedGKIntegrator(-10.0, 10.0, 80)
+const ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_normal, integrator))
+
+function cat_config(new_response_callback, responses)
+    CatLoopConfig(
+        get_response=auto_responder(responses),
+        next_item=NEXT_ITEM_ALIASES["MEPV"](ability_estimator, parallel=false),
+        termination_condition=FixedItemsTerminationCondition(max_questions),
+        ability_estimator=ability_estimator,
+        new_response_callback=new_response_callback
+    )
+end
 
 function sim_cats(new_response_callback)
     for testee_idx in axes(responses, 2)
-        config = CatLoopConfig(
-            get_response=auto_responder(
+        θ = run_cat(
+            cat_config(
+                (tracked_responses, terminating) -> new_response_callback(tracked_responses, testee_idx, terminating),
                 @view responses[:, testee_idx]
             ),
-            next_item=NEXT_ITEM_ALIASES["MEPV"](ability_estimator, parallel=false),
-            termination_condition=FixedItemsTerminationCondition(max_questions),
-            ability_estimator=ability_estimator,
-            new_response_callback=(tracked_responses, terminating) -> new_response_callback(tracked_responses, testee_idx, terminating)
+            item_bank
         )
-        θ = run_cat(config, item_bank)
         true_θ = abilities[testee_idx]
         abs_err = abs(θ - true_θ)
         @info "final estimated ability" testee_idx θ true_θ abs_err
@@ -86,7 +95,7 @@ step = 1
 const points = 500
 xs = range(-2.5, 2.5, length=points)
 likelihoods = zeros(points, num_values)
-raw_estimator = LikelihoodAbilityEstimator()
+raw_estimator = LikelihoodAbilityEstimator(integrator)
 raw_likelihoods = zeros(points, num_values)
 item_responses = zeros(points, num_values)
 item_difficulties = zeros(max_questions, num_respondents)

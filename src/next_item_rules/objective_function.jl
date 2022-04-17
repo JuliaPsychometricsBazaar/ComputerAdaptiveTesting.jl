@@ -47,3 +47,23 @@ function (item_criterion::ExpectationBasedItemCriterion)(speculator::Speculator,
     pos_var = item_criterion.state_criterion(speculator.responses)
     (1 - exp_resp) * neg_var + exp_resp * pos_var
 end
+
+struct UrryItemCriterion{AbilityEstimatorT <: AbilityEstimator} <: ItemCriterion
+    ability_estimator::AbilityEstimatorT
+end
+
+function (item_criterion::UrryItemCriterion)(tracked_responses::TrackedResponses, item_idx)
+    ability = item_criterion.ability_estimator(tracked_responses)
+    diff = raw_difficulty(tracked_responses.item_bank, item_idx)
+    abs(ability - diff)
+end
+
+struct InformationItemCriterion{AbilityEstimatorT <: AbilityEstimator} <: ItemCriterion
+    ability_estimator::AbilityEstimatorT
+end
+
+function (item_criterion::InformationItemCriterion)(tracked_responses::TrackedResponses, item_idx)
+    ability = item_criterion.ability_estimator(tracked_responses)
+    ir = ItemResponse(tracked_responses.item_bank, item_idx)
+    -item_information(ir, ability)
+end

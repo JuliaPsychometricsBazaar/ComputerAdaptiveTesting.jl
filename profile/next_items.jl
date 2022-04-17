@@ -1,5 +1,5 @@
 using ComputerAdaptiveTesting.DummyData: dummy_3pl, std_normal
-using ComputerAdaptiveTesting.ItemBanks: iter_item_idxs
+using ComputerAdaptiveTesting.ItemBanks: item_idxs
 using ComputerAdaptiveTesting.Responses
 using ComputerAdaptiveTesting.Aggregators
 using ComputerAdaptiveTesting.NextItemRules
@@ -42,7 +42,7 @@ end
 function run_all(dummy_data, objective)
     (item_bank, actual_responses, responses) = dummy_data
     criterion_state = init_thread(objective, responses)
-    for item_idx in iter_item_idxs(item_bank)
+    for item_idx in item_idxs(item_bank)
         objective(criterion_state, responses, item_idx)
     end
 end

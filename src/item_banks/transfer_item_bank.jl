@@ -8,7 +8,7 @@ struct TransferItemBank{DistT <: ContinuousUnivariateDistribution} <: AbstractIt
     labels::MaybeLabels
 end
 
-DomainType(::TransferItemBank) = ContinuousDomain
+DomainType(::TransferItemBank) = ContinuousDomain()
 
 function raw_difficulty(item_bank::TransferItemBank, item_idx)
     item_bank.difficulties[item_idx]
@@ -22,15 +22,15 @@ function norm_abil(θ, difficulty, discrimination)
     (θ - difficulty) * discrimination
 end
 
-function norm_abil(ir::ItemResponse{<:TransferItemBank}, θ::Float64)::Float64
+function norm_abil(ir::ItemResponse{<:TransferItemBank}, θ)
     norm_abil(θ, ir.item_bank.difficulties[ir.index], ir.item_bank.discriminations[ir.index])
 end
 
-function (ir::ItemResponse{<:TransferItemBank})(θ::Float64)::Float64
+function (ir::ItemResponse{<:TransferItemBank})(θ)
     cdf(ir.item_bank.distribution, norm_abil(ir, θ))
 end
 
-function log_response(ir::ItemResponse{<:TransferItemBank}, θ::Float64)::Float64
+function log_response(ir::ItemResponse{<:TransferItemBank}, θ)
     logcdf(ir.item_bank.distribution, norm_abil(ir, θ))
 end
 
@@ -44,7 +44,7 @@ function int_abil_lh_given_resps(
     items::TransferItemBank;
     lo=0.0,
     hi=10.0
-)::Float64 where {F}
+) where {F}
     quadgk(f(x) * prob), lo, hi)
 end
 
