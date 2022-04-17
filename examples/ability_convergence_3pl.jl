@@ -8,6 +8,7 @@
 # IRT model.
 
 # Import order is important. We put ComputerAdaptiveTesting last so we get the extra dependencies.
+import Pkg
 using Makie
 import Random
 using Distributions: Normal, cdf
