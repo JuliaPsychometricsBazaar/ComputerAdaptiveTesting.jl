@@ -1,7 +1,21 @@
+using ..ConfigBase
+using ..Aggregators: normdenom
+
 abstract type ItemCriterionConfig end
 abstract type ItemCriterion end
 
+function ItemCriterion(bits...; ability_estimator=nothing)
+    @returnsome find1_instance(ItemCriterion, bits)
+    @returnsome find1_type(ItemCriterion, bits) typ -> typ(ability_estimator=ability_estimator)
+    @returnsome ExpectationBasedItemCriterion(bits...; ability_estimator=ability_estimator)
+end
+
 abstract type StateCriterion end
+
+function StateCriterion(bits...; ability_estimator=nothing)
+    @returnsome find1_instance(StateCriterion, bits)
+    @returnsome find1_type(StateCriterion, bits) typ -> typ()
+end
 
 """
 This StateCriterion returns the variance of the ability estimate given a set of
@@ -12,7 +26,7 @@ struct AbilityVarianceStateCriterion <: StateCriterion end
 function (::AbilityVarianceStateCriterion)(tracked_responses::TrackedResponses)::Float64
     # XXX: Not sure if the estimator should come from somewhere else here
     est = distribution_estimator(tracked_responses.ability_estimator)
-    denom = integrate(IntegralCoeffs.one, est, tracked_responses)
+    denom = normdenom(est, tracked_responses)
     mean = expectation(
         IntegralCoeffs.id,
         est,
@@ -29,6 +43,13 @@ particular item 1-ply ahead.
 struct ExpectationBasedItemCriterion{AbilityEstimatorT <: AbilityEstimator, StateCriterionT <: StateCriterion} <: ItemCriterion
     ability_estimator::AbilityEstimatorT
     state_criterion::StateCriterionT
+end
+
+function ExpectationBasedItemCriterion(bits...; ability_estimator=nothing)
+    criterion = StateCriterion(bits...; ability_estimator=ability_estimator)
+    if criterion !== nothing
+        @returnsome AbilityEstimator(bits..., ability_estimator=ability_estimator) ability_estimator -> ExpectationBasedItemCriterion(ability_estimator, criterion)
+    end
 end
 
 function init_thread(::ExpectationBasedItemCriterion, responses::TrackedResponses)

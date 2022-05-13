@@ -11,9 +11,11 @@ export SlipItemBank, TransferItemBank, raw_difficulty, pick_outcome
 export item_idxs, item_information
 
 using ResumableFunctions
+using Distributions: ContinuousUnivariateDistribution, cdf
+import ForwardDiff
+
 using ..Responses: Response, BareResponses
 using ..IOUtils: get_word_list_idxs
-import ForwardDiff
 
 abstract type AbstractItemBank end
 const MaybeLabels = Union{Vector{String}, Nothing}
@@ -23,7 +25,8 @@ include("./generic.jl")
 include("./bootstrapped_items.jl")
 include("./gridded_items.jl")
 include("./guess_slip_items.jl")
-include("./transfer_item_bank.jl")
+include("./cdf_items.jl")
+include("./cdf_mirt_items.jl")
 include("./porcelain.jl")
 
 end

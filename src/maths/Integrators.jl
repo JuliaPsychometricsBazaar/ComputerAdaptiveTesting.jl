@@ -3,20 +3,15 @@ This module provides a common interface to different integration techniques.
 """
 module Integrators
 
-export DiscreteDomain, ContinuousDomain, Integrator, QuadGKIntegrator, FixedGKIntegrator, DiscreteIterableDomain, DiscreteIndexableDomain, DomainType
-
-abstract type DomainType end
-abstract type DiscreteDomain <: DomainType end
-DomainType(callable) = DomainType(typeof(callable))
-DomainType(callable::Type) = ContinuousDomain() # default
-struct ContinuousDomain <: DomainType end
-struct DiscreteIndexableDomain <: DiscreteDomain end
-struct DiscreteIterableDomain <: DiscreteDomain end
+export Integrator, QuadGKIntegrator, FixedGKIntegrator, normdenom
 
 using QuadGK
 using QuadGK: cachedrule, evalrule, Segment
 using LinearAlgebra: norm
 import Base.Iterators
+
+using ..ConfigBase
+using ..IntegralCoeffs: one
 
 function fixed_gk(f::F, lo, hi, n) where {F}
     x, w, gw = cachedrule(Float64, n)
@@ -26,6 +21,13 @@ function fixed_gk(f::F, lo, hi, n) where {F}
 end
 
 abstract type Integrator end
+function Integrator(bits...)
+    @returnsome find1_instance(Integrator, bits)
+end
+
+function normdenom(integrator::Integrator; lo=integrator.lo, hi=integrator.hi, options...)
+    integrator(one; lo=lo, hi=hi, options...)
+end
 
 struct QuadGKIntegrator <: Integrator
     lo::Float64
@@ -39,8 +41,14 @@ end
 # It's 24 * 100 * threads bytes, ~10kb for 4 threads
 segbufs = [Vector{Segment{Float64, Float64, Float64}}(undef, 100) for _ in Threads.nthreads()]
 
-function (integrator::QuadGKIntegrator)(f::F) where F
-    quadgk(f, integrator.lo, integrator.hi, rtol=1e-4, segbuf=segbufs[Threads.threadid()], order=integrator.order)[1]
+function (integrator::QuadGKIntegrator)(
+    f::F;
+    lo=integrator.lo,
+    hi=integrator.hi,
+    order=integrator.order,
+    rtol=1e-4
+) where F
+    quadgk(f, lo, hi, rtol=rtol, segbuf=segbufs[Threads.threadid()], order=order)[1]
 end
 
 struct FixedGKIntegrator <: Integrator
@@ -49,8 +57,13 @@ struct FixedGKIntegrator <: Integrator
     order::Int
 end
 
-function (integrator::FixedGKIntegrator)(f::F) where F
-    fixed_gk(f, integrator.lo, integrator.hi, integrator.order)[1]
+function (integrator::FixedGKIntegrator)(
+    f::F;
+    lo=integrator.lo,
+    hi=integrator.hi,
+    order=integrator.order
+) where F
+    fixed_gk(f, lo, hi, order)[1]
 end
 
 end

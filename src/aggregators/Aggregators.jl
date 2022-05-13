@@ -9,6 +9,8 @@ using StaticArrays: SVector
 
 using ..ItemBanks: AbstractItemBank, ItemResponse, AbilityLikelihood, LikelihoodFunction
 using ..Responses: BareResponses
+using ..MathTraits
+using ..ConfigBase
 
 export AbilityEstimator, TrackedResponses, AbilityTracker
 export NullAbilityTracker
@@ -18,10 +20,34 @@ export Speculator, replace_speculation!
 
 # Basic types
 abstract type AbilityEstimator end
+
+function AbilityEstimator(bits...; ability_estimator=nothing)
+    @returnsome ability_estimator
+    @returnsome find1_instance(AbilityEstimator, bits)
+    item_bank = find1_type_sloppy(AbstractItemBank, bits)
+    if item_bank !== nothing
+        @returnsome AbilityEstimator(DomainType(item_bank))
+    end
+end
+AbilityEstimator(::DomainType) = nothing
+function AbilityEstimator(::ContinuousDomain, bits...)
+    @returnsome Integrator(bits...) integrator -> MeanAbilityEstimator(LikelihoodAbilityEstimator(integrator))
+end
+
 abstract type DistributionAbilityEstimator <: AbilityEstimator end
 abstract type PointAbilityEstimator <: AbilityEstimator end
 
 abstract type AbilityTracker end
+
+function AbilityTracker(bits...; ability_estimator=nothing)
+    @returnsome find1_instance(AbilityTracker, bits)
+    ability_tracker = find1_type(AbilityTracker, bits)
+    if (ability_tracker !== nothing)
+        ability_tracker()
+    end
+    NullAbilityTracker()
+    # TODO: find if ability_estimator is GriddedAbilityEstimator and then propagate stuff to GriddedAbilityTracker
+end
 
 struct TrackedResponses{
     ItemBankT <: AbstractItemBank,

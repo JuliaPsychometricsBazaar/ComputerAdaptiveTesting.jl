@@ -147,7 +147,7 @@ function main()
             required = true
     end
     args = parse_args(settings)
-    next_item_rule = NEXT_ITEM_ALIASES[args["next_item_rule"]](ability_estimator)
+    next_item_rule = catr_next_item_aliases[args["next_item_rule"]](ability_estimator)
     if args["profiling_mode"] == "track_allocs" && !haskey(ENV, "TRACK_ALLOCS")
         cmdline = get_cmdline()
         insert!(cmdline, findfirst(x -> endswith(x, ".jl"), cmdline), "--track-allocation=all")

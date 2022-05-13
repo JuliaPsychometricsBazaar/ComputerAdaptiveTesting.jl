@@ -5,6 +5,13 @@ using Distributions: ContinuousUnivariateDistribution
 using HCubature
 using Base.Threads
 
+function normdenom(
+    est::DistributionAbilityEstimator,
+    tracked_responses::TrackedResponses
+)
+    integrate(IntegralCoeffs.one, est, tracked_responses)
+end
+
 """
 Integrate over the ability likihood given a set of responses with a given
 coefficient using a Riemann sum (aka the rectangle rule).
@@ -179,7 +186,7 @@ function expectation(
         f,
         est,
         tracked_responses,
-        integrate(IntegralCoeffs.one, est, tracked_responses)
+        normdenom(est, tracked_responses)
     )
 end
 

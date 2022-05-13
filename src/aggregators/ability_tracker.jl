@@ -9,6 +9,8 @@ struct PointAbilityTracker <: AbilityTracker
     cur_ability::Float64
 end
 
+PointAbilityTracker() = NaN
+
 function track!(::TrackedResponses{IB, <: NullAbilityTracker}) where {IB} end
 
 function track!(tracked_responses::TrackedResponses{IB, <: PointAbilityTracker, <: PointAbilityEstimator}) where {IB}
@@ -19,6 +21,8 @@ struct GriddedAbilityTracker{GridT <: AbstractVector{Float64}} <: AbilityTracker
     grid::GridT
     cur_ability::Vector{Float64}
 end
+
+GriddedAbilityTracker(grid) = GriddedAbilityTracker(grid, fill(NaN, length(grid)))
 
 function track!(tracked_responses::TrackedResponses{IB, <: GriddedAbilityTracker, <: DistributionAbilityEstimator}) where {IB}
     ability_pdf = pdf(tracked_responses.ability_estimator, tracked_responses)

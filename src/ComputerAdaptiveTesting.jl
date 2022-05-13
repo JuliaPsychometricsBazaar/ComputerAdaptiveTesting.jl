@@ -11,9 +11,9 @@ export CatConfig, Sim, DummyData, Postprocess
 # Maths stuff (no dependencies)
 include("./maths/ExtraDistributions.jl")
 include("./maths/IntegralCoeffs.jl")
-include("./maths/Integrators.jl")
 include("./maths/Interpolators.jl")
 include("./maths/Optimizers.jl")
+include("./maths/MathTraits.jl")
 
 # Base
 include("./ConfigBase.jl")
@@ -21,16 +21,17 @@ include("./Responses.jl")
 include("./IOUtils.jl")
 
 # Near base
+include("./maths/Integrators.jl")
 include("./item_banks/ItemBanks.jl")
-include("aggregators/Aggregators.jl")
+include("./aggregators/Aggregators.jl")
 
 # Stages
-include("next_item_rules/NextItemRules.jl")
-include("TerminationConditions.jl")
+include("./next_item_rules/NextItemRules.jl")
+include("./TerminationConditions.jl")
 
 # Combining / running
-include("CatConfig.jl")
-include("Sim.jl")
+include("./CatConfig.jl")
+include("./Sim.jl")
 
 # Peripheral / contrib
 #=
@@ -56,7 +57,7 @@ end
 
 function __init__()
     #require_extra("plots") do end
-    @require Makie="ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a" @eval begin
+    @require Makie="ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a" begin
         include("Plots.jl")
         export Plots
     end
@@ -64,7 +65,7 @@ end
 include("DummyData.jl")
 include("postprocess/Postprocess.jl")
 
-@reexport using .CatConfig: CatLoopConfig 
+@reexport using .CatConfig: CatLoopConfig, CatRules
 @reexport using .Sim: run_cat
 
 function pkg(name, uuid)

@@ -5,10 +5,16 @@ installed.
 """
 module Plots
 
+export CatRecorder, ability_evolution_lines, lh_evoluation_interactive
+
+using Parameters
 using Distributions
 using AlgebraOfGraphics
 using DataFrames
 using Makie
+using ComputerAdaptiveTesting: Aggregators
+using ComputerAdaptiveTesting.Aggregators: LikelihoodAbilityEstimator, AbilityEstimator, normdenom
+using ComputerAdaptiveTesting.ItemBanks: ItemResponse, pick_outcome, raw_difficulty
 
 # Allows hline! on AlgebraOfGraphics plots. May be better way in future.
 # See: https://github.com/JuliaPlots/AlgebraOfGraphics.jl/issues/299
@@ -102,6 +108,174 @@ function plot_gridified(words, in_path, idxs)
     draw(xz; axis)
 
     current_figure()
+end
+
+mutable struct CatRecorder{AbilityVecT, IntegratorT}
+	col_idx::Int
+	step::Int
+	points::Int
+	respondents::Vector{Int}
+	ability_ests::AbilityVecT
+	steps::Vector{Int}
+	xs::AbilityVecT
+	likelihoods::Matrix{Float64}
+	raw_estimator::LikelihoodAbilityEstimator{IntegratorT}
+	raw_likelihoods::Matrix{Float64}
+	item_responses::Matrix{Float64}
+	item_difficulties::Matrix{Float64}
+	item_correctness::Matrix{Bool}
+	ability_estimator::AbilityEstimator
+    respondent_step_lookup::Dict{Tuple{Int, Int}, Int}
+end
+
+#xs = range(-2.5, 2.5, length=points)
+
+function CatRecorder(xs, points, ability_ests, num_questions, num_respondents, raw_estimator, ability_estimator)
+    num_values = num_questions * num_respondents
+	xs_vec = collect(xs)
+
+	CatRecorder(
+		1,
+		1,
+		points,
+		zeros(Int, num_values),
+		ability_ests,
+		zeros(Int, num_values),
+		xs_vec,
+		zeros(points, num_values),
+		raw_estimator,
+		zeros(points, num_values),
+		zeros(points, num_values),
+		zeros(num_questions, num_respondents),
+		zeros(Bool, num_questions, num_respondents),
+		ability_estimator,
+		Dict{Tuple{Int, Int}, Int}()
+	)
+end
+
+function CatRecorder(xs::AbstractVector{Float64}, responses, raw_estimator, ability_estimator)
+	points = size(xs, 1)
+    num_questions = size(responses, 1)
+    num_respondents = size(responses, 2)
+    num_values = num_questions * num_respondents
+	CatRecorder(xs, points, zeros(num_values), num_questions, num_respondents, raw_estimator, ability_estimator)
+end
+
+function CatRecorder(xs::AbstractMatrix{Float64}, responses, raw_estimator, ability_estimator)
+	points = size(xs, 2)
+    num_questions = size(responses, 1)
+    num_respondents = size(responses, 2)
+    num_values = num_questions * num_respondents
+	CatRecorder(xs, points, zeros(size(xs, 1), num_values), num_questions, num_respondents, raw_estimator, ability_estimator)
+end
+
+function (recorder::CatRecorder)(tracked_responses, resp_idx, terminating)
+    ability_est = recorder.ability_estimator(tracked_responses)
+    if recorder.col_idx > 1 && recorder.respondents[recorder.col_idx - 1] != resp_idx
+        recorder.step = 1
+    end
+    recorder.respondent_step_lookup[(resp_idx, recorder.step)] = recorder.col_idx
+    recorder.respondents[recorder.col_idx] = resp_idx
+    recorder.ability_ests[recorder.col_idx] = ability_est
+    recorder.steps[recorder.col_idx] = recorder.step
+
+    ## We'll also save the prior weighted likelihood of the responses up to this point.
+    denom = normdenom(recorder.ability_estimator.dist_est, tracked_responses)
+    recorder.likelihoods[:, recorder.col_idx] = Aggregators.pdf.(Ref(recorder.ability_estimator.dist_est), Ref(tracked_responses), recorder.xs) ./ denom
+    raw_denom = normdenom(recorder.raw_estimator, tracked_responses)
+    recorder.raw_likelihoods[:, recorder.col_idx] = Aggregators.pdf.(Ref(recorder.raw_estimator), Ref(tracked_responses), recorder.xs) ./ raw_denom
+    item_index = tracked_responses.responses.indices[end]
+    item_correct = tracked_responses.responses.values[end] > 0
+    ir = ItemResponse(tracked_responses.item_bank, item_index)
+    recorder.item_responses[:, recorder.col_idx] = pick_outcome.(ir.(recorder.xs), item_correct)
+    recorder.item_difficulties[recorder.step, resp_idx] = raw_difficulty(tracked_responses.item_bank, item_index)
+    recorder.item_correctness[recorder.step, resp_idx] = item_correct
+
+    recorder.col_idx += 1
+    recorder.step += 1
+end
+
+function ability_evolution_lines(recorder; abilities=nothing)
+	plt = (
+		data((respondent = recorder.respondents, ability_est = recorder.ability_ests, step = recorder.steps)) *
+		visual(Lines) *
+		mapping(:step, :ability_est, color = :respondent => nonnumeric)
+	)
+	conv_lines_fig = draw(plt)
+	if abilities !== nothing
+		hlines!(conv_lines_fig, abilities)
+	end
+	conv_lines_fig
+end
+
+function lh_evoluation_interactive(recorder; abilities=nothing)
+	conv_dist_fig = Figure()
+	ax = Axis(conv_dist_fig[1, 1])
+
+	lsgrid = labelslidergrid!(
+		conv_dist_fig,
+		["Respondent", "Time step"],
+		[1:3, 1:99];
+		formats = ["{:d}", "{:d}"],
+		width = 350,
+		tellheight = false
+	)
+
+	toggle_labels = [
+		"posterior ability estimate",
+		"raw ability estimate",
+		"actual ability",
+		"current item response",
+		"previous responses"
+	]
+	toggles = [Toggle(conv_dist_fig, active = true) for _ in toggle_labels]
+	labels = [
+		Label(conv_dist_fig, lift(x -> x ? "Show $l" : "Hide $l", t.active))
+		for (t, l) in zip(toggles, toggle_labels)
+	]
+	toggle_by_name = Dict(zip(toggle_labels, toggles))
+
+	conv_dist_fig[1, 2] = GridLayout()
+	conv_dist_fig[1, 2][1, 1] = lsgrid.layout
+	conv_dist_fig[1, 2][2, 1] = grid!(hcat(toggles, labels), tellheight = false)
+
+	respondent = lsgrid.sliders[1].value
+	time_step = lsgrid.sliders[2].value
+
+	cur_col_idx = @lift(recorder.respondent_step_lookup[($respondent, $time_step)])
+	cur_likelihood_ys = @lift(@view recorder.likelihoods[:, $cur_col_idx])
+	cur_raw_likelihood_ys = @lift(@view recorder.raw_likelihoods[:, $cur_col_idx])
+	cur_response_ys = @lift(@view recorder.item_responses[:, $cur_col_idx])
+	if abilities !== nothing
+		cur_ability = @lift(abilities[$respondent])
+	end
+	function mk_get_correctness(correct)
+		function get_correctness(time_step, respondent)
+			difficulty = @view recorder.item_difficulties[1:time_step, respondent]
+			correctness = @view recorder.item_correctness[1:time_step, respondent]
+			difficulty[correctness .== correct]
+		end
+	end
+	cur_prev_correct = lift(mk_get_correctness(true), time_step, respondent)
+	cur_prev_incorrect = lift(mk_get_correctness(false), time_step, respondent)
+
+	posterior_likelihood_line = lines!(ax, recorder.xs, cur_likelihood_ys)
+	raw_likelihood_line = lines!(ax, recorder.xs, cur_raw_likelihood_ys)
+	cur_item_response_curve = lines!(ax, recorder.xs, cur_response_ys)
+	correct_items = scatter!(ax, cur_prev_correct, [0.0], color = :green)
+	incorrect_items = scatter!(ax, cur_prev_incorrect, [0.0], color = :red)
+	if abilities !== nothing
+		actual_ability_line = vlines!(ax, cur_ability)
+	end
+
+	connect!(correct_items.visible, toggle_by_name["previous responses"].active)
+	connect!(incorrect_items.visible, toggle_by_name["previous responses"].active)
+	connect!(actual_ability_line.visible, toggle_by_name["actual ability"].active)
+	connect!(posterior_likelihood_line.visible, toggle_by_name["posterior ability estimate"].active)
+	connect!(raw_likelihood_line.visible, toggle_by_name["raw ability estimate"].active)
+	connect!(cur_item_response_curve.visible, toggle_by_name["current item response"].active)
+
+	conv_dist_fig
 end
 
 end

@@ -10,6 +10,10 @@ end
 
 # TODO: 1PL
 
+"""
+Convenience function to construct an item bank of the standard 2-parameter
+logistic single-dimensional IRT model.
+"""
 function ItemBank2PL(
     difficulties,
     discriminations;
@@ -18,6 +22,10 @@ function ItemBank2PL(
     TransferItemBank(NormalScaledLogistic(), difficulties, discriminations, labels)
 end
 
+"""
+Convenience function to construct an item bank of the standard 3-parameter
+logistic single-dimensional IRT model.
+"""
 function ItemBank3PL(
     difficulties,
     discriminations,
@@ -27,6 +35,10 @@ function ItemBank3PL(
     GuessItemBank(guesses, ItemBank2PL(difficulties, discriminations; labels=labels))
 end
 
+"""
+Convenience function to construct an item bank of the standard 4-parameter
+logistic single-dimensional IRT model.
+"""
 function ItemBank4PL(
     difficulties,
     discriminations,
@@ -35,4 +47,43 @@ function ItemBank4PL(
     labels=nothing
 )
     SlipItemBank(slips, ItemBank3PL(difficulties, discriminations, guesses; labels=labels))
+end
+
+"""
+Convenience function to construct an item bank of the standard 2-parameter
+logistic MIRT model.
+"""
+function ItemBankMirt2PL(
+    difficulties,
+    discriminations;
+    labels=nothing
+)
+    CdfMirtItemBank(NormalScaledLogistic(), difficulties, discriminations, labels)
+end
+
+"""
+Convenience function to construct an item bank of the standard 3-parameter
+logistic MIRT model.
+"""
+function ItemBankMirt3PL(
+    difficulties,
+    discriminations,
+    guesses;
+    labels=nothing
+)
+    GuessItemBank(guesses, ItemBankMirt2PL(difficulties, discriminations; labels=labels))
+end
+
+"""
+Convenience function to construct an item bank of the standard 4-parameter
+logistic MIRT model.
+"""
+function ItemBankMirt4PL(
+    difficulties,
+    discriminations,
+    guesses,
+    slips;
+    labels=nothing
+)
+    SlipItemBank(slips, ItemBankMirt3PL(difficulties, discriminations, guesses; labels=labels))
 end

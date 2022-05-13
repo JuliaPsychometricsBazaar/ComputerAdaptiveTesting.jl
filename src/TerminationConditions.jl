@@ -2,9 +2,14 @@ module TerminationConditions
 
 using ..ItemBanks: AbstractItemBank
 using ..Aggregators: TrackedResponses
-using ..ConfigBase: CatConfigBase
+using ..ConfigBase
+using ..MathTraits
 
 abstract type TerminationCondition <: CatConfigBase end
+
+function TerminationCondition(bits...)
+    @returnsome find1_instance(TerminationCondition, bits)
+end
 
 struct FixedItemsTerminationCondition{} <: TerminationCondition
     num_items::Int64

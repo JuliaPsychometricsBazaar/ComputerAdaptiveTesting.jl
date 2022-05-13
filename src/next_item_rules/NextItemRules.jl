@@ -14,17 +14,22 @@ using Reexport
 using Parameters
 
 using ..Responses: Response
-using ..ConfigBase: CatConfigBase
+using ..ConfigBase
 import ..IntegralCoeffs
 using ..ItemBanks
 using ..Aggregators
 using QuadGK, Distributions, Optim, Base.Threads, Base.Order, ResumableFunctions, FLoops, StaticArrays
 
-export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, NEXT_ITEM_ALIASES, init_thread, ItemStrategyNextItemRule
+export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, CAT, init_thread, ItemStrategyNextItemRule
 
 include("./objective_function.jl")
 
 abstract type NextItemRule <: CatConfigBase end
+
+function NextItemRule(bits...; ability_estimator=nothing, parallel=true)
+    @returnsome find1_instance(NextItemRule, bits)
+    @returnsome ItemStrategyNextItemRule(bits..., ability_estimator=ability_estimator, parallel=parallel)
+end
 
 const default_prior = IntegralCoeffs.Prior(Cauchy(5, 2))
 
@@ -158,6 +163,16 @@ end
 
 abstract type NextItemStrategy <: CatConfigBase end
 
+function NextItemStrategy(; parallel=true)
+    ExhaustiveSearch1Ply(parallel)
+end
+
+function NextItemStrategy(bits...; parallel=true)
+    @returnsome find1_instance(NextItemStrategy, bits)
+    @returnsome find1_type(NextItemStrategy, bits) typ -> typ(; parallel=parallel)
+    @returnsome NextItemStrategy(; parallel=parallel)
+end
+
 @with_kw struct ExhaustiveSearch1Ply <: NextItemStrategy
     parallel::Bool
 end
@@ -165,6 +180,14 @@ end
 struct ItemStrategyNextItemRule{NextItemStrategyT <: NextItemStrategy, ItemCriterionT <: ItemCriterion} <: NextItemRule
     strategy::NextItemStrategyT 
     criterion::ItemCriterionT
+end
+
+function ItemStrategyNextItemRule(bits...; parallel=true, ability_estimator=nothing)
+    strategy = NextItemStrategy(bits...; parallel=parallel)
+    criterion = ItemCriterion(bits...; ability_estimator=ability_estimator)
+    if strategy !== nothing && criterion !== nothing
+        return ItemStrategyNextItemRule(strategy, criterion)
+    end
 end
 
 function (rule::ItemStrategyNextItemRule{ExhaustiveSearch1Ply, ItemCriterionT})(
@@ -207,7 +230,7 @@ ConfigPurity(::MinExpectedVariance) = ImpureConfig
 This mapping provides next item rules through the same names that they are
 available through in the `catR` R package. TODO compability with `mirtcat`
 """
-NEXT_ITEM_ALIASES = Dict(
+const catr_next_item_aliases = Dict(
     "MFI" => (ability_estimator; parallel=true) -> ItemStrategyNextItemRule(ExhaustiveSearch1Ply(parallel), InformationItemCriterion(ability_estimator)),
     "bOpt" => (ability_estimator; parallel=true) -> ItemStrategyNextItemRule(ExhaustiveSearch1Ply(parallel), UrryItemCriterion(ability_estimator)),
     #"thOpt",

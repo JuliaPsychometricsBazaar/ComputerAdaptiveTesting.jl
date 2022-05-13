@@ -1,6 +1,3 @@
-using Distributions: ContinuousUnivariateDistribution, cdf
-using QuadGK
-
 struct TransferItemBank{DistT <: ContinuousUnivariateDistribution} <: AbstractItemBank
     distribution::DistT
     difficulties::Vector{Float64}
@@ -18,12 +15,12 @@ function Base.length(item_bank::TransferItemBank)
     length(item_bank.difficulties)
 end
 
-function norm_abil(θ, difficulty, discrimination)
+function _norm_abil_1d(θ, difficulty, discrimination)
     (θ - difficulty) * discrimination
 end
 
 function norm_abil(ir::ItemResponse{<:TransferItemBank}, θ)
-    norm_abil(θ, ir.item_bank.difficulties[ir.index], ir.item_bank.discriminations[ir.index])
+    _norm_abil_1d(θ, ir.item_bank.difficulties[ir.index], ir.item_bank.discriminations[ir.index])
 end
 
 function (ir::ItemResponse{<:TransferItemBank})(θ)
