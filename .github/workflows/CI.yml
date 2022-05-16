@@ -31,7 +31,7 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v1
-      - run |
+      - run: |
           cd full && ./build.sh
       - uses: julia-actions/julia-buildpkg@v1
         with:
