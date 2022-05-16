@@ -57,19 +57,20 @@ jobs:
         #- uses: julia-actions/julia-docdeploy@v1
           #with:
           #install-package: false
-      - run: |
+      - name: Install GitHubActions.jl in docs env
+        run: |
           julia --project=docs -e '
-              @eval Module() begin
-                  push!(LOAD_PATH, "@docs-logger-env") # access GitHubActions.jl
-                  import Logging, GitHubActions
-                  Logging.global_logger(GitHubActions.GitHubActionsLogger())
-                  pop!(LOAD_PATH)
-              end
-              include("docs/make.jl")'
+            using Pkg
+            Pkg.add(Pkg.PackageSpec(name="GitHubActions", version="0.1"))'
+      - name: Make docs
+        run: |
+          julia --project=docs -e '
+            include("docs/make.jl")'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
-      - run: |
+      - name: Run doctest
+        run: |
           julia --project=docs -e '
             using Documenter: DocMeta, doctest
             using ComputerAdaptiveTesting
