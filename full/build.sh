@@ -1,3 +1,3 @@
 #!/bin/sh
 
-julia --project ../install_pkgs.jl
+julia --project=. ../install_pkgs.jl
