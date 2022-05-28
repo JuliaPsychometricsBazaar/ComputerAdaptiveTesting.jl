@@ -5,6 +5,8 @@ using ..Aggregators: TrackedResponses
 using ..ConfigBase
 using ..MathTraits
 
+export TerminationCondition, FixedItemsTerminationCondition, SimpleFunctionTerminationCondition
+
 abstract type TerminationCondition <: CatConfigBase end
 
 function TerminationCondition(bits...)

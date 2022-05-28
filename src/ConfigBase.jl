@@ -1,6 +1,6 @@
 module ConfigBase
 
-export CatConfigBase, @returnsome
+export CatConfigBase, @requiresome, @returnsome
 export find1, find1_instance, find1_type, find1_type_sloppy
 
 using MacroTools
@@ -19,6 +19,16 @@ end
 
 @inline function (self::CatConfigBase)(::Type{PureConfig})
     self
+end
+
+macro requiresome(assign)
+    @capture(assign, name_ = expr_) || error("@requiresome must be passed an assignment")
+    quote
+        $(esc(assign))
+        if $(esc(name)) === nothing
+            return nothing
+        end
+    end
 end
 
 macro returnsome(expr)

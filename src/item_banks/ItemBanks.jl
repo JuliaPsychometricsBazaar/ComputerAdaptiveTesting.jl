@@ -8,10 +8,14 @@ module ItemBanks
 
 export ItemResponse, AbstractItemBank, AbilityLikelihood, GuessItemBank
 export SlipItemBank, TransferItemBank, raw_difficulty, pick_outcome
-export item_idxs, item_information
+export item_idxs, known_item_information, expected_item_information, item_information
+export responses_information, pick_resp, pick_logresp
+export ItemBank2PL, ItemBank3PL, ItemBank4PL
+export ItemBankMirt2PL, ItemBankMirt3PL, ItemBankMirt4PL
 
 using ResumableFunctions
-using Distributions: ContinuousUnivariateDistribution, cdf
+using Distributions
+#using Distributions: ContinuousUnivariateDistribution, cdf
 import ForwardDiff
 
 using ..Responses: Response, BareResponses

@@ -16,8 +16,7 @@ struct Speculator
             TrackedResponses(
                 BareResponses(indices, values),
                 responses.item_bank,
-                responses.ability_tracker,
-                responses.ability_estimator
+                responses.ability_tracker
             ),
             size
         )

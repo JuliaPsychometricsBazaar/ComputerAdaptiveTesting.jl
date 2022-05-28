@@ -7,6 +7,9 @@ using Requires
 export ExtraDistributions, IntegralCoeffs, Integrators, Interpolators, Optimizers
 export ConfigBase, Responses, IOUtils, ItemBanks, Aggregators, NextItemRules, TerminationConditions
 export CatConfig, Sim, DummyData, Postprocess
+
+# Config base
+include("./ConfigBase.jl")
     
 # Maths stuff (no dependencies)
 include("./maths/ExtraDistributions.jl")
@@ -16,7 +19,6 @@ include("./maths/Optimizers.jl")
 include("./maths/MathTraits.jl")
 
 # Base
-include("./ConfigBase.jl")
 include("./Responses.jl")
 include("./IOUtils.jl")
 
@@ -90,7 +92,9 @@ const extras = Dict(
         pkg("StatProfilerHTML", "a8a75453-ed82-57c9-9e16-4cd1196ecbf5"),
         pkg("JET", "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"),
         pkg("Revise", "295af30f-e4ad-537b-8983-00126c2a3abe"),
-        pkg("Aqua", "4c88cf16-eb10-579e-8560-4a9242c79595")
+        pkg("Aqua", "4c88cf16-eb10-579e-8560-4a9242c79595"),
+        # Used by profiling scripts
+        pkg("StatsBase", "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"),
     ]
 )
 

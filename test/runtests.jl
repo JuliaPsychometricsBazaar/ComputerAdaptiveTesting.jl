@@ -1,11 +1,26 @@
 using ComputerAdaptiveTesting
+using ComputerAdaptiveTesting.Aggregators
+using ComputerAdaptiveTesting.ItemBanks
+using ComputerAdaptiveTesting.Integrators
+using ComputerAdaptiveTesting.Responses
+using ComputerAdaptiveTesting.Optimizers
+using ComputerAdaptiveTesting.NextItemRules
+using ComputerAdaptiveTesting.TerminationConditions
+using ComputerAdaptiveTesting.Sim
 using Test
 using Aqua
+using Distributions
+using Distributions: ZeroMeanIsoNormal, Zeros, ScalMat
+using Optim
+using Random
 
-Aqua.test_all(ComputerAdaptiveTesting)
+Aqua.test_all(
+    ComputerAdaptiveTesting;
+    ambiguities=false,
+    stale_deps=false,
+    deps_compat=false #tmp
+)
 
-@testset "Smoke test" begin
-    using ComputerAdaptiveTesting.DummyData: dummy_3pl, std_normal
-    Random.seed!(42)
-    (item_bank, question_labels, abilities, responses) = dummy_3pl(;num_questions=100, num_testees=3)
-end
+include("./ability_estimator_1d.jl")
+include("./ability_estimator_2d.jl")
+include("./smoke.jl")

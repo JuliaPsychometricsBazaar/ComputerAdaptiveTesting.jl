@@ -8,25 +8,25 @@ level of specialization.
 """
 module IntegralCoeffs
 
-using Distributions: ContinuousUnivariateDistribution, pdf
+using Distributions: Distribution, pdf
 
-@inline function one(x_::Float64)::Float64
+@inline function one(x_)::Float64
     1.0
 end
 
-@inline function id(x::Float64)::Float64
+@inline function id(x::T)::T where {T}
     x
 end
 
-struct SqDev
-    center::Float64
+struct SqDev{CenterT}
+    center::CenterT
 end
 
-@inline function (sq_dev::SqDev)(x::Float64)::Float64
-    (x - sq_dev.center) ^ 2
+@inline function (sq_dev::SqDev)(x)
+    (x .- sq_dev.center) .^ 2
 end
 
-struct Prior{Dist <: ContinuousUnivariateDistribution}
+struct Prior{Dist <: Distribution}
     dist::Dist
 end
 
@@ -35,11 +35,7 @@ struct PriorApply{Dist, F}
     func::F
 end
 
-#function apply_prior{F}(prior::Prior, func: F)::PriorApply where {F}
-    #PriorApply(prior, func)
-#end
-
-@inline function (prior_apply::PriorApply)(x::Float64)::Float64
+@inline function (prior_apply::PriorApply)(x)
     pdf(prior_apply.prior.dist, x) * prior_apply.func(x)
 end
 

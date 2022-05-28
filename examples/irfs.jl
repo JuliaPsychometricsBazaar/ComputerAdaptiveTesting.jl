@@ -1,8 +1,16 @@
 #md # Item Response Functions for IRT/CAT
 #
-#md # [![](https://mybinder.org/badge_logo.svg)](@__BINDER_ROOT_URL__/generated/ability_convergence_3pl.ipynb)
+#md # [![](https://mybinder.org/badge_logo.svg)](@__BINDER_ROOT_URL__/generated/irfs.ipynb)
 
-include("./import_makie.jl")
+using Makie
+import Pkg
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    using WGLMakie
+elseif "GLMakie" in keys(Pkg.project().dependencies)
+    using GLMakie
+else
+    using CarioMakie
+end
 using Distributions: Normal, cdf
 using ComputerAdaptiveTesting.ExtraDistributions: NormalScaledLogistic
 

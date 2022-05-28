@@ -8,8 +8,19 @@ struct ItemResponse{ItemBankT <: AbstractItemBank, IntT <: Integer} <: Likelihoo
     index::IntT
 end
 
-function log_response(ir::ItemResponse, θ)
-    log(ir(θ))
+# These defaults (cresp,logresp,logcresp) could have poor numerical stability.
+# Should possibly issue a warning when used to poke for more stable ones from
+# the item bank type
+function cresp(ir::ItemResponse, θ)
+    1 - resp(ir, θ)
+end
+
+function logresp(ir::ItemResponse, θ)
+    log(resp(ir, θ))
+end
+
+function logcresp(ir::ItemResponse, θ)
+    log(cresp(ir, θ))
 end
 
 struct AbilityLikelihood{ItemBankT} <: LikelihoodFunction where {ItemBankT <: AbstractItemBank}
@@ -34,17 +45,17 @@ end
 
 function (ability_lh::AbilityLikelihood)(::ContinuousDomain, θ)
     prod(
-        pick_outcome(
+        pick_resp(ability_lh.responses.values[resp_idx] > 0)(
             ItemResponse(
                 ability_lh.item_bank,
                 ability_lh.responses.indices[resp_idx]
-            )(θ),
-            ability_lh.responses.values[resp_idx] > 0
+            ),
+            θ,
         )
         for resp_idx in axes(ability_lh.responses.indices, 1);
         init=1.0
     )
-    #exp(log_response(ContinuousDomain(), ability_lh, θ))
+    #exp(logresp(OneDimContinuousDomain(), ability_lh, θ))
 end
 
 function log_likelihood(ability_lh::AbilityLikelihood, θ)
@@ -54,25 +65,53 @@ end
 function log_likelihood(::ContinuousDomain, ability_lh::AbilityLikelihood, θ)
     # TODO: Might have to do log-sum-exp trick here
     sum(
-        pick_outcome(
-            log_response(
-                ItemResponse(
-                    ability_lh.item_bank,
-                    ability_lh.responses.indices[resp_idx]
-                ),
-                θ
+        pick_logresp(ability_lh.responses.values[resp_idx] > 0)(
+            ItemResponse(
+                ability_lh.item_bank,
+                ability_lh.responses.indices[resp_idx]
             ),
-            ability_lh.responses.values[resp_idx] > 0
+            θ,
         )
         for resp_idx in axes(ability_lh.responses.indices, 1)
     )
 end
 
+# How does this compare with expected_item_information. Speeds/accuracies?
+# TODO: Which response models is this valid for?
+# TODO: Citation/source for this equation
+# TODO: Do it in log space?
 function item_information(ir::ItemResponse, θ)
-    # TODO: Which response models is this valid for?
     irθ_prime = ForwardDiff.derivative(ir, θ)
     irθ = ir(θ)
-    (irθ_prime * irθ_prime) / (irθ * (1 - irθ))
+    if irθ_prime == 0.0
+        return 0.0
+    else
+        return (irθ_prime * irθ_prime) / (irθ * (1 - irθ))
+    end
+end
+
+# TODO: Unclear whether this should be implemented with ExpectationBasedItemCriterion
+function expected_item_information(ir::ItemResponse, θ::Vector{Float64})
+    exp_resp = ir(θ)
+    corr_hess = ForwardDiff.hessian(θ -> logresp(ir, θ), θ)
+    incorr_hess = ForwardDiff.hessian(θ -> logcresp(ir, θ), θ)
+    -(exp_resp .* corr_hess + (1.0 - exp_resp) .* incorr_hess)
+end
+
+function known_item_information(ir::ItemResponse, resp_value, θ)
+    -ForwardDiff.hessian(θ -> pick_logresp(resp_value)(ir, θ), θ)
+end
+
+function responses_information(item_bank::AbstractItemBank, responses::BareResponses, θ)
+    d = dim(item_bank)
+    reduce(
+        .+,
+        (
+            known_item_information(ItemResponse(item_bank, resp_idx), resp_value > 0, θ)
+            for (resp_idx, resp_value)
+            in zip(responses.indices, responses.values)
+        ); init=zeros(d, d)
+    )
 end
 
 #=
@@ -98,6 +137,14 @@ end
 
 @inline function pick_outcome(p::Float64, outcome::Bool)
     outcome ? p : 1.0 - p
+end
+
+@inline function pick_resp(outcome)
+    outcome ? resp : cresp
+end
+
+@inline function pick_logresp(outcome)
+    outcome ? logresp : logcresp
 end
 
 """

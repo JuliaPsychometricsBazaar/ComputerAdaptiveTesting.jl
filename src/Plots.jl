@@ -13,8 +13,9 @@ using AlgebraOfGraphics
 using DataFrames
 using Makie
 using ComputerAdaptiveTesting: Aggregators
-using ComputerAdaptiveTesting.Aggregators: LikelihoodAbilityEstimator, AbilityEstimator, normdenom
-using ComputerAdaptiveTesting.ItemBanks: ItemResponse, pick_outcome, raw_difficulty
+using ComputerAdaptiveTesting.Aggregators
+using ComputerAdaptiveTesting.ItemBanks
+using ComputerAdaptiveTesting.Integrators
 
 # Allows hline! on AlgebraOfGraphics plots. May be better way in future.
 # See: https://github.com/JuliaPlots/AlgebraOfGraphics.jl/issues/299
@@ -110,7 +111,7 @@ function plot_gridified(words, in_path, idxs)
     current_figure()
 end
 
-mutable struct CatRecorder{AbilityVecT, IntegratorT}
+mutable struct CatRecorder{AbilityVecT}
 	col_idx::Int
 	step::Int
 	points::Int
@@ -119,7 +120,8 @@ mutable struct CatRecorder{AbilityVecT, IntegratorT}
 	steps::Vector{Int}
 	xs::AbilityVecT
 	likelihoods::Matrix{Float64}
-	raw_estimator::LikelihoodAbilityEstimator{IntegratorT}
+	integrator::AbilityIntegrator
+	raw_estimator::LikelihoodAbilityEstimator
 	raw_likelihoods::Matrix{Float64}
 	item_responses::Matrix{Float64}
 	item_difficulties::Matrix{Float64}
@@ -130,7 +132,7 @@ end
 
 #xs = range(-2.5, 2.5, length=points)
 
-function CatRecorder(xs, points, ability_ests, num_questions, num_respondents, raw_estimator, ability_estimator)
+function CatRecorder(xs, points, ability_ests, num_questions, num_respondents, integrator, raw_estimator, ability_estimator)
     num_values = num_questions * num_respondents
 	xs_vec = collect(xs)
 
@@ -143,6 +145,7 @@ function CatRecorder(xs, points, ability_ests, num_questions, num_respondents, r
 		zeros(Int, num_values),
 		xs_vec,
 		zeros(points, num_values),
+		AbilityIntegrator(integrator),
 		raw_estimator,
 		zeros(points, num_values),
 		zeros(points, num_values),
@@ -153,20 +156,36 @@ function CatRecorder(xs, points, ability_ests, num_questions, num_respondents, r
 	)
 end
 
-function CatRecorder(xs::AbstractVector{Float64}, responses, raw_estimator, ability_estimator)
+function CatRecorder(xs::AbstractVector{Float64}, responses, integrator, raw_estimator, ability_estimator)
 	points = size(xs, 1)
     num_questions = size(responses, 1)
     num_respondents = size(responses, 2)
     num_values = num_questions * num_respondents
-	CatRecorder(xs, points, zeros(num_values), num_questions, num_respondents, raw_estimator, ability_estimator)
+	CatRecorder(xs, points, zeros(num_values), num_questions, num_respondents, integrator, raw_estimator, ability_estimator)
 end
 
-function CatRecorder(xs::AbstractMatrix{Float64}, responses, raw_estimator, ability_estimator)
+function CatRecorder(xs::AbstractMatrix{Float64}, responses, integrator, raw_estimator, ability_estimator)
 	points = size(xs, 2)
     num_questions = size(responses, 1)
     num_respondents = size(responses, 2)
     num_values = num_questions * num_respondents
-	CatRecorder(xs, points, zeros(size(xs, 1), num_values), num_questions, num_respondents, raw_estimator, ability_estimator)
+	CatRecorder(xs, points, zeros(size(xs, 1), num_values), num_questions, num_respondents, integrator, raw_estimator, ability_estimator)
+end
+
+function push_ability_est!(ability_ests::AbstractMatrix{Float64}, col_idx, ability_est)
+    ability_ests[:, col_idx] = ability_est
+end
+
+function push_ability_est!(ability_ests::AbstractVector{Float64}, col_idx, ability_est)
+    ability_ests[col_idx] = ability_est
+end
+
+function eachmatcol(xs::Matrix)
+	eachcol(xs)
+end
+
+function eachmatcol(xs::Vector)
+	xs
 end
 
 function (recorder::CatRecorder)(tracked_responses, resp_idx, terminating)
@@ -176,18 +195,23 @@ function (recorder::CatRecorder)(tracked_responses, resp_idx, terminating)
     end
     recorder.respondent_step_lookup[(resp_idx, recorder.step)] = recorder.col_idx
     recorder.respondents[recorder.col_idx] = resp_idx
-    recorder.ability_ests[recorder.col_idx] = ability_est
+    push_ability_est!(recorder.ability_ests, recorder.col_idx, ability_est)
     recorder.steps[recorder.col_idx] = recorder.step
 
-    ## We'll also save the prior weighted likelihood of the responses up to this point.
-    denom = normdenom(recorder.ability_estimator.dist_est, tracked_responses)
-    recorder.likelihoods[:, recorder.col_idx] = Aggregators.pdf.(Ref(recorder.ability_estimator.dist_est), Ref(tracked_responses), recorder.xs) ./ denom
-    raw_denom = normdenom(recorder.raw_estimator, tracked_responses)
-    recorder.raw_likelihoods[:, recorder.col_idx] = Aggregators.pdf.(Ref(recorder.raw_estimator), Ref(tracked_responses), recorder.xs) ./ raw_denom
+    # Save likelihoods
+	dist_est = distribution_estimator(recorder.ability_estimator)
+    denom = normdenom(recorder.integrator, dist_est, tracked_responses)
+    recorder.likelihoods[:, recorder.col_idx] = Aggregators.pdf.(Ref(dist_est), Ref(tracked_responses), eachmatcol(recorder.xs)) ./ denom
+    raw_denom = normdenom(recorder.integrator, recorder.raw_estimator, tracked_responses)
+    recorder.raw_likelihoods[:, recorder.col_idx] = Aggregators.pdf.(Ref(recorder.raw_estimator), Ref(tracked_responses), eachmatcol(recorder.xs)) ./ raw_denom
+
+	# Save item responses
     item_index = tracked_responses.responses.indices[end]
     item_correct = tracked_responses.responses.values[end] > 0
     ir = ItemResponse(tracked_responses.item_bank, item_index)
-    recorder.item_responses[:, recorder.col_idx] = pick_outcome.(ir.(recorder.xs), item_correct)
+    recorder.item_responses[:, recorder.col_idx] = pick_resp(item_correct).(Ref(ir), eachmatcol(recorder.xs))
+
+	# Save item parameters
     recorder.item_difficulties[recorder.step, resp_idx] = raw_difficulty(tracked_responses.item_bank, item_index)
     recorder.item_correctness[recorder.step, resp_idx] = item_correct
 

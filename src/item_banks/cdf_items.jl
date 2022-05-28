@@ -5,7 +5,7 @@ struct TransferItemBank{DistT <: ContinuousUnivariateDistribution} <: AbstractIt
     labels::MaybeLabels
 end
 
-DomainType(::TransferItemBank) = ContinuousDomain()
+DomainType(::TransferItemBank) = OneDimContinuousDomain()
 
 function raw_difficulty(item_bank::TransferItemBank, item_idx)
     item_bank.difficulties[item_idx]
@@ -24,11 +24,23 @@ function norm_abil(ir::ItemResponse{<:TransferItemBank}, θ)
 end
 
 function (ir::ItemResponse{<:TransferItemBank})(θ)
+    resp(ir, θ)
+end
+
+function resp(ir::ItemResponse{<:TransferItemBank}, θ)
     cdf(ir.item_bank.distribution, norm_abil(ir, θ))
 end
 
-function log_response(ir::ItemResponse{<:TransferItemBank}, θ)
+function cresp(ir::ItemResponse{<:TransferItemBank}, θ)
+    ccdf(ir.item_bank.distribution, norm_abil(ir, θ))
+end
+
+function logresp(ir::ItemResponse{<:TransferItemBank}, θ)
     logcdf(ir.item_bank.distribution, norm_abil(ir, θ))
+end
+
+function logcresp(ir::ItemResponse{<:TransferItemBank}, θ)
+    logccdf(ir.item_bank.distribution, norm_abil(ir, θ))
 end
 
 #=

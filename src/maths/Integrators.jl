@@ -3,11 +3,15 @@ This module provides a common interface to different integration techniques.
 """
 module Integrators
 
-export Integrator, QuadGKIntegrator, FixedGKIntegrator, normdenom
+export Integrator, QuadGKIntegrator, FixedGKIntegrator
+export HCubatureIntegrator, MultiDimFixedGKIntegrator
+export normdenom
 
 using QuadGK
 using QuadGK: cachedrule, evalrule, Segment
+using HCubature
 using LinearAlgebra: norm
+using FillArrays
 import Base.Iterators
 
 using ..ConfigBase
@@ -64,6 +68,79 @@ function (integrator::FixedGKIntegrator)(
     order=integrator.order
 ) where F
     fixed_gk(f, lo, hi, order)[1]
+end
+
+struct HCubatureIntegrator <: Integrator
+    lo::Vector{Float64}
+    hi::Vector{Float64}
+end
+
+function (integrator::HCubatureIntegrator)(
+    f::F;
+    lo=integrator.lo,
+    hi=integrator.hi
+) where F
+    hcubature(f, lo, hi)[1]
+end
+
+struct MultiDimFixedGKIntegrator{OrderT <: AbstractVector{Int}} <: Integrator
+    lo::Vector{Float64}
+    hi::Vector{Float64}
+    order::OrderT
+end
+
+function MultiDimFixedGKIntegrator(lo, hi)
+    MultiDimFixedGKIntegrator(lo, hi, mirtcat_quadpnts(length(lo)))
+end
+
+function MultiDimFixedGKIntegrator(lo, hi, order::Int)
+    MultiDimFixedGKIntegrator(lo, hi, Fill(order, length(lo)))
+end
+
+function (integrator::MultiDimFixedGKIntegrator)(
+    f::F;
+    lo=integrator.lo,
+    hi=integrator.hi,
+    order=integrator.order
+) where F
+    x = Array{Float64}(undef, length(lo))
+    function inner(idx)
+        function integrate()
+            return fixed_gk(inner(idx + 1), lo[idx + 1], hi[idx + 1], order[idx + 1])[1]
+        end
+        function f1d(x1d)
+            x[idx] = x1d
+            if idx >= length(lo)
+                #@info "Calling f" x
+                return f(x)
+            else
+                return integrate()
+            end
+        end
+        if idx == 0
+            return integrate()
+        else
+            return f1d
+        end
+    end
+    inner(0)
+end
+
+# Values from fscore() from mirt/mirtCAT
+function mirtcat_quadpnts(nd)
+    if nd == 1
+        61
+    elseif nd == 2
+        31
+    elseif nd == 3
+        15
+    elseif nd == 4
+        9
+    elseif nd == 5
+        7
+    else
+        3
+    end
 end
 
 end

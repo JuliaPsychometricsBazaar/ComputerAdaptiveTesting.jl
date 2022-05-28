@@ -12,15 +12,19 @@ module NextItemRules
 
 using Reexport
 using Parameters
+using LinearAlgebra
 
 using ..Responses: Response
 using ..ConfigBase
 import ..IntegralCoeffs
 using ..ItemBanks
 using ..Aggregators
+
 using QuadGK, Distributions, Optim, Base.Threads, Base.Order, ResumableFunctions, FLoops, StaticArrays
 
-export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, CAT, init_thread, ItemStrategyNextItemRule
+export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, init_thread
+export NextItemRule, ItemStrategyNextItemRule
+export UrryItemCriterion, InformationItemCriterion, DRuleItemCriterion, TRuleItemCriterion
 
 include("./objective_function.jl")
 
@@ -190,18 +194,15 @@ function ItemStrategyNextItemRule(bits...; parallel=true, ability_estimator=noth
     end
 end
 
-function (rule::ItemStrategyNextItemRule{ExhaustiveSearch1Ply, ItemCriterionT})(
-    responses::TrackedResponses{ItemBankT, AbilityTrackerT, AbilityEstimatorT},
-    items::AbstractItemBank
-) where {ItemBankT <: AbstractItemBank, AbilityTrackerT <: AbilityTracker, AbilityEstimatorT <: AbilityEstimator, ItemCriterionT <: ItemCriterion}
+function (rule::ItemStrategyNextItemRule{ExhaustiveSearch1Ply, ItemCriterionT})(responses, items) where {ItemCriterionT <: ItemCriterion}
     choose_item_1ply(rule.criterion, responses, items, rule.strategy.parallel)[1]
 end
 
-function (item_criterion::ItemCriterion)(::Nothing, tracked_responses::TrackedResponses, item_idx)
+function (item_criterion::ItemCriterion)(::Nothing, tracked_responses, item_idx)
     item_criterion(tracked_responses, item_idx)
 end
 
-function (item_criterion::ItemCriterion)(tracked_responses::TrackedResponses, item_idx)
+function (item_criterion::ItemCriterion)(tracked_responses, item_idx)
     criterion_state = init_thread(item_criterion, tracked_responses)
     if criterion_state === nothing
         error("Tried to run an state-requiring item criterion $(typeof(item_criterion)), but init_thread(...) returned nothing")

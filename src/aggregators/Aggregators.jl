@@ -6,19 +6,34 @@ test.
 module Aggregators
 
 using StaticArrays: SVector
+using Distributions: Distribution
+using HCubature
+using Base.Threads
 
 using ..ItemBanks: AbstractItemBank, ItemResponse, AbilityLikelihood, LikelihoodFunction
-using ..Responses: BareResponses
+using ..Responses: BareResponses, Response
 using ..MathTraits
 using ..ConfigBase
+using ..Integrators
+using ComputerAdaptiveTesting: Integrators
+using ..Optimizers
 
-export AbilityEstimator, TrackedResponses, AbilityTracker
-export NullAbilityTracker
-export response_expectation, add_response!, pop_response!, integrate, expectation, distribution_estimator
-export PriorAbilityEstimator, LikelihoodAbilityEstimator, ModeAbilityEstimator, MeanAbilityEstimator
-export Speculator, replace_speculation!
+import ..ItemBanks
+import ..IntegralCoeffs
+
+export AbilityEstimator, TrackedResponses
+export AbilityTracker, NullAbilityTracker, PointAbilityTracker, GriddedAbilityTracker, track!
+export response_expectation, add_response!, pop_response!, expectation, distribution_estimator
+export PointAbilityEstimator, PriorAbilityEstimator, LikelihoodAbilityEstimator
+export ModeAbilityEstimator, MeanAbilityEstimator
+export Speculator, replace_speculation!, normdenom, maybe_tracked_ability_estimate
+export AbilityIntegrator, AbilityOptimizer
+export FunctionIntegrator, RiemannEnumerationIntegrator
+export FunctionOptimizer, EnumerationOptimizer
+export DistributionAbilityEstimator
 
 # Basic types
+# XXX: Does having a common supertype of DistributionAbilityEstimator and PointAbilityEstimator make sense?
 abstract type AbilityEstimator end
 
 function AbilityEstimator(bits...; ability_estimator=nothing)
@@ -31,11 +46,18 @@ function AbilityEstimator(bits...; ability_estimator=nothing)
 end
 AbilityEstimator(::DomainType) = nothing
 function AbilityEstimator(::ContinuousDomain, bits...)
-    @returnsome Integrator(bits...) integrator -> MeanAbilityEstimator(LikelihoodAbilityEstimator(integrator))
+    @returnsome Integrator(bits...) integrator -> MeanAbilityEstimator(LikelihoodAbilityEstimator(), integrator)
 end
 
 abstract type DistributionAbilityEstimator <: AbilityEstimator end
+function DistributionAbilityEstimator(bits...)
+    @returnsome find1_instance(DistributionAbilityEstimator, bits)
+end
+
 abstract type PointAbilityEstimator <: AbilityEstimator end
+function PointAbilityEstimator(bits...)
+    @returnsome find1_instance(PointAbilityEstimator, bits)
+end
 
 abstract type AbilityTracker end
 
@@ -49,15 +71,36 @@ function AbilityTracker(bits...; ability_estimator=nothing)
     # TODO: find if ability_estimator is GriddedAbilityEstimator and then propagate stuff to GriddedAbilityTracker
 end
 
+abstract type AbilityIntegrator end
+function AbilityIntegrator(bits...; ability_estimator=nothing)
+    @returnsome find1_instance(AbilityIntegrator, bits)
+    zero_arg_intergrators = find1_type(RiemannEnumerationIntegrator, bits)
+    if (zero_arg_intergrators !== nothing)
+        return RiemannEnumerationIntegrator()
+    end
+    @returnsome Integrator(bits...) integrator -> FunctionIntegrator(integrator)
+end
+
+abstract type AbilityOptimizer end
+function AbilityOptimizer(bits...; ability_estimator=nothing)
+    @returnsome find1_instance(AbilityOptimizer, bits)
+    zero_arg_optimizers = find1_type(EnumerationOptimizer, bits)
+    if (zero_arg_optimizers !== nothing)
+        return EnumerationOptimizer()
+    end
+    @returnsome Optimizer(bits...) optimizer -> FunctionOptimizer(optimizer)
+end
+
 struct TrackedResponses{
     ItemBankT <: AbstractItemBank,
-    AbilityTrackerT <: AbilityTracker,
-    AbilityEstimatorT <: AbilityEstimator
+    AbilityTrackerT <: AbilityTracker
 }
     responses::BareResponses
     item_bank::ItemBankT
     ability_tracker::AbilityTrackerT
-    ability_estimator::AbilityEstimatorT
+end
+function ItemBanks.AbilityLikelihood(tracked_responses::TrackedResponses)
+    ItemBanks.AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)
 end
 
 function Base.length(responses::TrackedResponses)
@@ -71,6 +114,8 @@ const int_tol = 1e-8
 # Includes
 include("./ability_estimator.jl")
 include("./ability_tracker.jl")
+include("./integrators.jl")
+include("./optimizers.jl")
 include("./speculators.jl")
 
 end

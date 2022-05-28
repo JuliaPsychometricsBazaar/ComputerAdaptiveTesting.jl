@@ -5,7 +5,7 @@ using ..CatConfig: CatLoopConfig
 using ..ItemBanks: AbstractItemBank, labels
 using ..Aggregators: TrackedResponses, add_response!, Speculator
 
-export run_cat
+export run_cat, prompt_response, auto_responder
 
 """
 This response callback simply prompts 
@@ -30,14 +30,13 @@ abstract type NextItemError <: Exception end
 """
 Run a given CatLoopConfig
 """
-function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank)::Float64
+function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank)
     (; rules, get_response, new_response_callback) = cat_config
     (; next_item, termination_condition, ability_estimator, ability_tracker) = rules
     responses = TrackedResponses(
         BareResponses(),
         item_bank,
-        ability_tracker,
-        ability_estimator
+        ability_tracker
     )
     ib_labels = labels(item_bank)
     while true
@@ -63,13 +62,15 @@ function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank)::Float6
         @debug "Got response" response
         add_response!(responses, Response(next_index, response))
         terminating = termination_condition(responses, item_bank)
-        new_response_callback(responses, terminating)
+        if new_response_callback !== nothing
+            new_response_callback(responses, terminating)
+        end
         if terminating
             @debug "Met termination condition"
             break
         end
     end
-    ability_estimator(responses)
+    (responses, ability_estimator(responses))
 end
 
 end

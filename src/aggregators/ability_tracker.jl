@@ -5,28 +5,32 @@ end
 
 struct NullAbilityTracker <: AbilityTracker end
 
-struct PointAbilityTracker <: AbilityTracker
-    cur_ability::Float64
+mutable struct PointAbilityTracker{AbilityEstimatorT <: PointAbilityEstimator, AbilityT} <: AbilityTracker
+    ability_estimator::AbilityEstimatorT 
+    cur_ability::AbilityT
 end
 
-PointAbilityTracker() = NaN
-
-function track!(::TrackedResponses{IB, <: NullAbilityTracker}) where {IB} end
-
-function track!(tracked_responses::TrackedResponses{IB, <: PointAbilityTracker, <: PointAbilityEstimator}) where {IB}
-    tracked_responses.ability_tracker.cur_ability = tracked_responses.ability_estimator(tracked_responses)
+function track!(responses)
+    track!(responses, responses.ability_tracker)
 end
 
-struct GriddedAbilityTracker{GridT <: AbstractVector{Float64}} <: AbilityTracker
+function track!(_, ::NullAbilityTracker) end
+
+function track!(responses, ability_tracker::PointAbilityTracker)
+    ability_tracker.cur_ability = ability_tracker.ability_estimator(responses)
+end
+
+struct GriddedAbilityTracker{AbilityEstimatorT <: DistributionAbilityEstimator, GridT <: AbstractVector{Float64}} <: AbilityTracker
+    ability_estimator::AbilityEstimatorT 
     grid::GridT
     cur_ability::Vector{Float64}
 end
 
-GriddedAbilityTracker(grid) = GriddedAbilityTracker(grid, fill(NaN, length(grid)))
+GriddedAbilityTracker(ability_estimator, grid) = GriddedAbilityTracker(ability_estimator, grid, fill(NaN, length(grid)))
 
-function track!(tracked_responses::TrackedResponses{IB, <: GriddedAbilityTracker, <: DistributionAbilityEstimator}) where {IB}
-    ability_pdf = pdf(tracked_responses.ability_estimator, tracked_responses)
-    tracked_responses.ability_tracker.cur_ability = ability_pdf.(tracked_responses.ability_tracker.grid)
+function track!(responses, ability_tracker::GriddedAbilityTracker)
+    ability_pdf = pdf(ability_tracker.ability_estimator, responses)
+    ability_tracker.cur_ability = ability_pdf.(ability_tracker.grid)
 end
 
 #struct LaplaceAbilityTracker <: AbilityTracker
@@ -75,4 +79,22 @@ function response_expectation(
     # TODO: use existing θ when a compatible θ tracker is used
     θ_estimate = ability_estimator(tracked_responses)
     ItemResponse(tracked_responses.item_bank, item_idx)(θ_estimate)
+end
+
+"""
+This method returns a tracked point estimate if it is has the given ability
+estimator, otherwise it computes it using the given ability estimator.
+"""
+function maybe_tracked_ability_estimate(
+    tracked_responses::TrackedResponses,
+    ability_estimator
+)
+    if (
+        (tracked_responses.ability_tracker isa PointAbilityTracker) &&
+        (tracked_responses.ability_tracker.ability_estimator === ability_estimator)
+    )
+        tracked_responses.ability_tracker.cur_ability
+    else
+        ability_estimator(tracked_responses)
+    end
 end

@@ -1,11 +1,11 @@
-#md # How abilities converge on simulated 3PL data
+#md # How abilities converge on simulated MIRT data
 #
-#md # [![](https://mybinder.org/badge_logo.svg)](@__BINDER_ROOT_URL__/generated/ability_convergence_3pl.ipynb)
+#md # [![](https://mybinder.org/badge_logo.svg)](@__BINDER_ROOT_URL__/generated/ability_convergence_mirt.ipynb)
 
-# # Running a CAT based on a synthetic correct/incorrect 3PL IRT model
+# # Running a CAT based on a synthetic correct/incorrect MIRT model
 #
-# This example shows how to run a CAT based on a synthetic correct/incorrect 3PL
-# IRT model.
+# This example shows how to run a CAT based on a synthetic correct/incorrect
+# MIRT model.
 
 # Import order is important. We put ComputerAdaptiveTesting last so we get the
 # extra dependencies.
@@ -24,7 +24,7 @@ using AlgebraOfGraphics
 using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.ExtraDistributions: NormalScaledLogistic
 using ComputerAdaptiveTesting.Sim: auto_responder
-using ComputerAdaptiveTesting.NextItemRules: AbilityVarianceStateCriterion
+using ComputerAdaptiveTesting.NextItemRules: DRuleItemCriterion
 using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
 using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEstimator, LikelihoodAbilityEstimator
 using ComputerAdaptiveTesting.Plots
@@ -35,27 +35,28 @@ import ComputerAdaptiveTesting.IntegralCoeffs
 # Now we are read to generate our synthetic data using the supplied DummyData
 # module. We generate an item bank with 100 items and fake responses for 3
 # testees.
-using ComputerAdaptiveTesting.DummyData: dummy_3pl, std_normal
+const dims = 3
+using ComputerAdaptiveTesting.DummyData: dummy_mirt_4pl, std_mv_normal
 Random.seed!(42)
-(item_bank, question_labels, abilities, responses) = dummy_3pl(;num_questions=100, num_testees=3)
+(item_bank, question_labels, abilities, responses) = dummy_mirt_4pl(dims; num_questions=100, num_testees=3)
 
 # Simulate a CAT for each testee and record it using CatRecorder.
 # CatRecorder collects information which can be used to draw different types of plots.
 const max_questions = 99
-const integrator = FixedGKIntegrator(-6, 6, 80)
-const dist_ability_est = PriorAbilityEstimator(std_normal)
-const ability_estimator = MeanAbilityEstimator(dist_ability_est, integrator)
+const integrator = MultiDimFixedGKIntegrator([-6.0, -6.0, -6.0], [6.0, 6.0, 6.0])
+const ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(3)), integrator)
 const rules = CatRules(
     ability_estimator,
-    AbilityVarianceStateCriterion(dist_ability_est, integrator),
+    DRuleItemCriterion(ability_estimator),
     FixedItemsTerminationCondition(max_questions)
 )
 
 const points = 500
-xs = range(-2.5, 2.5, length=points)
+xs = repeat(range(-2.5, 2.5, length=points)', dims, 1)
 raw_estimator = LikelihoodAbilityEstimator()
 recorder = CatRecorder(xs, responses, integrator, raw_estimator, ability_estimator)
 for testee_idx in axes(responses, 2)
+    @debug "Running for testee" testee_idx
     tracked_responses, θ = run_cat(
         CatLoopConfig(
             rules=rules,

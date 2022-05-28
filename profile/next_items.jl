@@ -1,7 +1,8 @@
-using ComputerAdaptiveTesting.DummyData: dummy_3pl, std_normal
+using ComputerAdaptiveTesting.DummyData: dummy_3pl, dummy_mirt_4pl, std_normal, std_mv_normal
 using ComputerAdaptiveTesting.ItemBanks: item_idxs
 using ComputerAdaptiveTesting.Responses
 using ComputerAdaptiveTesting.Aggregators
+using ComputerAdaptiveTesting.Integrators
 using ComputerAdaptiveTesting.NextItemRules
 import Profile
 import PProf
@@ -11,20 +12,38 @@ using StatProfilerHTML
 using StatsBase: sample
 using BenchmarkTools
 
-const ability_estimator = PriorAbilityEstimator(Normal())
+function get_ability_estimator(multidim)
+    if multidim
+        integrator = MultiDimFixedGKIntegrator([-6.0, -6.0, -6.0], [6.0, 6.0, 6.0])
+        dist = std_mv_normal(3)
+    else
+        integrator = FixedGKIntegrator(-6.0, 6.0)
+        dist = Normal()
+    end
+    return PriorAbilityEstimator(dist, integrator)
+end
 
-function prepare_0()
-    (item_bank, question_labels_, abilities_, actual_responses) = dummy_3pl(;num_questions=100, num_testees=1)
+function prepare_empty(item_bank, actual_responses, ability_tracker, ability_estimator)
     responses = TrackedResponses(
         BareResponses([], []),
         item_bank,
-        NullAbilityTracker(),
+        ability_tracker,
         ability_estimator
     )
     (item_bank, actual_responses, responses)
 end
 
-function prepare_50()
+function prepare_0(ability_estimator)
+    (item_bank, question_labels_, abilities_, actual_responses) = dummy_3pl(;num_questions=100, num_testees=1)
+    prepare_empty(item_bank, actual_responses, PointAbilityTracker(ability_estimator, NaN))
+end
+
+function prepare_0_mirt(ability_estimator)
+    (item_bank, question_labels_, abilities_, actual_responses) = dummy_mirt_4pl(3; num_questions=100, num_testees=1)
+    prepare_empty(item_bank, actual_responses, PointAbilityTracker(ability_estimator, [NaN, NaN, NaN]))
+end
+
+function prepare_50(ability_estimator)
     (item_bank, question_labels_, abilities_, actual_responses) = dummy_3pl(;num_questions=100, num_testees=1)
     idxs = sample(1:100, 50)
     responses = TrackedResponses(
@@ -33,14 +52,14 @@ function prepare_50()
             actual_responses[idxs, 1]
         ),
         item_bank,
-        NullAbilityTracker(),
-        ability_estimator
+        PointAbilityTracker(ability_estimator, NaN)
     )
     (item_bank, actual_responses, responses)
 end
 
 function run_all(dummy_data, objective)
     (item_bank, actual_responses, responses) = dummy_data
+    track!(responses)
     criterion_state = init_thread(objective, responses)
     for item_idx in item_idxs(item_bank)
         objective(criterion_state, responses, item_idx)
@@ -53,8 +72,8 @@ function run_single(dummy_data, objective)
     objective(criterion_state, responses, 1)
 end
 
-function profile_objective(run_profile::RunProfile, pre_bench::PrepBench, run_bench::RunBench, objective::Objective) where {RunProfile, PrepBench, RunBench, Objective}
-    dummy_data = pre_bench()
+function profile_objective(run_profile::RunProfile, pre_bench::PrepBench, run_bench::RunBench, objective::Objective, ability_estimator) where {RunProfile, PrepBench, RunBench, Objective}
+    dummy_data = pre_bench(ability_estimator)
     run() = run_bench(dummy_data, objective)
     @info "init run"
     run()
@@ -120,6 +139,7 @@ PROFILERS = Dict(
 
 BENCHES = Dict(
     "all0" => (prepare_0, run_all),
+    "allmirt" => (prepare_0_mirt, run_all),
     "all50" => (prepare_50, run_all),
     "single50" => (prepare_50, run_single)
 )
@@ -129,8 +149,16 @@ if isdefined(Profile, :Allocs)
 end
 =#
 
-function objective(next_item_rule::ItemStrategyNextItemRule)
+function objective(next_item_rule::NextItemRule)
     next_item_rule.criterion
+end
+
+function get_next_item_rule(rule_name, ability_estimator)
+    if rule_name == "drule"
+        NextItemRule(DRuleItemCriterion(ability_estimator))
+    else
+        catr_next_item_aliases[rule_name](ability_estimator)
+    end
 end
 
 function main()
@@ -147,7 +175,9 @@ function main()
             required = true
     end
     args = parse_args(settings)
-    next_item_rule = catr_next_item_aliases[args["next_item_rule"]](ability_estimator)
+    ability_estimator = get_ability_estimator(args["next_item_rule"] == "drule")
+    point_ability_estimator = ModeAbilityEstimator(ability_estimator)
+    next_item_rule = get_next_item_rule(args["next_item_rule"], point_ability_estimator)
     if args["profiling_mode"] == "track_allocs" && !haskey(ENV, "TRACK_ALLOCS")
         cmdline = get_cmdline()
         insert!(cmdline, findfirst(x -> endswith(x, ".jl"), cmdline), "--track-allocation=all")
@@ -157,7 +187,7 @@ function main()
         return
     end
     (pre_bench, run_bench) = BENCHES[args["bench"]]
-    profile_objective(PROFILERS[args["profiling_mode"]], pre_bench, run_bench, objective(next_item_rule))
+    profile_objective(PROFILERS[args["profiling_mode"]], pre_bench, run_bench, objective(next_item_rule), point_ability_estimator)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

@@ -7,6 +7,7 @@ struct FixedGuessItemBank{InnerItemBank <: AbstractItemBank} <: AbstractItemBank
 end
 y_offset(item_bank::FixedGuessItemBank, item_idx) = item_bank.guess
 @forward FixedGuessItemBank.inner_bank Base.length
+@forward FixedGuessItemBank.inner_bank dim
 
 struct FixedSlipItemBank{InnerItemBank <: AbstractItemBank} <: AbstractItemBank
     slip::Float64
@@ -14,6 +15,7 @@ struct FixedSlipItemBank{InnerItemBank <: AbstractItemBank} <: AbstractItemBank
 end
 y_offset(item_bank::FixedSlipItemBank, item_idx) = item_bank.slip
 @forward FixedSlipItemBank.inner_bank Base.length
+@forward FixedSlipItemBank.inner_bank dim
 
 struct GuessItemBank{InnerItemBank <: AbstractItemBank} <: AbstractItemBank
     guesses::Vector{Float64}
@@ -21,6 +23,7 @@ struct GuessItemBank{InnerItemBank <: AbstractItemBank} <: AbstractItemBank
 end
 y_offset(item_bank::GuessItemBank, item_idx) = item_bank.guesses[item_idx]
 @forward GuessItemBank.inner_bank Base.length
+@forward GuessItemBank.inner_bank dim
 
 struct SlipItemBank{InnerItemBank <: AbstractItemBank} <: AbstractItemBank
     slips::Vector{Float64}
@@ -28,6 +31,7 @@ struct SlipItemBank{InnerItemBank <: AbstractItemBank} <: AbstractItemBank
 end
 y_offset(item_bank::SlipItemBank, item_idx) = item_bank.slips[item_idx]
 @forward SlipItemBank.inner_bank Base.length
+@forward SlipItemBank.inner_bank dim
 
 const AnySlipItemBank = Union{SlipItemBank, FixedSlipItemBank}
 const AnyGuessItemBank = Union{GuessItemBank, FixedGuessItemBank}
@@ -37,7 +41,7 @@ const AnySlipAndGuessItemBank = Union{SlipItemBank{AnyGuessItemBank}, FixedSlipI
 DomainType(item_bank::AnySlipOrGuessItemBank) = DomainType(item_bank.inner_bank)
 
 # Ensure we always have Slip{Guess{ItemBank}}
-function FixedGuessItemBank(guess, inner_bank::AnySlipItemBank)
+function FixedGuessItemBank(guess::Float64, inner_bank::AnySlipItemBank)
     @set inner_bank.inner_bank = FixedGuessItemBank(guess, inner_bank.inner_bank)
 end
 
@@ -51,13 +55,24 @@ end
 end
 
 function (ir::ItemResponse{<:GuessItemBank})(θ)
+    resp(ir, θ)
+end
+
+function resp(ir::ItemResponse{<:GuessItemBank}, θ)
     transform_irf_y(y_offset(ir.item_bank, ir.index), 0.0, ItemResponse(ir.item_bank.inner_bank, ir.index)(θ))
 end
 
 function (ir::ItemResponse{<:SlipItemBank})(θ)
+    resp(ir, θ)
+end
+
+function resp(ir::ItemResponse{<:SlipItemBank}, θ)
     transform_irf_y(0.0, y_offset(ir.item_bank, ir.index), ItemResponse(ir.item_bank.inner_bank, ir.index)(θ))
 end
 
+# TODO: cresp / logresp / logcresp
+
+# XXX: Not getting dispatched to
 function (ir::ItemResponse{<:AnySlipAndGuessItemBank})(θ)
     transform_irf_y(
         y_offset(ir.item_bank.inner_bank, ir.index),

@@ -1,6 +1,6 @@
 module DummyData
 
-using Distributions: Normal
+using Distributions: Normal, MvNormal, ZeroMeanIsoNormal, Zeros, ScalMat
 using Faker: sentence
 using Random
 
@@ -9,6 +9,10 @@ using ..ItemBanks: ItemBank2PL, ItemBank3PL, ItemBankMirt4PL, ItemResponse
 const default_num_questions = 8000
 const default_num_testees = 30
 const std_normal = Normal()
+
+function std_mv_normal(dim)
+    MvNormal(Zeros(dim), ScalMat(dim, 1.0))
+end
 
 function sent()
     sentence(number_words=12, variable_nb_words=true)
@@ -42,20 +46,26 @@ function dummy_mirt_4pl_item_bank(num_questions, dims)
 end
 
 function item_bank_to_full_dummy(item_bank, num_testees)
-    (item_bank, question_labels, abilities, responses) = mirt_item_bank_to_full_dummy(item_bank, num_testees, 1)
+    (item_bank, question_labels, abilities, responses) = mirt_item_bank_to_full_dummy(item_bank, num_testees, 1; squeeze=true)
     (item_bank, question_labels, abilities[1, :], responses)
 end
 
-function mirt_item_bank_to_full_dummy(item_bank, num_testees, dims)
+function mirt_item_bank_to_full_dummy(item_bank, num_testees, dims; squeeze=false)
     num_questions = length(item_bank)
     question_labels = [sent() for _ in 1:num_questions]
     abilities = rand(std_normal, dims, num_testees)
-    @inline ir(idx, ability) = ItemResponse(item_bank, idx)(ability)
-    # Should be a faster way to do this without allocation
-    responses = (
-        rand(num_questions, num_testees)
-        .< ir.(reshape(1:num_questions, (:, 1)), reshape(abilities, (1, :)))
-    )
+    irs = zeros(num_questions, num_testees)
+    for question_idx in 1:num_questions
+        for testee_idx in 1:num_testees
+            if squeeze
+                ability = abilities[1, testee_idx]
+            else
+                ability = abilities[:, testee_idx]
+            end
+            irs[question_idx, testee_idx] = ItemResponse(item_bank, question_idx)(ability)
+        end
+    end
+    responses = rand(num_questions, num_testees) .< irs
     (item_bank, question_labels, abilities, responses)
 end
 
