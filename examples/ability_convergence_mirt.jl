@@ -16,7 +16,7 @@ if isdefined(Main, :IJulia) && Main.IJulia.inited
 elseif "GLMakie" in keys(Pkg.project().dependencies)
     using GLMakie
 else
-    using CarioMakie
+    using CairoMakie
 end
 import Random
 using Distributions: Normal, cdf
