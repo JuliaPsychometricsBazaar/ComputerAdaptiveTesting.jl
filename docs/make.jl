@@ -5,11 +5,11 @@ using Literate
 
 DocMeta.setdocmeta!(ComputerAdaptiveTesting, :DocTestSetup, :(using ComputerAdaptiveTesting); recursive=true)
 
-EXAMPLE = joinpath(@__DIR__, "..", "examples", "ability_convergence_3pl.jl")
-OUTPUT = joinpath(@__DIR__, "src/generated")
+#EXAMPLE = joinpath(@__DIR__, "..", "examples", "ability_convergence_3pl.jl")
+#OUTPUT = joinpath(@__DIR__, "src/generated")
 
-Literate.markdown(EXAMPLE, OUTPUT, execute=true, documenter=true)
-Literate.notebook(EXAMPLE, OUTPUT, documenter=true)
+#Literate.markdown(EXAMPLE, OUTPUT, execute=true, documenter=true)
+#Literate.notebook(EXAMPLE, OUTPUT, documenter=true)
 
 makedocs(;
     modules=[ComputerAdaptiveTesting],
@@ -23,7 +23,7 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
-        "Tutorial" => "generated/ability_convergence_3pl.md",
+        #"Tutorial" => "generated/ability_convergence_3pl.md",
     ],
 )
 
