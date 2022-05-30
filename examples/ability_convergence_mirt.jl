@@ -66,7 +66,7 @@ for testee_idx in axes(responses, 2)
         item_bank
     )
     true_θ = abilities[testee_idx]
-    abs_err = abs(θ - true_θ)
+    abs_err = sum(abs(θ .- true_θ))
 end
 
 # Make a plot showing how the estimated value evolves during the CAT.
