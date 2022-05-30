@@ -48,26 +48,33 @@ jobs:
         with:
           version: '1'
       - uses: julia-actions/julia-buildpkg@v1
-      - run: |
-          julia --project=docs ./install_pkgs.jl headless
+      - name: Install packages
+        run: |
+          julia --project=docs/ ./install_pkgs.jl headless
         #- uses: julia-actions/julia-docdeploy@v1
           #with:
           #install-package: false
       - name: Install GitHubActions.jl in docs env
         run: |
-          julia --project=docs -e '
+          julia --project=docs/ -e '
             using Pkg
             Pkg.add(Pkg.PackageSpec(name="GitHubActions", version="0.1"))'
+      - name: Re-install CAT
+        run: |
+          julia --project=docs/ -e 'using Pkg;
+                                    Pkg.develop(PackageSpec(path=pwd()));
+                                    Pkg.resolve();
+                                    Pkg.instantiate()'
       - name: Make docs
         run: |
-          julia --project=docs -e '
+          julia --project=docs/ -e '
             include("docs/make.jl")'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
       - name: Run doctest
         run: |
-          julia --project=docs -e '
+          julia --project=docs/ -e '
             using Documenter: DocMeta, doctest
             using ComputerAdaptiveTesting
             DocMeta.setdocmeta!(ComputerAdaptiveTesting, :DocTestSetup, :(using ComputerAdaptiveTesting); recursive=true)
