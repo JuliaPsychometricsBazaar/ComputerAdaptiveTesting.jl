@@ -59,7 +59,7 @@ end
     )
 end
 
-ability_variance_state_criterion = AbilityVarianceStateCriterion(mle_mean_1d)
+ability_variance_state_criterion = AbilityVarianceStateCriterion(lh_est_1d, integrator_1d)
 ability_variance_item_criterion = ExpectationBasedItemCriterion(
     mle_mean_1d,
     ability_variance_state_criterion

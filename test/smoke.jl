@@ -14,7 +14,7 @@ const ability_estimators_1d = [
     (integrator, optimizer) -> ModeAbilityEstimator(LikelihoodAbilityEstimator(), optimizer),
 ]
 const criteria_1d = [
-    (integrator, optimizer, est) -> AbilityVarianceStateCriterion(MeanAbilityEstimator(distribution_estimator(est), integrator)),
+    (integrator, optimizer, est) -> AbilityVarianceStateCriterion(distribution_estimator(est), integrator),
     (integrator, optimizer, est) -> InformationItemCriterion(est),
     (integrator, optimizer, est) -> UrryItemCriterion(est),
 ]
