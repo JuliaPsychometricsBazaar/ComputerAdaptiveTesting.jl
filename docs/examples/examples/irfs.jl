@@ -1,6 +1,4 @@
 #md # Item Response Functions for IRT/CAT
-#
-#md # [![](https://mybinder.org/badge_logo.svg)](@__BINDER_ROOT_URL__/generated/irfs.ipynb)
 
 using Makie
 import Pkg

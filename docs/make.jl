@@ -3,28 +3,30 @@ using ComputerAdaptiveTesting
 
 using Documenter
 using Literate
+using DemoCards
 
 DocMeta.setdocmeta!(ComputerAdaptiveTesting, :DocTestSetup, :(using ComputerAdaptiveTesting); recursive=true)
 
-#EXAMPLE = joinpath(@__DIR__, "..", "examples", "ability_convergence_3pl.jl")
-#OUTPUT = joinpath(@__DIR__, "src/generated")
+demopage, postprocess_cb, demo_assets = makedemos("examples")
 
-#Literate.markdown(EXAMPLE, OUTPUT, execute=true, documenter=true)
-#Literate.notebook(EXAMPLE, OUTPUT, documenter=true)
+assets = []
+isnothing(demo_assets) || (push!(assets, demo_assets))
+
+format = Documenter.HTML(
+    prettyurls=get(ENV, "CI", "false") == "true",
+    canonical="https://frankier.github.io/ComputerAdaptiveTesting.jl",
+    assets=assets
+)
 
 makedocs(;
     modules=[ComputerAdaptiveTesting],
     authors="Frankie Robertson",
     repo="https://github.com/frankier/ComputerAdaptiveTesting.jl/blob/{commit}{path}#{line}",
     sitename="ComputerAdaptiveTesting.jl",
-    format=Documenter.HTML(;
-        prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://frankier.github.io/ComputerAdaptiveTesting.jl",
-        assets=String[],
-    ),
+    format=format,
     pages=[
         "Home" => "index.md",
-        #"Tutorial" => "generated/ability_convergence_3pl.md",
+        demopage,
     ],
 )
 

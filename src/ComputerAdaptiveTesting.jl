@@ -77,7 +77,8 @@ end
 const extras = Dict(
     "docs" => [
         pkg("Documenter", "e30172f5-a6a5-5a46-863b-614d45cd2de4"),
-        pkg("Literate", "98b081ad-f1c9-55d3-8b20-4c87d4299306")
+        pkg("Literate", "98b081ad-f1c9-55d3-8b20-4c87d4299306"),
+        pkg("DemoCards", "311a05b2-6137-4a5a-b473-18580a3d38b5")
     ],
     "plots" => [
         pkg("Makie", "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"),
