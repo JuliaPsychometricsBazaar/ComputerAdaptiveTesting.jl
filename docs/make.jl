@@ -1,3 +1,4 @@
+using Makie  # for ComputerAdaptiveTesting.Plots
 using ComputerAdaptiveTesting
 
 using Documenter
