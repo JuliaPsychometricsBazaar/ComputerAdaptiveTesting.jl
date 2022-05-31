@@ -1,4 +1,4 @@
-#md # Item Response Functions for IRT/CAT
+#md # Item Response Functions
 
 using Makie
 import Pkg
