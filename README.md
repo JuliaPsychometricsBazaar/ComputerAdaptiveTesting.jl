@@ -53,10 +53,10 @@ have some advantages in terms of flexibility:
 There are two long term goals for the project. The first is to allow and
 provide fast implementations of otherwise computationally heavy scenarios and
 techniques such as those with large item banks, high dimensionality or many-ply
-lookaheads. A long term goal is to composability with complimentary Julia
-packages to allow for item banks based a wide variety of ways of mixing and
-matching model-based and machine learning -based techniques to utilised for
-CATs and evaluated in a CAT setting.
+lookaheads. The second is composability with complimentary Julia packages to
+allow for item banks based a wide variety of ways of mixing and matching
+model-based and machine learning -based techniques to utilised for CATs and
+evaluated in a CAT setting.
 
 ## What next?
 
