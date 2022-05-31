@@ -31,6 +31,15 @@ Journal of Statistical Software, 71, 1-38.](https://doi.org/10.18637/JSS.V071.I0
 *Elements of adaptive testing.*
 Statistics for Social and Behavioral Sciences.](https://doi.org/10.1007/978-0-387-85461-8)
 
+## Installation
+
+The package is only published through GitHub for the time being. Install like so:
+
+```
+julia> using Pkg
+julia> Pkg.add(PackageSpec(url = "https://github.com/frankier/ComputerAdaptiveTesting.jl.git"))
+```
+
 ## How does this package differ from the alternatives?
 
 The main (open source software library) alternatives are
