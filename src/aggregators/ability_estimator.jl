@@ -3,7 +3,16 @@ function Integrators.normdenom(
     est::DistributionAbilityEstimator,
     tracked_responses::TrackedResponses
 )
-    integrator(IntegralCoeffs.one, est, tracked_responses)
+    normdenom(IntValue(), integrator, est, tracked_responses)
+end
+
+function Integrators.normdenom(
+    rett::IntReturnType,
+    integrator::AbilityIntegrator,
+    est::DistributionAbilityEstimator,
+    tracked_responses::TrackedResponses
+)
+    rett(integrator(IntegralCoeffs.one, est, tracked_responses))
 end
 
 function pdf(
@@ -65,18 +74,31 @@ end
 """
 
 function expectation(
+    rett::IntReturnType,
     f::F,
     integrator::AbilityIntegrator,
     est::DistributionAbilityEstimator,
     tracked_responses::TrackedResponses
 ) where {F}
     expectation(
+        rett,
         f,
         integrator,
         est,
         tracked_responses,
-        normdenom(integrator, est, tracked_responses)
+        normdenom(rett, integrator, est, tracked_responses)
     )
+end
+
+function expectation(
+    rett::IntReturnType,
+    f::F,
+    integrator::AbilityIntegrator,
+    est::DistributionAbilityEstimator,
+    tracked_responses::TrackedResponses,
+    denom
+) where {F}
+    rett(integrator(f, est, tracked_responses)) / denom
 end
 
 function expectation(
@@ -84,9 +106,16 @@ function expectation(
     integrator::AbilityIntegrator,
     est::DistributionAbilityEstimator,
     tracked_responses::TrackedResponses,
-    denom
+    denom...
 ) where {F}
-    integrator(f, est, tracked_responses) / denom
+    expectation(
+        IntValue(),
+        f,
+        integrator,
+        est,
+        tracked_responses,
+        denom...
+    )
 end
 
 """
@@ -136,7 +165,11 @@ function (est::ModeAbilityEstimator)(tracked_responses::TrackedResponses)
 end
 
 function (est::MeanAbilityEstimator)(tracked_responses::TrackedResponses)
-    expectation(IntegralCoeffs.id, est.integrator, est.dist_est, tracked_responses)
+    est(IntValue(), tracked_responses)
+end
+
+function (est::MeanAbilityEstimator)(rett::IntReturnType, tracked_responses::TrackedResponses)
+    expectation(rett, IntegralCoeffs.id, est.integrator, est.dist_est, tracked_responses)
 end
 
 function maybe_apply_prior(f::F, est::PriorAbilityEstimator) where {F}

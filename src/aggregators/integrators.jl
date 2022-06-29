@@ -18,7 +18,9 @@ function(integrator::FunctionIntegrator)(
     # TODO: Make integration range configurable
     # TODO: Make integration technique configurable
     comp_f = let f=f, lh_function=lh_function
-        x -> f(x) * lh_function(x)
+        x -> begin
+            f(x) * lh_function(x)
+        end
     end
     integrator.integrator(comp_f)
 end

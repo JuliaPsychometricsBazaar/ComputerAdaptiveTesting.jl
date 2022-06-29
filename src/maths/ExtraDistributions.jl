@@ -1,7 +1,7 @@
 module ExtraDistributions
 
 using Random: AbstractRNG
-using Distributions: Logistic, UnivariateDistribution
+using Distributions: Logistic, UnivariateDistribution, Normal, MvNormal, Zeros, ScalMat
 
 using Lazy: @forward
 
@@ -20,6 +20,12 @@ NormalScaledLogistic() = NormalScaledLogistic(0.0, 1.0)
     sampler, pdf, logpdf, cdf, quantile, minimum, maximum, insupport, mean, var,
     modes, mode, skewness, kurtosis, entropy, mgf, cf
 )
+
+const std_normal = Normal()
+
+function std_mv_normal(dim)
+    MvNormal(Zeros(dim), ScalMat(dim, 1.0))
+end
 
 rand(rng::AbstractRNG, d::UnivariateDistribution) = rand(rng, d.inner)
 

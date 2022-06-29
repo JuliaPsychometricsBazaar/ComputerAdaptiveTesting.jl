@@ -12,6 +12,7 @@ end
 # Should possibly issue a warning when used to poke for more stable ones from
 # the item bank type
 function cresp(ir::ItemResponse, θ)
+    #@info "cresp" ir θ
     1 - resp(ir, θ)
 end
 
@@ -166,7 +167,7 @@ function _search(
     for _ in 1:max_iters
         pivot = lower + (upper - lower) / 2
         @info "limits" lo=lim_lower hi=pivot
-        mass = integrator(ir; lo=lim_lower, hi=pivot)
+        mass = intval(integrator(ir; lo=lim_lower, hi=pivot))
         ratio = mass / denom
         @info "mass" mass denom ratio target precis
         if target - precis <= ratio <= target
@@ -199,12 +200,12 @@ function item_bank_domain(
         # XXX: denom should be the denom of the item response
         denom = normdenom(integrator)
         inv_ir(x) = 1.0 - ir(-x)
-        if integrator(ir; lo=integrator.lo, hi=lo) > tol1
+        if intval(integrator(ir; lo=integrator.lo, hi=lo)) > tol1
             lo = _search(integrator, ir, integrator.lo, lo, tol1, eff_precis; denom=denom)
         end
         inv_denom = integrator.hi - integrator.lo - denom
         # XXX
-        if integrator(inv_ir; lo=-integrator.hi, hi=hi) > tol1
+        if intval(integrator(inv_ir; lo=-integrator.hi, hi=hi)) > tol1
             hi = -_search(integrator, inv_ir, -integrator.hi, -hi, tol1, eff_precis; denom=inv_denom)
         end
     end
