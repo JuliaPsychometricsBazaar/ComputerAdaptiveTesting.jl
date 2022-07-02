@@ -47,12 +47,15 @@ jobs:
       - uses: julia-actions/setup-julia@v1
         with:
           version: '1'
-      - uses: julia-actions/julia-buildpkg@v1
       - name: Set CAT packages to develop & resolve env
         run: |
+          julia --project=CATPlots/ -e 'using Pkg;
+                                        Pkg.develop(path=".");' &&
           julia --project=docs/ -e 'using Pkg;
-                                    Pkg.develop("..");
-                                    Pkg.develop("../CATPlots");
+                                    Pkg.develop([
+                                      Pkg.PackageSpec(path="."),
+                                      Pkg.PackageSpec(path="./CATPlots")
+                                    ]);
                                     Pkg.resolve();
                                     Pkg.instantiate()'
       - name: Install GitHubActions.jl in docs env
