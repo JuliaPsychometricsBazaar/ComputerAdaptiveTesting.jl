@@ -5,7 +5,7 @@ using Documenter
 using Literate
 using DemoCards
 
-DocMeta.setdocmeta!(ComputerAdaptiveTesting, :DocTestSetup, :(using ComputerAdaptiveTesting); recursive=true)
+DocMeta.setdocmeta!(ComputerAdaptiveTesting, :DocTestSetup, :(using ComputerAdaptiveTesting; using CATPlots); recursive=true)
 
 demopage, postprocess_cb, demo_assets = makedemos("examples")
 
