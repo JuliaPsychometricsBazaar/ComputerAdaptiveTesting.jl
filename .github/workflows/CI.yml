@@ -63,7 +63,7 @@ jobs:
             Pkg.add(Pkg.PackageSpec(name="GitHubActions", version="0.1"))'
       - name: Make docs
         run: |
-          julia --project=docs/ -e '
+          USE_CAIRO_MAKIE=1 julia --project=docs/ -e '
             include("docs/make.jl")'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
