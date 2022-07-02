@@ -23,12 +23,11 @@ function get_ability_estimator(multidim)
     return PriorAbilityEstimator(dist, integrator)
 end
 
-function prepare_empty(item_bank, actual_responses, ability_tracker, ability_estimator)
+function prepare_empty(item_bank, actual_responses, ability_tracker)
     responses = TrackedResponses(
         BareResponses([], []),
         item_bank,
-        ability_tracker,
-        ability_estimator
+        ability_tracker
     )
     (item_bank, actual_responses, responses)
 end
