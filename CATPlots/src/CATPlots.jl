@@ -7,12 +7,11 @@ module CATPlots
 
 export CatRecorder, ability_evolution_lines, lh_evoluation_interactive, @automakie
 
-using Parameters
 using Distributions
 using AlgebraOfGraphics
 using DataFrames
 using Makie
-using MakieLayout
+using Makie: @Block
 using ComputerAdaptiveTesting: Aggregators
 using ComputerAdaptiveTesting.Aggregators
 using ComputerAdaptiveTesting.ItemBanks
@@ -294,7 +293,8 @@ function lh_evoluation_interactive(recorder; abilities=nothing)
 
 	connect!(correct_items.visible, toggle_by_name["previous responses"].active)
 	connect!(incorrect_items.visible, toggle_by_name["previous responses"].active)
-	connect!(actual_ability_line.visible, toggle_by_name["actual ability"].active)
+	# TODO: put back: KeyError: key :visible not found
+	#connect!(actual_ability_line.visible, toggle_by_name["actual ability"].active)
 	connect!(posterior_likelihood_line.visible, toggle_by_name["posterior ability estimate"].active)
 	connect!(raw_likelihood_line.visible, toggle_by_name["raw ability estimate"].active)
 	connect!(cur_item_response_curve.visible, toggle_by_name["current item response"].active)
@@ -324,8 +324,7 @@ end
     end
 end
 
-function initialize_block!(sg::LabelledToggleGrid, nts::NamedTuple...)
-
+function Makie.initialize_block!(sg::LabelledToggleGrid, nts::NamedTuple...)
     sg.toggles = Toggle[]
     sg.labels = Label[]
 
