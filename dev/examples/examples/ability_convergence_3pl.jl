@@ -1,12 +1,5 @@
 using Makie
 import Pkg
-if isdefined(Main, :IJulia) && Main.IJulia.inited
-    using WGLMakie
-elseif "GLMakie" in keys(Pkg.project().dependencies)
-    using GLMakie
-else
-    using CairoMakie
-end
 import Random
 using Distributions: Normal, cdf
 using AlgebraOfGraphics
@@ -16,10 +9,12 @@ using ComputerAdaptiveTesting.Sim: auto_responder
 using ComputerAdaptiveTesting.NextItemRules: AbilityVarianceStateCriterion
 using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
 using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEstimator, LikelihoodAbilityEstimator
-using ComputerAdaptiveTesting.Plots
 using ComputerAdaptiveTesting.ItemBanks
 using ComputerAdaptiveTesting.Integrators
 import ComputerAdaptiveTesting.IntegralCoeffs
+using CATPlots
+
+@automakie()
 
 using ComputerAdaptiveTesting.DummyData: dummy_3pl, std_normal
 Random.seed!(42)

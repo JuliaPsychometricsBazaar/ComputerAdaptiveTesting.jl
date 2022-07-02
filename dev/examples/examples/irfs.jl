@@ -1,14 +1,10 @@
 using Makie
 import Pkg
-if isdefined(Main, :IJulia) && Main.IJulia.inited
-    using WGLMakie
-elseif "GLMakie" in keys(Pkg.project().dependencies)
-    using GLMakie
-else
-    using CairoMakie
-end
 using Distributions: Normal, cdf
 using ComputerAdaptiveTesting.ExtraDistributions: NormalScaledLogistic
+using CATPlots
+
+@automakie()
 
 xs = -8:0.05:8
 lines(xs, cdf.(Normal(), xs))
