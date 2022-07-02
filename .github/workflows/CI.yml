@@ -51,8 +51,8 @@ jobs:
       - name: Set CAT packages to develop & resolve env
         run: |
           julia --project=docs/ -e 'using Pkg;
-                                    Pkg.develop("ComputerAdaptiveTesting");
-                                    Pkg.develop("CATPlots");
+                                    Pkg.develop("..");
+                                    Pkg.develop("../CATPlots");
                                     Pkg.resolve();
                                     Pkg.instantiate()'
       - name: Install GitHubActions.jl in docs env
