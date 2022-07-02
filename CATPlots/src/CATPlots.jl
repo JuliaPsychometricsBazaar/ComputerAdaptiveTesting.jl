@@ -5,7 +5,7 @@ installed.
 """
 module CATPlots
 
-export CatRecorder, ability_evolution_lines, lh_evoluation_interactive, @automakie
+export CatRecorder, ability_evolution_lines, lh_evolution_interactive, @automakie
 
 using Distributions
 using AlgebraOfGraphics
@@ -232,7 +232,7 @@ function ability_evolution_lines(recorder; abilities=nothing)
 	conv_lines_fig
 end
 
-function lh_evoluation_interactive(recorder; abilities=nothing)
+function lh_evolution_interactive(recorder; abilities=nothing)
 	conv_dist_fig = Figure()
 	ax = Axis(conv_dist_fig[1, 1])
 

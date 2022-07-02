@@ -70,5 +70,5 @@ conv_lines_fig
 # Make an interactive plot, showing how the distribution of the ability
 # likelihood evolves.
 
-conv_dist_fig = lh_evoluation_interactive(recorder; abilities=abilities)
+conv_dist_fig = lh_evolution_interactive(recorder; abilities=abilities)
 conv_dist_fig
