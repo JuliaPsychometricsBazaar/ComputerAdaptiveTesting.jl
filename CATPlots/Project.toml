@@ -1,0 +1,14 @@
+name = "CATPlots"
+uuid = "d194c7c1-4081-4169-ba52-101f65b44e42"
+authors = ["Frankie Robertson"]
+version = "0.1.0"
+
+[deps]
+AlgebraOfGraphics = "cbdf2221-f076-402e-a563-3d30da359d67"
+ComputerAdaptiveTesting = "5a0d4f34-1f62-4a66-80fe-87aba0485488"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+
+[compat]
+Makie = "^0.17.6"

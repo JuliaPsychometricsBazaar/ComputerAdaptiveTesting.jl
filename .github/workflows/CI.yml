@@ -32,9 +32,9 @@ jobs:
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
-      - run: |
-          julia --project=. ./install_pkgs.jl headless skipcat
       - uses: julia-actions/julia-runtest@v1
+        with:
+          project: 'test'
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v2
         with:
@@ -48,12 +48,6 @@ jobs:
         with:
           version: '1'
       - uses: julia-actions/julia-buildpkg@v1
-      - name: Install packages
-        run: |
-          julia --project=docs/ ./install_pkgs.jl headless
-        #- uses: julia-actions/julia-docdeploy@v1
-          #with:
-          #install-package: false
       - name: Install GitHubActions.jl in docs env
         run: |
           julia --project=docs/ -e '
@@ -62,7 +56,8 @@ jobs:
       - name: Re-install CAT
         run: |
           julia --project=docs/ -e 'using Pkg;
-                                    Pkg.develop(PackageSpec(path=pwd()));
+                                    Pkg.develop("ComputerAdaptiveTesting");
+                                    Pkg.develop("CATPlots");
                                     Pkg.resolve();
                                     Pkg.instantiate()'
       - name: Make docs

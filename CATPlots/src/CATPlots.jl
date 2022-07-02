@@ -3,7 +3,7 @@ This module contains helpers for creating CAT/IRT related plots. This module
 requires the optional depedencies AlgebraOfGraphics, DataFrames and Makie to be
 installed.
 """
-module Plots
+module CATPlots
 
 export CatRecorder, ability_evolution_lines, lh_evoluation_interactive
 
@@ -12,6 +12,7 @@ using Distributions
 using AlgebraOfGraphics
 using DataFrames
 using Makie
+using MakieLayout
 using ComputerAdaptiveTesting: Aggregators
 using ComputerAdaptiveTesting.Aggregators
 using ComputerAdaptiveTesting.ItemBanks
@@ -236,11 +237,10 @@ function lh_evoluation_interactive(recorder; abilities=nothing)
 	conv_dist_fig = Figure()
 	ax = Axis(conv_dist_fig[1, 1])
 
-	lsgrid = labelslidergrid!(
+	lsgrid = SliderGrid(
 		conv_dist_fig,
-		["Respondent", "Time step"],
-		[1:3, 1:99];
-		formats = ["{:d}", "{:d}"],
+		(label = "Respondent", range = 1:3, format = "{:d}"),
+		(label = "Time step", range = 1:99, format = "{:d}"),
 		width = 350,
 		tellheight = false
 	)
@@ -301,5 +301,49 @@ function lh_evoluation_interactive(recorder; abilities=nothing)
 
 	conv_dist_fig
 end
+
+@Block LabelledToggleGrid begin
+    @forwarded_layout
+    toggles::Vector{Toggle}
+    labels::Vector{Label}
+    @attributes begin
+        "The horizontal alignment of the block in its suggested bounding box."
+        halign = :center
+        "The vertical alignment of the block in its suggested bounding box."
+        valign = :center
+        "The width setting of the block."
+        width = Auto()
+        "The height setting of the block."
+        height = Auto()
+        "Controls if the parent layout can adjust to this block's width"
+        tellwidth::Bool = true
+        "Controls if the parent layout can adjust to this block's height"
+        tellheight::Bool = true
+        "The align mode of the block in its parent GridLayout."
+        alignmode = Inside()
+    end
+end
+
+function initialize_block!(sg::LabelledToggleGrid, nts::NamedTuple...)
+
+    sg.toggles = Toggle[]
+    sg.labels = Label[]
+
+    for (i, nt) in enumerate(nts)
+        label = haskey(nt, :label) ? nt.label : ""
+        remaining_pairs = filter(pair -> pair[1] ∉ (:label, :format), pairs(nt))
+        l = Label(sg.layout[i, 1], label, halign = :left)
+        toggle = Toggle(sg.layout[i, 2]; remaining_pairs...)
+        push!(sg.toggles, toggle)
+        push!(sg.labels, l)
+    end
+end
+
+
+#=
+fig[1, 2] = GridLayout()
+fig[1, 2][1, 1] = lsgrid.layout
+fig[1, 2][2, 1] = grid!(hcat(toggles, labels), tellheight = false)
+=#
 
 end

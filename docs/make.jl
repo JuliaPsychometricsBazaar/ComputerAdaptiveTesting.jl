@@ -1,5 +1,5 @@
-using Makie  # for ComputerAdaptiveTesting.Plots
 using ComputerAdaptiveTesting
+using CATPlots
 
 using Documenter
 using Literate

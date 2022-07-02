@@ -25,10 +25,10 @@ using ComputerAdaptiveTesting.Sim: auto_responder
 using ComputerAdaptiveTesting.NextItemRules: DRuleItemCriterion
 using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
 using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEstimator, LikelihoodAbilityEstimator
-using ComputerAdaptiveTesting.Plots
 using ComputerAdaptiveTesting.ItemBanks
 using ComputerAdaptiveTesting.Integrators
 import ComputerAdaptiveTesting.IntegralCoeffs
+using CATPlots
 
 # Now we are read to generate our synthetic data using the supplied DummyData
 # module. We generate an item bank with 100 items and fake responses for 3

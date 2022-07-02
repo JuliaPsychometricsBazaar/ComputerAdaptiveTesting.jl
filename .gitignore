@@ -1,11 +1,11 @@
 *.jl.*.cov
 *.jl.cov
 *.jl.mem
-/Manifest.toml
+Manifest.toml
 /docs/build/
 /attic/
 /.vscode/
-/docs/Manifest.toml
 /docs/src/generated/
-/full/Manifest.toml
+/docs/src/democards/
+/docs/src/examples/
 /full/Project.toml

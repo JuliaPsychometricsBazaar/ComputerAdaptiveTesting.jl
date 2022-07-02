@@ -11,6 +11,7 @@ else
 end
 using Distributions: Normal, cdf
 using ComputerAdaptiveTesting.ExtraDistributions: NormalScaledLogistic
+using CATPlots
 
 # Typically, the logistic c.d.f. is used as the transfer function in IRT.
 # However, it in an IRT context, a scaled version intended to be close to a
