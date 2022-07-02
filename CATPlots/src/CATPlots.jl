@@ -5,7 +5,7 @@ installed.
 """
 module CATPlots
 
-export CatRecorder, ability_evolution_lines, lh_evoluation_interactive
+export CatRecorder, ability_evolution_lines, lh_evoluation_interactive, @automakie
 
 using Parameters
 using Distributions
@@ -339,6 +339,28 @@ function initialize_block!(sg::LabelledToggleGrid, nts::NamedTuple...)
     end
 end
 
+macro automakie()
+    quote
+		if "USE_WGL_MAKIE" in keys(ENV)
+			using WGLMakie
+		elseif "USE_GL_MAKIE" in keys(ENV)
+			using GLMakie
+		elseif "USE_CARIO_MAKIE" in keys(ENV)
+			using CairoMakie
+		elseif (isdefined(Main, :IJulia) && Main.IJulia.inited)
+			using WGLMakie
+		else
+			Pkg = Base.require(Base.PkgId(Base.UUID(0x44cfe95a1eb252eab672e2afdf69b78f), "Pkg"))
+			if "WGLMakie" in keys(Pkg.project().dependencies)
+				using WGLMakie
+			elseif "GLMakie" in keys(Pkg.project().dependencies)
+				using GLMakie
+			else
+				using CairoMakie
+			end
+		end
+	end
+end
 
 #=
 fig[1, 2] = GridLayout()

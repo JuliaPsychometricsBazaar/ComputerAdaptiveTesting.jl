@@ -2,16 +2,11 @@
 
 using Makie
 import Pkg
-if isdefined(Main, :IJulia) && Main.IJulia.inited
-    using WGLMakie
-elseif "GLMakie" in keys(Pkg.project().dependencies)
-    using GLMakie
-else
-    using CairoMakie
-end
 using Distributions: Normal, cdf
 using ComputerAdaptiveTesting.ExtraDistributions: NormalScaledLogistic
 using CATPlots
+
+@automakie()
 
 # Typically, the logistic c.d.f. is used as the transfer function in IRT.
 # However, it in an IRT context, a scaled version intended to be close to a

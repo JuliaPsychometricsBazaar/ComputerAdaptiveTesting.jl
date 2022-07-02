@@ -9,13 +9,6 @@
 # extra dependencies.
 using Makie
 import Pkg
-if isdefined(Main, :IJulia) && Main.IJulia.inited
-    using WGLMakie
-elseif "GLMakie" in keys(Pkg.project().dependencies)
-    using GLMakie
-else
-    using CairoMakie
-end
 import Random
 using Distributions: Normal, cdf
 using AlgebraOfGraphics
@@ -29,6 +22,8 @@ using ComputerAdaptiveTesting.ItemBanks
 using ComputerAdaptiveTesting.Integrators
 import ComputerAdaptiveTesting.IntegralCoeffs
 using CATPlots
+
+@automakie()
 
 # Now we are read to generate our synthetic data using the supplied DummyData
 # module. We generate an item bank with 100 items and fake responses for 3
