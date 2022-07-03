@@ -44,6 +44,7 @@ TypedPolynomials = "afbbf031-7a57-5f58-a1b9-b774a0fad08d"
 
 [compat]
 ArgParse = "1"
+Cubature = "1"
 Distributions = "0.25"
 FLoops = "0.2"
 Faker = "0.3"
