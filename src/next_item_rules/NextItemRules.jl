@@ -19,6 +19,7 @@ using ..ConfigBase
 import ..IntegralCoeffs
 using ..ItemBanks
 using ..Aggregators
+using ..MathTraits
 
 using QuadGK, Distributions, Optim, Base.Threads, Base.Order, ResumableFunctions, FLoops, StaticArrays
 

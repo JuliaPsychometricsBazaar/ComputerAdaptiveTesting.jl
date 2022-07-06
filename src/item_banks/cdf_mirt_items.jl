@@ -32,7 +32,7 @@ struct CdfMirtItemBank{DistT <: ContinuousUnivariateDistribution} <: AbstractIte
     end
 end
 
-DomainType(::CdfMirtItemBank) = VectorContinuousDomain()
+MathTraits.DomainType(::CdfMirtItemBank) = VectorContinuousDomain()
 
 function raw_difficulty(item_bank::CdfMirtItemBank, item_idx)
     item_bank.difficulties[item_idx]

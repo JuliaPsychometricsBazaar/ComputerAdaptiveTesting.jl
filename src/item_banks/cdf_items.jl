@@ -5,7 +5,7 @@ struct TransferItemBank{DistT <: ContinuousUnivariateDistribution} <: AbstractIt
     labels::MaybeLabels
 end
 
-DomainType(::TransferItemBank) = OneDimContinuousDomain()
+MathTraits.DomainType(::TransferItemBank) = OneDimContinuousDomain()
 
 function raw_difficulty(item_bank::TransferItemBank, item_idx)
     item_bank.difficulties[item_idx]

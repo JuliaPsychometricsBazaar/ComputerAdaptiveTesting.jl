@@ -61,11 +61,14 @@ end
 
 function response_expectation(
     ability_estimator::DistributionAbilityEstimator,
+    integrator::AbilityIntegrator,
     tracked_responses::TrackedResponses,
     item_idx
 )::Float64
     expectation(
         ItemResponse(tracked_responses.item_bank, item_idx),
+        0,
+        integrator,
         ability_estimator,
         tracked_responses,
     )

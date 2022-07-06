@@ -45,7 +45,7 @@ end
 
 function (integrator::CubaIntegrator)(
     f::F,
-    ncomp=1,
+    ncomp=0,
     lo=integrator.lo,
     hi=integrator.hi;
     kwargs...
@@ -54,10 +54,16 @@ function (integrator::CubaIntegrator)(
     res = get_cuba_integration_func(integrator.algorithm)(
         PreallocatedOutputWrapper(ScaleUnitDomain(f, lo, hi)),
         length(lo),
-        ncomp;
+        ncomp == 0 ? 1 : ncomp;
         merge(integrator.kwargs, kwargs)...
     )
-    val = res.integral[1]
-    err = res.error[1]
-    ErrorIntegrationResult(val, err)
+    # XXX: Should this be specialised?
+    # TODO: Use OneDimContinuousDomain
+    if ncomp == 0
+        val = res.integral[1]
+        err = res.error[1]
+        ErrorIntegrationResult(val, err)
+    else
+        ErrorIntegrationResult(res.integral, res.error)
+    end
 end

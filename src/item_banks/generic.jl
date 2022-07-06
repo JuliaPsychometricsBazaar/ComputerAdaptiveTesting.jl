@@ -1,6 +1,5 @@
 abstract type LikelihoodFunction end
 
-using ..MathTraits
 using ..Integrators
 
 struct ItemResponse{ItemBankT <: AbstractItemBank, IntT <: Integer} <: LikelihoodFunction 
@@ -29,7 +28,7 @@ struct AbilityLikelihood{ItemBankT} <: LikelihoodFunction where {ItemBankT <: Ab
     responses::BareResponses
 end
 
-DomainType(lhf::Union{ItemResponse, AbilityLikelihood}) = DomainType(lhf.item_bank)
+MathTraits.DomainType(lhf::Union{ItemResponse, AbilityLikelihood}) = DomainType(lhf.item_bank)
 
 function (ability_lh::LikelihoodFunction)(θ)
     ability_lh(DomainType(ability_lh), θ)

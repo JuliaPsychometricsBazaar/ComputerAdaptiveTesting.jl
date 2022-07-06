@@ -13,7 +13,7 @@ struct GriddedItemBank <: AbstractItemBank
     labels::MaybeLabels
 end
 
-DomainType(::GriddedItemBank) = DiscreteIndexableDomain
+MathTraits.DomainType(::GriddedItemBank) = DiscreteIndexableDomain
 
 function Base.length(item_bank::GriddedItemBank)
     size(item_bank.ys, 2)

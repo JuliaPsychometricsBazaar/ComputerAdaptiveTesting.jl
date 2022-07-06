@@ -38,7 +38,7 @@ const AnyGuessItemBank = Union{GuessItemBank, FixedGuessItemBank}
 const AnySlipOrGuessItemBank = Union{AnySlipItemBank, AnyGuessItemBank}
 const AnySlipAndGuessItemBank = Union{SlipItemBank{AnyGuessItemBank}, FixedSlipItemBank{AnyGuessItemBank}}
 
-DomainType(item_bank::AnySlipOrGuessItemBank) = DomainType(item_bank.inner_bank)
+MathTraits.DomainType(item_bank::AnySlipOrGuessItemBank) = DomainType(item_bank.inner_bank)
 
 # Ensure we always have Slip{Guess{ItemBank}}
 function FixedGuessItemBank(guess::Float64, inner_bank::AnySlipItemBank)

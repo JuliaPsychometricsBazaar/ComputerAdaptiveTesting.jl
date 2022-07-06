@@ -35,14 +35,18 @@ end
 
 function (criterion::AbilityVarianceStateCriterion)(tracked_responses::TrackedResponses)::Float64
     # XXX: Not sure if the estimator should come from somewhere else here
-    
     denom = normdenom(
         criterion.integrator,
         criterion.dist_est,
         tracked_responses
     )
+    criterion(tracked_responses, DomainType(tracked_responses.item_bank), denom)
+end
+
+function (criterion::AbilityVarianceStateCriterion)(::OneDimContinuousDomain, tracked_responses::TrackedResponses, denom)::Float64
     mean = expectation(
         IntegralCoeffs.id,
+        0,
         criterion.integrator,
         criterion.dist_est,
         tracked_responses,
@@ -50,6 +54,7 @@ function (criterion::AbilityVarianceStateCriterion)(tracked_responses::TrackedRe
     )
     expectation(
         IntegralCoeffs.SqDev(mean),
+        0,
         criterion.integrator,
         criterion.dist_est,
         tracked_responses,
@@ -57,29 +62,92 @@ function (criterion::AbilityVarianceStateCriterion)(tracked_responses::TrackedRe
     )
 end
 
+function (criterion::AbilityVarianceStateCriterion)(::Vector, tracked_responses::TrackedResponses, denom)::Float64
+    # XXX: Not quite sure about this --- is it useful, the MIRT rules cover this case
+    mean = expectation(
+        IntegralCoeffs.id,
+        dim(tracked_responses.item_bank),
+        criterion.integrator,
+        criterion.dist_est,
+        tracked_responses,
+        denom
+    )
+    expectation(
+        IntegralCoeffs.SqDev(mean),
+        dim(tracked_responses.item_bank),
+        criterion.integrator,
+        criterion.dist_est,
+        tracked_responses,
+        denom
+    )
+end
+
+abstract type ExpectationBasedItemCriterion <: ItemCriterion end
+
+function ExpectationBasedItemCriterion(bits...; ability_estimator=nothing)
+    println(join(stacktrace(), "\n"))
+    criterion = StateCriterion(bits...; ability_estimator=ability_estimator)
+    if criterion === nothing
+        return nothing
+    end
+    ability_estimator = AbilityEstimator(bits..., ability_estimator=ability_estimator)
+    if ability_estimator === nothing
+        return nothing
+    end
+    ExpectationBasedItemCriterion(ability_estimator, criterion, bits...)
+end
+
+function ExpectationBasedItemCriterion(ability_estimator::PointAbilityEstimator, criterion::StateCriterion, bits...)
+    PointExpectationBasedItemCriterion(ability_estimator, criterion)
+end
+
+function ExpectationBasedItemCriterion(ability_estimator::DistributionAbilityEstimator, criterion::StateCriterion, bits...)
+    @returnsome Integrator(bits...) integrator -> DistributionBasedItemCriterion(ability_estimator, integrator, criterion)
+end
+
 """
 This ItemCriterion wraps a StateCriterion and looks at its expected value for a
-particular item 1-ply ahead.
+particular item 1-ply ahead based on a point ability estimate.
 """
-struct ExpectationBasedItemCriterion{AbilityEstimatorT <: AbilityEstimator, StateCriterionT <: StateCriterion} <: ItemCriterion
-    ability_estimator::AbilityEstimatorT
+struct PointExpectationBasedItemCriterion{PointAbilityEstimatorT <: PointAbilityEstimator, StateCriterionT <: StateCriterion} <: ExpectationBasedItemCriterion
+    ability_estimator::PointAbilityEstimatorT
     state_criterion::StateCriterionT
 end
 
-function ExpectationBasedItemCriterion(bits...; ability_estimator=nothing)
-    criterion = StateCriterion(bits...; ability_estimator=ability_estimator)
-    if criterion !== nothing
-        @returnsome AbilityEstimator(bits..., ability_estimator=ability_estimator) ability_estimator -> ExpectationBasedItemCriterion(ability_estimator, criterion)
-    end
+"""
+This ItemCriterion wraps a StateCriterion and looks at its expected value for a
+particular item 1-ply ahead by integrating over an ability curve.
+"""
+struct DistributionExpectationBasedItemCriterion{DistributionAbilityEstimatorT <: DistributionAbilityEstimator, AbilityIntegratorT <: AbilityIntegrator, StateCriterionT <: StateCriterion} <: ExpectationBasedItemCriterion
+    ability_estimator::DistributionAbilityEstimatorT
+    integrator::AbilityIntegratorT
+    state_criterion::StateCriterionT
 end
 
 function init_thread(::ExpectationBasedItemCriterion, responses::TrackedResponses)
     Speculator(responses, 1)
 end
 
+function Aggregators.response_expectation(item_criterion::PointExpectationBasedItemCriterion, tracked_responses, item_idx)
+    response_expectation(
+        item_criterion.ability_estimator,
+        tracked_responses,
+        item_idx
+    )
+end
+
+function Aggregators.response_expectation(item_criterion::DistributionExpectationBasedItemCriterion, tracked_responses, item_idx)
+    response_expectation(
+        item_criterion.ability_estimator,
+        item_criterion.integrator,
+        tracked_responses,
+        item_idx
+    )
+end
+
 function (item_criterion::ExpectationBasedItemCriterion)(speculator::Speculator, tracked_responses::TrackedResponses, item_idx)
     exp_resp = response_expectation(
-        item_criterion.ability_estimator,
+        item_criterion,
         tracked_responses,
         item_idx
     )
@@ -122,7 +190,6 @@ end
 function information_matrix(ability_estimator, acc_info, tracked_responses::TrackedResponses, item_idx)
     # TODO: Add in information from the prior
     ability = maybe_tracked_ability_estimate(tracked_responses, ability_estimator)
-    #@info "information_matrix" ability
     acc_info .+ expected_item_information(ItemResponse(tracked_responses.item_bank, item_idx), ability)
 end
 

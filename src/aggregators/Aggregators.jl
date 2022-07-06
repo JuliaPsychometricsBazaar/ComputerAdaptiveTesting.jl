@@ -10,7 +10,7 @@ using Distributions: Distribution
 using HCubature
 using Base.Threads
 
-using ..ItemBanks: AbstractItemBank, ItemResponse, AbilityLikelihood, LikelihoodFunction
+using ..ItemBanks: AbstractItemBank, ItemResponse, AbilityLikelihood, LikelihoodFunction, dim
 using ..Responses: BareResponses, Response
 using ..MathTraits
 using ..ConfigBase

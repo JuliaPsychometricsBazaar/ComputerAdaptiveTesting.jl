@@ -13,7 +13,7 @@ struct VectorContinuousDomain <: ContinuousDomain end
 struct OneDimContinuousDomain <: ContinuousDomain end
 struct DiscreteIndexableDomain <: DiscreteDomain end
 struct DiscreteIterableDomain <: DiscreteDomain end
-DomainType(callable) = DomainType(typeof(callable))
-DomainType(callable::Type) = OneDimContinuousDomain() # default
+#DomainType(callable) = DomainType(typeof(callable))
+#DomainType(callable::Type) = OneDimContinuousDomain() # default
 
 end

@@ -4,14 +4,16 @@ end
 
 function(integrator::FunctionIntegrator)(
     f::F,
+    ncomp,
     lh_function::LikelihoodFunction
 ) where {F}
-    integrator(DomainType(lh_function), f, lh_function)
+    integrator(DomainType(lh_function), f, ncomp, lh_function)
 end
 
 function(integrator::FunctionIntegrator)(
     ::ContinuousDomain,
     f::F,
+    ncomp,
     lh_function::LikelihoodFunction;
     buf=nothing
 ) where {F}
@@ -22,12 +24,13 @@ function(integrator::FunctionIntegrator)(
             f(x) * lh_function(x)
         end
     end
-    integrator.integrator(comp_f)
+    integrator.integrator(comp_f, ncomp)
 end
 
 function(integrator::FunctionIntegrator)(
     ::DiscreteIterableDomain,
     f::F,
+    ncomp,
     lh_function::LikelihoodFunction
 ) where {F}
     error("TODO")
@@ -65,9 +68,10 @@ end
 
 function (integrator::AbilityIntegrator)(
     f::F,
+    ncomp,
     est,
     tracked_responses::TrackedResponses;
     kwargs...
 ) where {F}
-    integrator(maybe_apply_prior(f, est), AbilityLikelihood(tracked_responses); kwargs...)
+    integrator(maybe_apply_prior(f, est), ncomp, AbilityLikelihood(tracked_responses); kwargs...)
 end
