@@ -5,7 +5,7 @@ installed.
 """
 module CATPlots
 
-export CatRecorder, ability_evolution_lines, lh_evolution_interactive, @automakie
+export CatRecorder, ability_evolution_lines, ability_convergence_lines, lh_evolution_interactive, @automakie
 
 using Distributions
 using AlgebraOfGraphics
@@ -117,6 +117,7 @@ mutable struct CatRecorder{AbilityVecT}
 	points::Int
 	respondents::Vector{Int}
 	ability_ests::AbilityVecT
+	ability_divs::Vector{Float64}
 	steps::Vector{Int}
 	xs::AbilityVecT
 	likelihoods::Matrix{Float64}
@@ -128,11 +129,12 @@ mutable struct CatRecorder{AbilityVecT}
 	item_correctness::Matrix{Bool}
 	ability_estimator::AbilityEstimator
     respondent_step_lookup::Dict{Tuple{Int, Int}, Int}
+	actual_abilities::Union{Nothing, AbilityVecT}
 end
 
 #xs = range(-2.5, 2.5, length=points)
 
-function CatRecorder(xs, points, ability_ests, num_questions, num_respondents, integrator, raw_estimator, ability_estimator)
+function CatRecorder(xs, points, ability_ests, num_questions, num_respondents, integrator, raw_estimator, ability_estimator, actual_abilities=nothing)
     num_values = num_questions * num_respondents
 	xs_vec = collect(xs)
 
@@ -142,6 +144,7 @@ function CatRecorder(xs, points, ability_ests, num_questions, num_respondents, i
 		points,
 		zeros(Int, num_values),
 		ability_ests,
+		zeros(Float64, num_values),
 		zeros(Int, num_values),
 		xs_vec,
 		zeros(points, num_values),
@@ -152,24 +155,25 @@ function CatRecorder(xs, points, ability_ests, num_questions, num_respondents, i
 		zeros(num_questions, num_respondents),
 		zeros(Bool, num_questions, num_respondents),
 		ability_estimator,
-		Dict{Tuple{Int, Int}, Int}()
+		Dict{Tuple{Int, Int}, Int}(),
+		actual_abilities
 	)
 end
 
-function CatRecorder(xs::AbstractVector{Float64}, responses, integrator, raw_estimator, ability_estimator)
+function CatRecorder(xs::AbstractVector{Float64}, responses, integrator, raw_estimator, ability_estimator, actual_abilities=nothing)
 	points = size(xs, 1)
     num_questions = size(responses, 1)
     num_respondents = size(responses, 2)
     num_values = num_questions * num_respondents
-	CatRecorder(xs, points, zeros(num_values), num_questions, num_respondents, integrator, raw_estimator, ability_estimator)
+	CatRecorder(xs, points, zeros(num_values), num_questions, num_respondents, integrator, raw_estimator, ability_estimator, actual_abilities)
 end
 
-function CatRecorder(xs::AbstractMatrix{Float64}, responses, integrator, raw_estimator, ability_estimator)
+function CatRecorder(xs::AbstractMatrix{Float64}, responses, integrator, raw_estimator, ability_estimator, actual_abilities=nothing)
 	points = size(xs, 2)
     num_questions = size(responses, 1)
     num_respondents = size(responses, 2)
     num_values = num_questions * num_respondents
-	CatRecorder(xs, points, zeros(size(xs, 1), num_values), num_questions, num_respondents, integrator, raw_estimator, ability_estimator)
+	CatRecorder(xs, points, zeros(size(xs, 1), num_values), num_questions, num_respondents, integrator, raw_estimator, ability_estimator, actual_abilities)
 end
 
 function push_ability_est!(ability_ests::AbstractMatrix{Float64}, col_idx, ability_est)
@@ -196,6 +200,9 @@ function (recorder::CatRecorder)(tracked_responses, resp_idx, terminating)
     recorder.respondent_step_lookup[(resp_idx, recorder.step)] = recorder.col_idx
     recorder.respondents[recorder.col_idx] = resp_idx
     push_ability_est!(recorder.ability_ests, recorder.col_idx, ability_est)
+    if recorder.actual_abilities !== nothing
+        recorder.ability_divs[recorder.col_idx] = sum(abs.(ability_est .- recorder.actual_abilities[resp_idx]))
+    end
     recorder.steps[recorder.col_idx] = recorder.step
 
     # Save likelihoods
@@ -230,6 +237,15 @@ function ability_evolution_lines(recorder; abilities=nothing)
 		hlines!(conv_lines_fig, abilities)
 	end
 	conv_lines_fig
+end
+
+function ability_convergence_lines(recorder; abilities)
+	plt = (
+		data((respondent = recorder.respondents, ability_div = recorder.ability_divs, step = recorder.steps)) *
+		visual(Lines) *
+		mapping(:step, :ability_div, color = :respondent => nonnumeric)
+	)
+	draw(plt)
 end
 
 function lh_evolution_interactive(recorder; abilities=nothing)

@@ -34,17 +34,17 @@ Random.seed!(42)
 
 # Simulate a CAT for each testee and record it using CatRecorder.
 # CatRecorder collects information which can be used to draw different types of plots.
-const max_questions = 99
-const integrator = FixedGKIntegrator(-6, 6, 80)
-const dist_ability_est = PriorAbilityEstimator(std_normal)
-const ability_estimator = MeanAbilityEstimator(dist_ability_est, integrator)
-const rules = CatRules(
+max_questions = 99
+integrator = FixedGKIntegrator(-6, 6, 80)
+dist_ability_est = PriorAbilityEstimator(std_normal)
+ability_estimator = MeanAbilityEstimator(dist_ability_est, integrator)
+rules = CatRules(
     ability_estimator,
     AbilityVarianceStateCriterion(dist_ability_est, integrator),
     FixedItemsTerminationCondition(max_questions)
 )
 
-const points = 500
+points = 500
 xs = range(-2.5, 2.5, length=points)
 raw_estimator = LikelihoodAbilityEstimator()
 recorder = CatRecorder(xs, responses, integrator, raw_estimator, ability_estimator)
