@@ -7,7 +7,7 @@ using DemoCards
 
 DocMeta.setdocmeta!(ComputerAdaptiveTesting, :DocTestSetup, :(using ComputerAdaptiveTesting; using CATPlots); recursive=true)
 
-demopage, postprocess_cb, demo_assets = makedemos("examples")
+demopage, postprocess_cb, demo_assets = makedemos("examples"; throw_error=true)
 
 assets = []
 isnothing(demo_assets) || (push!(assets, demo_assets))
