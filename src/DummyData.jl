@@ -49,7 +49,7 @@ function dummy_mirt_4pl_item_bank(rng, num_questions, dims)
     slips = clamp.(rand(rng, slip_normal, num_questions), 0.0, 1.0)
     ItemBankMirt4PL(difficulties, discriminations, guesses, slips)
 end
-dummy_mirt_4pl_item_bank(num_questions) = dummy_mirt_4pl_item_bank(Random.default_rng(), num_questions)
+dummy_mirt_4pl_item_bank(num_questions, dims) = dummy_mirt_4pl_item_bank(Random.default_rng(), num_questions, dims)
 
 function item_bank_to_full_dummy(rng, item_bank, num_testees)
     (item_bank, question_labels, abilities, responses) = mirt_item_bank_to_full_dummy(rng, item_bank, num_testees, 1; squeeze=true)
