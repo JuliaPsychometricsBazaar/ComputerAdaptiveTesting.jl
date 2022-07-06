@@ -36,7 +36,7 @@ Random.seed!(42)
 # Simulate a CAT for each testee and record it using CatRecorder.
 # CatRecorder collects information which can be used to draw different types of plots.
 max_questions = 9
-integrator = MultiDimFixedGKIntegrator([-6.0, -6.0, -6.0], [6.0, 6.0, 6.0])
+integrator = CubaIntegrator([-6.0, -6.0, -6.0], [6.0, 6.0, 6.0], CubaVegas())
 ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(3)), integrator)
 rules = CatRules(
     ability_estimator,
