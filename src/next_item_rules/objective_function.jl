@@ -40,7 +40,7 @@ function (criterion::AbilityVarianceStateCriterion)(tracked_responses::TrackedRe
         criterion.dist_est,
         tracked_responses
     )
-    criterion(tracked_responses, DomainType(tracked_responses.item_bank), denom)
+    criterion(DomainType(tracked_responses.item_bank), tracked_responses, denom)
 end
 
 function (criterion::AbilityVarianceStateCriterion)(::OneDimContinuousDomain, tracked_responses::TrackedResponses, denom)::Float64
