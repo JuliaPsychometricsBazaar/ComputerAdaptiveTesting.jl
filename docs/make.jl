@@ -19,7 +19,7 @@ format = Documenter.HTML(
 )
 
 makedocs(;
-    modules=[ComputerAdaptiveTesting],
+    modules=[ComputerAdaptiveTesting, CATPlots],
     authors="Frankie Robertson",
     repo="https://github.com/frankier/ComputerAdaptiveTesting.jl/blob/{commit}{path}#{line}",
     sitename="ComputerAdaptiveTesting.jl",
