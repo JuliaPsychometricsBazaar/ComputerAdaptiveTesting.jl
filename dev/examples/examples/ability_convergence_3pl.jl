@@ -20,17 +20,17 @@ using ComputerAdaptiveTesting.DummyData: dummy_3pl, std_normal
 Random.seed!(42)
 (item_bank, question_labels, abilities, responses) = dummy_3pl(;num_questions=100, num_testees=3)
 
-const max_questions = 99
-const integrator = FixedGKIntegrator(-6, 6, 80)
-const dist_ability_est = PriorAbilityEstimator(std_normal)
-const ability_estimator = MeanAbilityEstimator(dist_ability_est, integrator)
-const rules = CatRules(
+max_questions = 99
+integrator = FixedGKIntegrator(-6, 6, 80)
+dist_ability_est = PriorAbilityEstimator(std_normal)
+ability_estimator = MeanAbilityEstimator(dist_ability_est, integrator)
+rules = CatRules(
     ability_estimator,
     AbilityVarianceStateCriterion(dist_ability_est, integrator),
     FixedItemsTerminationCondition(max_questions)
 )
 
-const points = 500
+points = 500
 xs = range(-2.5, 2.5, length=points)
 raw_estimator = LikelihoodAbilityEstimator()
 recorder = CatRecorder(xs, responses, integrator, raw_estimator, ability_estimator)
@@ -50,7 +50,7 @@ end
 conv_lines_fig = ability_evolution_lines(recorder; abilities=abilities)
 conv_lines_fig
 
-conv_dist_fig = lh_evoluation_interactive(recorder; abilities=abilities)
+conv_dist_fig = lh_evolution_interactive(recorder; abilities=abilities)
 conv_dist_fig
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl

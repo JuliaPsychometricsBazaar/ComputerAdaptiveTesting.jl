@@ -16,24 +16,24 @@ using CATPlots
 
 @automakie()
 
-const dims = 3
+dims = 3
 using ComputerAdaptiveTesting.DummyData: dummy_mirt_4pl, std_mv_normal
 Random.seed!(42)
 (item_bank, question_labels, abilities, responses) = dummy_mirt_4pl(dims; num_questions=10, num_testees=2)
 
-const max_questions = 9
-const integrator = MultiDimFixedGKIntegrator([-6.0, -6.0, -6.0], [6.0, 6.0, 6.0])
-const ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(3)), integrator)
-const rules = CatRules(
+max_questions = 9
+integrator = CubaIntegrator([-6.0, -6.0, -6.0], [6.0, 6.0, 6.0], CubaVegas())
+ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(3)), integrator)
+rules = CatRules(
     ability_estimator,
     DRuleItemCriterion(ability_estimator),
     FixedItemsTerminationCondition(max_questions)
 )
 
-const points = 500
+points = 3
 xs = repeat(range(-2.5, 2.5, length=points)', dims, 1)
 raw_estimator = LikelihoodAbilityEstimator()
-recorder = CatRecorder(xs, responses, integrator, raw_estimator, ability_estimator)
+recorder = CatRecorder(xs, responses, integrator, raw_estimator, ability_estimator, abilities)
 for testee_idx in axes(responses, 2)
     @debug "Running for testee" testee_idx
     tracked_responses, θ = run_cat(
@@ -44,15 +44,13 @@ for testee_idx in axes(responses, 2)
         ),
         item_bank
     )
-    true_θ = abilities[testee_idx]
+    true_θ = abilities[:, testee_idx]
     abs_err = sum(abs.(θ .- true_θ))
+    @info "convergence" true_θ θ abs_err
 end
 
-conv_lines_fig = ability_evolution_lines(recorder; abilities=abilities)
+conv_lines_fig = ability_convergence_lines(recorder; abilities=abilities)
 conv_lines_fig
-
-conv_dist_fig = lh_evoluation_interactive(recorder; abilities=abilities)
-conv_dist_fig
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
 
