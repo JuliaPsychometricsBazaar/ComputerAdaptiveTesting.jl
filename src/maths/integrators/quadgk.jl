@@ -40,11 +40,15 @@ struct FixedGKIntegrator <: Integrator
 end
 
 function (integrator::FixedGKIntegrator)(
-    f::F;
+    f::F,
+    ncomp=0,
     lo=integrator.lo,
-    hi=integrator.hi,
+    hi=integrator.hi;
     order=integrator.order
 ) where F
+    if ncomp != 0
+        error("FixedGKIntegrator only supports ncomp == 0")
+    end
     ErrorIntegrationResult(fixed_gk(f, lo, hi, order)...)
 end
 
@@ -63,10 +67,10 @@ function MultiDimFixedGKIntegrator(lo, hi, order::Int)
 end
 
 function (integrator::MultiDimFixedGKIntegrator)(
-    f::F;
+    f::F,
     ncomp=1,
     lo=integrator.lo,
-    hi=integrator.hi,
+    hi=integrator.hi;
     order=integrator.order
 ) where F
     x = Array{Float64}(undef, length(lo))
