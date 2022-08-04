@@ -42,45 +42,7 @@ for testee_idx in axes(responses, 2)
     )
     true_θ = abilities[testee_idx]
     abs_err = abs(θ - true_θ)
-end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">#ExpectationBasedItemCriterion#7 at objective_function.jl:88 [inlined]
-(::Core.var&quot;#Type##kw&quot;)(::NamedTuple{(:ability_estimator,), Tuple{ComputerAdaptiveTesting.Aggregators.MeanAbilityEstimator{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}}}, ::Type{ComputerAdaptiveTesting.NextItemRules.ExpectationBasedItemCriterion}, ::ComputerAdaptiveTesting.Aggregators.MeanAbilityEstimator{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}, ::ComputerAdaptiveTesting.NextItemRules.AbilityVarianceStateCriterion{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}, ::ComputerAdaptiveTesting.TerminationConditions.FixedItemsTerminationCondition) at objective_function.jl:88
-macro expansion at ConfigBase.jl:36 [inlined]
-ComputerAdaptiveTesting.NextItemRules.ItemCriterion(::ComputerAdaptiveTesting.Aggregators.MeanAbilityEstimator{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}, ::Vararg{Any}; ability_estimator::ComputerAdaptiveTesting.Aggregators.MeanAbilityEstimator{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}) at objective_function.jl:7
-Type at objective_function.jl:5 [inlined]
-#ItemStrategyNextItemRule#25 at NextItemRules.jl:192 [inlined]
-(::Core.var&quot;#Type##kw&quot;)(::NamedTuple{(:ability_estimator, :parallel), Tuple{ComputerAdaptiveTesting.Aggregators.MeanAbilityEstimator{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}, Bool}}, ::Type{ComputerAdaptiveTesting.NextItemRules.ItemStrategyNextItemRule}, ::ComputerAdaptiveTesting.Aggregators.MeanAbilityEstimator{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}, ::ComputerAdaptiveTesting.NextItemRules.AbilityVarianceStateCriterion{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}, ::ComputerAdaptiveTesting.TerminationConditions.FixedItemsTerminationCondition) at NextItemRules.jl:191
-macro expansion at ConfigBase.jl:36 [inlined]
-ComputerAdaptiveTesting.NextItemRules.NextItemRule(::ComputerAdaptiveTesting.Aggregators.MeanAbilityEstimator{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}, ::Vararg{Any}; ability_estimator::ComputerAdaptiveTesting.Aggregators.MeanAbilityEstimator{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}, parallel::Bool) at NextItemRules.jl:36
-(::Core.var&quot;#Type##kw&quot;)(::NamedTuple{(:ability_estimator,), Tuple{ComputerAdaptiveTesting.Aggregators.MeanAbilityEstimator{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}}}, ::Type{ComputerAdaptiveTesting.NextItemRules.NextItemRule}, ::ComputerAdaptiveTesting.Aggregators.MeanAbilityEstimator{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}, ::ComputerAdaptiveTesting.NextItemRules.AbilityVarianceStateCriterion{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}, ::ComputerAdaptiveTesting.TerminationConditions.FixedItemsTerminationCondition) at NextItemRules.jl:35
-CatRules(::ComputerAdaptiveTesting.Aggregators.MeanAbilityEstimator{ComputerAdaptiveTesting.Aggregators.PriorAbilityEstimator{Distributions.Normal{Float64}}, ComputerAdaptiveTesting.Aggregators.FunctionIntegrator{ComputerAdaptiveTesting.Integrators.FixedGKIntegrator}}, ::Vararg{Any}) at CatConfig.jl:57
-top-level scope at ability_convergence_3pl.md:53
-eval at boot.jl:373 [inlined]
-#17 at Expanders.jl:629 [inlined]
-cd(f::Documenter.Expanders.var&quot;#17#19&quot;{Module, Expr}, dir::String) at file.jl:110
-(::Documenter.Expanders.var&quot;#16#18&quot;{Documenter.Documents.Page, Module, Expr})() at Expanders.jl:628
-(::IOCapture.var&quot;#3#5&quot;{DataType, Documenter.Expanders.var&quot;#16#18&quot;{Documenter.Documents.Page, Module, Expr}, Task, IOContext{Base.PipeEndpoint}, IOContext{Base.PipeEndpoint}, Base.PipeEndpoint, Base.PipeEndpoint})() at IOCapture.jl:118
-with_logstate(f::Function, logstate::Any) at logging.jl:511
-with_logger at logging.jl:623 [inlined]
-capture(f::Documenter.Expanders.var&quot;#16#18&quot;{Documenter.Documents.Page, Module, Expr}; rethrow::Type, color::Bool) at IOCapture.jl:116
-(::IOCapture.var&quot;#capture##kw&quot;)(::NamedTuple{(:rethrow, :color), Tuple{DataType, Bool}}, ::typeof(IOCapture.capture), f::Function) at IOCapture.jl:75
-runner(#unused#::Type{Documenter.Expanders.ExampleBlocks}, x::Markdown.Code, page::Documenter.Documents.Page, doc::Documenter.Documents.Document) at Expanders.jl:627
-dispatch(::Type{Documenter.Expanders.ExpanderPipeline}, ::Markdown.Code, ::Vararg{Any}) at Selectors.jl:170
-expand(doc::Documenter.Documents.Document) at Expanders.jl:42
-runner(#unused#::Type{Documenter.Builder.ExpandTemplates}, doc::Documenter.Documents.Document) at Builder.jl:226
-dispatch(#unused#::Type{Documenter.Builder.DocumentPipeline}, x::Documenter.Documents.Document) at Selectors.jl:170
-#2 at Documenter.jl:273 [inlined]
-cd(f::Documenter.var&quot;#2#3&quot;{Documenter.Documents.Document}, dir::String) at file.jl:110
-#makedocs#1 at Documenter.jl:272 [inlined]
-(::Documenter.var&quot;#makedocs##kw&quot;)(::NamedTuple{(:modules, :authors, :repo, :sitename, :format, :pages), Tuple{Vector{Module}, String, String, String, Documenter.Writers.HTMLWriter.HTML, Vector{Any}}}, ::typeof(makedocs)) at Documenter.jl:267
-top-level scope at make.jl:21
-eval at boot.jl:373 [inlined]
-include_string(mapexpr::typeof(identity), mod::Module, code::String, filename::String) at loading.jl:1196
-_include(mapexpr::Function, mod::Module, _path::String) at loading.jl:1253
-include(fname::String) at client.jl:451
-top-level scope at none:2
-eval at boot.jl:373 [inlined]
-exec_options(opts::Base.JLOptions) at client.jl:268
-_start() at client.jl:495</code></pre><p>Make a plot showing how the estimated value evolves during the CAT. We also plot the &#39;true&#39; values used to generate the responses.</p><pre><code class="language-julia hljs">conv_lines_fig = ability_evolution_lines(recorder; abilities=abilities)
+end</code></pre><p>Make a plot showing how the estimated value evolves during the CAT. We also plot the &#39;true&#39; values used to generate the responses.</p><pre><code class="language-julia hljs">conv_lines_fig = ability_evolution_lines(recorder; abilities=abilities)
 conv_lines_fig</code></pre><div data-jscall-id="14"><script data-jscall-id="15" type="text/javascript">
     function register_resize_handler(remote_origin) {
         function resize_callback(event) {
@@ -90,7 +52,7 @@ conv_lines_fig</code></pre><div data-jscall-id="14"><script data-jscall-id="15" 
             const uuid = event.data[0];
             const width = event.data[1];
             const height = event.data[2];
-            const iframe = document.getElementById('aa5ae3d4-1692-4dad-98e6-c45a792c7d2d');
+            const iframe = document.getElementById('2f19ee6d-28ed-4723-be44-493d6c191b6b');
             if (iframe) {
                 iframe.style.width = width + "px";
                 iframe.style.height = height + "px";
@@ -104,7 +66,7 @@ conv_lines_fig</code></pre><div data-jscall-id="14"><script data-jscall-id="15" 
     }
     register_resize_handler('http://127.0.0.1:9284')
 
-</script><iframe scrolling="no" id="aa5ae3d4-1692-4dad-98e6-c45a792c7d2d" data-jscall-id="13" src="http://127.0.0.1:9284/aa5ae3d4-1692-4dad-98e6-c45a792c7d2d" style="position: relative; display: block; width: 100%; height: 100%; padding: 0; overflow: hidden; border: none"></iframe></div>
+</script><iframe scrolling="no" id="2f19ee6d-28ed-4723-be44-493d6c191b6b" data-jscall-id="13" src="http://127.0.0.1:9284/2f19ee6d-28ed-4723-be44-493d6c191b6b" style="position: relative; display: block; width: 100%; height: 100%; padding: 0; overflow: hidden; border: none"></iframe></div>
 <p>Make an interactive plot, showing how the distribution of the ability likelihood evolves.</p><pre><code class="language-julia hljs">conv_dist_fig = lh_evolution_interactive(recorder; abilities=abilities)
 conv_dist_fig</code></pre><div data-jscall-id="17"><script data-jscall-id="18" type="text/javascript">
     function register_resize_handler(remote_origin) {
@@ -115,7 +77,7 @@ conv_dist_fig</code></pre><div data-jscall-id="17"><script data-jscall-id="18" t
             const uuid = event.data[0];
             const width = event.data[1];
             const height = event.data[2];
-            const iframe = document.getElementById('00863cc6-a455-4451-a40d-1f4f67dfeab1');
+            const iframe = document.getElementById('651cdef7-e0fa-4be4-920c-cf54de6690e9');
             if (iframe) {
                 iframe.style.width = width + "px";
                 iframe.style.height = height + "px";
@@ -129,5 +91,5 @@ conv_dist_fig</code></pre><div data-jscall-id="17"><script data-jscall-id="18" t
     }
     register_resize_handler('http://127.0.0.1:9284')
 
-</script><iframe scrolling="no" id="00863cc6-a455-4451-a40d-1f4f67dfeab1" data-jscall-id="16" src="http://127.0.0.1:9284/00863cc6-a455-4451-a40d-1f4f67dfeab1" style="position: relative; display: block; width: 100%; height: 100%; padding: 0; overflow: hidden; border: none"></iframe></div>
-<hr/><p><em>This page was generated using <a href="https://github.com/johnnychen94/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.22 on <span class="colophon-date" title="Thursday 4 August 2022 06:17">Thursday 4 August 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</script><iframe scrolling="no" id="651cdef7-e0fa-4be4-920c-cf54de6690e9" data-jscall-id="16" src="http://127.0.0.1:9284/651cdef7-e0fa-4be4-920c-cf54de6690e9" style="position: relative; display: block; width: 100%; height: 100%; padding: 0; overflow: hidden; border: none"></iframe></div>
+<hr/><p><em>This page was generated using <a href="https://github.com/johnnychen94/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.22 on <span class="colophon-date" title="Thursday 4 August 2022 07:19">Thursday 4 August 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
