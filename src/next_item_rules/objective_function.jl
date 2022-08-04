@@ -85,7 +85,6 @@ end
 abstract type ExpectationBasedItemCriterion <: ItemCriterion end
 
 function ExpectationBasedItemCriterion(bits...; ability_estimator=nothing)
-    println(join(stacktrace(), "\n"))
     criterion = StateCriterion(bits...; ability_estimator=ability_estimator)
     if criterion === nothing
         return nothing
