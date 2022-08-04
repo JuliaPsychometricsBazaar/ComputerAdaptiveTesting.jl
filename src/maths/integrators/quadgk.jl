@@ -24,12 +24,16 @@ end
 segbufs = [Vector{Segment{Float64, Float64, Float64}}(undef, 100) for _ in Threads.nthreads()]
 
 function (integrator::QuadGKIntegrator)(
-    f::F;
+    f::F,
+    ncomp=0,
     lo=integrator.lo,
-    hi=integrator.hi,
+    hi=integrator.hi;
     order=integrator.order,
     rtol=1e-4
 ) where F
+    if ncomp != 0
+        error("QuadGKIntegrator only supports ncomp == 0")
+    end
     ErrorIntegrationResult(quadgk(f, lo, hi, rtol=rtol, segbuf=segbufs[Threads.threadid()], order=order)...)
 end
 
