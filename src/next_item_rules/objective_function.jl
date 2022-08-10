@@ -66,7 +66,7 @@ function (criterion::AbilityVarianceStateCriterion)(::Vector, tracked_responses:
     # XXX: Not quite sure about this --- is it useful, the MIRT rules cover this case
     mean = expectation(
         IntegralCoeffs.id,
-        dim(tracked_responses.item_bank),
+        ndims(tracked_responses.item_bank),
         criterion.integrator,
         criterion.dist_est,
         tracked_responses,
@@ -74,7 +74,7 @@ function (criterion::AbilityVarianceStateCriterion)(::Vector, tracked_responses:
     )
     expectation(
         IntegralCoeffs.SqDev(mean),
-        dim(tracked_responses.item_bank),
+        ndims(tracked_responses.item_bank),
         criterion.integrator,
         criterion.dist_est,
         tracked_responses,

@@ -103,7 +103,7 @@ function known_item_information(ir::ItemResponse, resp_value, θ)
 end
 
 function responses_information(item_bank::AbstractItemBank, responses::BareResponses, θ)
-    d = dim(item_bank)
+    d = ndims(item_bank)
     reduce(
         .+,
         (

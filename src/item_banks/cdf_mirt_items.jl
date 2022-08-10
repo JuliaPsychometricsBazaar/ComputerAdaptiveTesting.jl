@@ -42,7 +42,7 @@ function Base.length(item_bank::CdfMirtItemBank)
     length(item_bank.difficulties)
 end
 
-function dim(item_bank::CdfMirtItemBank)
+function Base.ndims(item_bank::CdfMirtItemBank)
     size(item_bank.discriminations, 1)
 end
 
