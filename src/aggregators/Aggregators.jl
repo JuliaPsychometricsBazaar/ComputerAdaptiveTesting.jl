@@ -31,6 +31,7 @@ export AbilityIntegrator, AbilityOptimizer
 export FunctionIntegrator, RiemannEnumerationIntegrator
 export FunctionOptimizer, EnumerationOptimizer
 export DistributionAbilityEstimator
+export variance, variance_given_mean, mean_1d
 
 # Basic types
 # XXX: Does having a common supertype of DistributionAbilityEstimator and PointAbilityEstimator make sense?

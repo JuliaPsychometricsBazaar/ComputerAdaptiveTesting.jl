@@ -79,27 +79,8 @@ function expectation(
     ncomp,
     integrator::AbilityIntegrator,
     est::DistributionAbilityEstimator,
-    tracked_responses::TrackedResponses
-) where {F}
-    expectation(
-        rett,
-        f,
-        ncomp,
-        integrator,
-        est,
-        tracked_responses,
-        normdenom(rett, integrator, est, tracked_responses)
-    )
-end
-
-function expectation(
-    rett::IntReturnType,
-    f::F,
-    ncomp,
-    integrator::AbilityIntegrator,
-    est::DistributionAbilityEstimator,
     tracked_responses::TrackedResponses,
-    denom
+    denom=normdenom(rett, integrator, est, tracked_responses)
 ) where {F}
     rett(integrator(f, ncomp, est, tracked_responses)) / denom
 end
@@ -120,6 +101,54 @@ function expectation(
         est,
         tracked_responses,
         denom...
+    )
+end
+
+function mean_1d(
+    integrator::AbilityIntegrator,
+    est::DistributionAbilityEstimator,
+    tracked_responses::TrackedResponses,
+    denom=normdenom(integrator, est, tracked_responses)
+)
+    mean = expectation(
+        IntegralCoeffs.id,
+        0,
+        criterion.integrator,
+        criterion.dist_est,
+        tracked_responses,
+        denom
+    )
+end
+
+function variance_given_mean(
+    integrator::AbilityIntegrator,
+    est::DistributionAbilityEstimator,
+    tracked_responses::TrackedResponses,
+    mean,
+    denom=normdenom(integrator, est, tracked_responses)
+) where {F}
+    expectation(
+        IntegralCoeffs.SqDev(mean),
+        0,
+        integrator,
+        est,
+        tracked_responses,
+        denom
+    )
+end
+
+function variance(
+    integrator::AbilityIntegrator,
+    est::DistributionAbilityEstimator,
+    tracked_responses::TrackedResponses,
+    denom=normdenom(integrator, est, tracked_responses)
+)
+    variance_given_mean(
+        integrator,
+        est,
+        tracked_responses,
+        mean_1d(integrator, est, tracked_responses, denom),
+        denom
     )
 end
 
