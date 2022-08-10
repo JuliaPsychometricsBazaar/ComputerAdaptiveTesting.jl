@@ -12,7 +12,7 @@ export item_idxs, known_item_information, expected_item_information, item_inform
 export responses_information, pick_resp, pick_logresp
 export ItemBank2PL, ItemBank3PL, ItemBank4PL
 export ItemBankMirt2PL, ItemBankMirt3PL, ItemBankMirt4PL
-export dim
+export item_params
 
 using ResumableFunctions
 using Distributions

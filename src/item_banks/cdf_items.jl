@@ -43,6 +43,10 @@ function logcresp(ir::ItemResponse{<:TransferItemBank}, θ)
     logccdf(ir.item_bank.distribution, norm_abil(ir, θ))
 end
 
+function item_params(item_bank::TransferItemBank, idx)
+    (; difficulty=item_bank.difficulties[idx], discrimination=item_bank.discriminations[idx])
+end
+
 #=
 """
 Integrate over the ability likihood given a set of responses using QuadGK.
