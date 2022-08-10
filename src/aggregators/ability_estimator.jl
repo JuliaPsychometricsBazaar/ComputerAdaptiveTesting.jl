@@ -126,7 +126,7 @@ function variance_given_mean(
     tracked_responses::TrackedResponses,
     mean,
     denom=normdenom(integrator, est, tracked_responses)
-) where {F}
+)
     expectation(
         IntegralCoeffs.SqDev(mean),
         0,
