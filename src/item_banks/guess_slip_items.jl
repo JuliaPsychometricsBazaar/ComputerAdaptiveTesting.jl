@@ -7,7 +7,7 @@ struct FixedGuessItemBank{InnerItemBank <: AbstractItemBank} <: AbstractItemBank
 end
 y_offset(item_bank::FixedGuessItemBank, item_idx) = item_bank.guess
 @forward FixedGuessItemBank.inner_bank Base.length
-@forward FixedGuessItemBank.inner_bank dim
+@forward FixedGuessItemBank.inner_bank Base.ndims
 function item_params(item_bank::FixedGuessItemBank, idx)
     (;item_params(item_bank.inner_bank, idx)..., guess=item_bank.guess)
 end
@@ -18,7 +18,7 @@ struct FixedSlipItemBank{InnerItemBank <: AbstractItemBank} <: AbstractItemBank
 end
 y_offset(item_bank::FixedSlipItemBank, item_idx) = item_bank.slip
 @forward FixedSlipItemBank.inner_bank Base.length
-@forward FixedSlipItemBank.inner_bank dim
+@forward FixedSlipItemBank.inner_bank Base.ndims
 function item_params(item_bank::FixedSlipItemBank, idx)
     (;item_params(item_bank.inner_bank, idx)..., slip=item_bank.slip)
 end
@@ -29,7 +29,7 @@ struct GuessItemBank{InnerItemBank <: AbstractItemBank} <: AbstractItemBank
 end
 y_offset(item_bank::GuessItemBank, item_idx) = item_bank.guesses[item_idx]
 @forward GuessItemBank.inner_bank Base.length
-@forward GuessItemBank.inner_bank dim
+@forward GuessItemBank.inner_bank Base.ndims
 function item_params(item_bank::GuessItemBank, idx)
     (;item_params(item_bank.inner_bank, idx)..., guess=item_bank.guesses[idx])
 end
@@ -40,7 +40,7 @@ struct SlipItemBank{InnerItemBank <: AbstractItemBank} <: AbstractItemBank
 end
 y_offset(item_bank::SlipItemBank, item_idx) = item_bank.slips[item_idx]
 @forward SlipItemBank.inner_bank Base.length
-@forward SlipItemBank.inner_bank dim
+@forward SlipItemBank.inner_bank Base.ndims
 function item_params(item_bank::SlipItemBank, idx)
     (;item_params(item_bank.inner_bank, idx)..., slip=item_bank.slips[idx])
 end
