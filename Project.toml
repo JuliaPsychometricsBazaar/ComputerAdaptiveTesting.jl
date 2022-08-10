@@ -76,10 +76,7 @@ julia = "1.7.2"
 
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
-CATPlots = "d194c7c1-4081-4169-ba52-101f65b44e42"
-ComputerAdaptiveTesting = "5a0d4f34-1f62-4a66-80fe-87aba0485488"
-QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Test", "Aqua"]
