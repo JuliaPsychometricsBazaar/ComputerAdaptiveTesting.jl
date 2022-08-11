@@ -65,6 +65,9 @@ jobs:
                                     ]);
                                     Pkg.resolve();
                                     Pkg.instantiate()'
+      - uses: julia-actions/julia-buildpkg@v1
+        with:
+          project: 'docs'
       - name: Install GitHubActions.jl in docs env
         run: |
           julia --project=docs/ -e '
