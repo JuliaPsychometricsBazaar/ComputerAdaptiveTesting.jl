@@ -25,8 +25,9 @@ makedocs(;
     sitename="ComputerAdaptiveTesting.jl",
     format=format,
     pages=[
-        "Home" => "index.md",
+        "Getting started" => "index.md",
         demopage,
+        "API reference" => "api.md",
     ],
 )
 
