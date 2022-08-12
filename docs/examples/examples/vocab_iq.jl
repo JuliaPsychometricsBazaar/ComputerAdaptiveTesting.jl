@@ -65,7 +65,6 @@ using UrlDownload
 using Conda
 using RCall
 using Base.Filesystem
-using Optim
 using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.DummyData: std_normal
 using ComputerAdaptiveTesting.ExtraDistributions

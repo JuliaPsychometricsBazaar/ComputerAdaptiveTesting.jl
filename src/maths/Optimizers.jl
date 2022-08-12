@@ -1,6 +1,55 @@
 module Optimizers
 
 export Optimizer, OneDimOptimOptimizer, MultiDimOptimOptimizer
+export
+       # Optimization algorithms
+       ## Zeroth order methods (heuristics)
+       NelderMead,
+       ParticleSwarm,
+       SimulatedAnnealing,
+
+       ## First order
+       ### Quasi-Newton
+       GradientDescent,
+       BFGS,
+       LBFGS,
+
+       ### Conjugate gradient
+       ConjugateGradient,
+
+       ### Acceleration methods
+       AcceleratedGradientDescent,
+       MomentumGradientDescent,
+
+       ### Nonlinear GMRES
+       NGMRES,
+       OACCEL,
+
+       ## Second order
+       ### (Quasi-)Newton
+       Newton,
+
+       ### Trust region
+       NewtonTrustRegion,
+
+       # Constrained
+       ## Box constraints, x_i in [lb_i, ub_i]
+       ### Specifically Univariate, R -> R
+       GoldenSection,
+       Brent,
+
+       ### Multivariate, R^N -> R
+       Fminbox,
+       SAMIN,
+
+       ## Manifold constraints
+       Manifold,
+       Flat,
+       Sphere,
+       Stiefel,
+
+       ## Non-linear constraints
+       IPNewton
 
 using ..ConfigBase
 
