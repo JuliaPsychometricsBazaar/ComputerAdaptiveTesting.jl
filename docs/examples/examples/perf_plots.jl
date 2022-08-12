@@ -6,13 +6,16 @@ using CSV
 using DataFrames
 using CategoricalArrays: levels
 using IterTools: chain
+using ComputerAdaptiveTesting
 using CATPlots
 using CATPlots: LabelledToggleGrid, MenuGrid
+
+DOCS_DATA = pkgdir(ComputerAdaptiveTesting) * "/docs/data/"
 
 @automakie()
 
 df = CSV.read(
-	((@__DIR__) * "/integrator_benchmark_results.csv"),
+	(DOCS_DATA * "integrator_benchmark_results.csv"),
 	DataFrame;
 	types=Dict(
 		"value" => Float64,
