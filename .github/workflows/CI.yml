@@ -75,7 +75,7 @@ jobs:
             Pkg.add(Pkg.PackageSpec(name="GitHubActions", version="0.1"))'
       - name: Make docs
         run: |
-          julia --project=docs/ -e docs/setup_r.jl &&
+          julia --project=docs/ docs/setup_r.jl &&
           USE_CAIRO_MAKIE=1 julia --project=docs/ -e '
             include("docs/make.jl")'
         env:
