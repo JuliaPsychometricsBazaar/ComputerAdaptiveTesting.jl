@@ -33,6 +33,9 @@ jobs:
       - uses: julia-actions/cache@v1
       - name: Set CAT packages to develop & resolve env
         run: |
+          julia --project=CATPlots/ -e 'using Pkg;
+                                        Pkg.develop(path=".");
+                                        Pkg.develop(path="IRTSupport");' &&
           julia --project=. -e 'using Pkg;
                                     Pkg.update("QuadGK");
                                     Pkg.update("Parameters");
@@ -58,7 +61,8 @@ jobs:
       - name: Set CAT packages to develop & resolve env
         run: |
           julia --project=CATPlots/ -e 'using Pkg;
-                                        Pkg.develop(path=".");' &&
+                                        Pkg.develop(path=".");
+                                        Pkg.develop(path="IRTSupport");' &&
           julia --project=docs/ -e 'using Pkg;
                                     Pkg.develop([
                                       Pkg.PackageSpec(path="."),
