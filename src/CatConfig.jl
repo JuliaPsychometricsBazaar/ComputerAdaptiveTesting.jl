@@ -17,7 +17,7 @@ needed to actually run the CAT.
 This may be more a more convenient layer to integrate than CatLoopConfig if you
 want to write your own CAT loop rather than using hooks.
 """
-@with_kw struct CatRules <: CatConfigBase
+@kw_only struct CatRules <: CatConfigBase
     """
     The rule to choose the next item in the CAT given the current state.
     """
@@ -62,7 +62,7 @@ function CatRules(bits...)
     if termination_condition === nothing
         error("Could not find a termination condition in $(bits)")
     end
-    CatRules(
+    CatRules(;
         next_item=next_item,
         termination_condition=termination_condition,
         ability_estimator=ability_estimator,
