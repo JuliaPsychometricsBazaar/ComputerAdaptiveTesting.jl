@@ -7,6 +7,8 @@ using ComputerAdaptiveTesting.Optimizers
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.TerminationConditions
 using ComputerAdaptiveTesting.Sim
+using IRTSupport
+using CATPlots
 using Test
 using Aqua
 using Distributions
@@ -20,6 +22,8 @@ Aqua.test_all(
     stale_deps=false,
     deps_compat=false #tmp
 )
+Aqua.test_all(IRTSupport)
+Aqua.test_all(CATPlots)
 
 include("./ability_estimator_1d.jl")
 include("./ability_estimator_2d.jl")
