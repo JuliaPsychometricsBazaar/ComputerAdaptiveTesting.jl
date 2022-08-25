@@ -35,6 +35,7 @@ jobs:
         run: |
           julia --project=. -e 'using Pkg;
                                     Pkg.update("QuadGK");
+                                    Pkg.update("Parameters");
                                     Pkg.develop([
                                       Pkg.PackageSpec(path="./CATPlots")
                                     ]);
