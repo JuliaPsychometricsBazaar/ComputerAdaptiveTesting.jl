@@ -6,23 +6,25 @@ test.
 module Aggregators
 
 using StaticArrays: SVector
-using Distributions: Distribution
+using Distributions: Distribution, Normal, Distributions
 using HCubature
 using Base.Threads
 
-using ..ItemBanks: AbstractItemBank, ItemResponse, AbilityLikelihood, LikelihoodFunction, dim
+using ..ItemBanks
 using ..Responses: BareResponses, Response
 using ..MathTraits
 using ..ConfigBase
 using ..Integrators
 using ComputerAdaptiveTesting: Integrators
 using ..Optimizers
+using ..ExtraDistributions: std_normal
 
 import ..ItemBanks
 import ..IntegralCoeffs
 
 export AbilityEstimator, TrackedResponses
-export AbilityTracker, NullAbilityTracker, PointAbilityTracker, GriddedAbilityTracker, track!
+export AbilityTracker, NullAbilityTracker, PointAbilityTracker, GriddedAbilityTracker
+export ClosedFormNormalAbilityTracker, MultiAbilityTracker, track!
 export response_expectation, add_response!, pop_response!, expectation, distribution_estimator
 export PointAbilityEstimator, PriorAbilityEstimator, LikelihoodAbilityEstimator
 export ModeAbilityEstimator, MeanAbilityEstimator

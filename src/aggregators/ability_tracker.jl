@@ -3,39 +3,9 @@ function sizehint!(bare_responses::BareResponses, n)
     sizehint!(bare_responses.values, n)
 end
 
-struct NullAbilityTracker <: AbilityTracker end
-
-mutable struct PointAbilityTracker{AbilityEstimatorT <: PointAbilityEstimator, AbilityT} <: AbilityTracker
-    ability_estimator::AbilityEstimatorT 
-    cur_ability::AbilityT
-end
-
 function track!(responses)
     track!(responses, responses.ability_tracker)
 end
-
-function track!(_, ::NullAbilityTracker) end
-
-function track!(responses, ability_tracker::PointAbilityTracker)
-    ability_tracker.cur_ability = ability_tracker.ability_estimator(responses)
-end
-
-struct GriddedAbilityTracker{AbilityEstimatorT <: DistributionAbilityEstimator, GridT <: AbstractVector{Float64}} <: AbilityTracker
-    ability_estimator::AbilityEstimatorT 
-    grid::GridT
-    cur_ability::Vector{Float64}
-end
-
-GriddedAbilityTracker(ability_estimator, grid) = GriddedAbilityTracker(ability_estimator, grid, fill(NaN, length(grid)))
-
-function track!(responses, ability_tracker::GriddedAbilityTracker)
-    ability_pdf = pdf(ability_tracker.ability_estimator, responses)
-    ability_tracker.cur_ability = ability_pdf.(ability_tracker.grid)
-end
-
-#struct LaplaceAbilityTracker <: AbilityTracker
-    #cur_approx::Normal
-#end
 
 function add_response!(responses::BareResponses, response::Response)::BareResponses
     push!(responses.indices, response.index)
@@ -83,6 +53,20 @@ function response_expectation(
     θ_estimate = ability_estimator(tracked_responses)
     ItemResponse(tracked_responses.item_bank, item_idx)(θ_estimate)
 end
+
+struct NullAbilityTracker <: AbilityTracker end
+
+function track!(_, ::NullAbilityTracker) end
+
+struct VarNormal{T <: Real}
+    mean::T
+    var::T
+end
+
+include("./ability_trackers/grid.jl")
+include("./ability_trackers/point.jl")
+include("./ability_trackers/closed_form_normal.jl")
+include("./ability_trackers/multi.jl")
 
 """
 This method returns a tracked point estimate if it is has the given ability
