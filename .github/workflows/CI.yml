@@ -44,6 +44,7 @@ jobs:
                                     Pkg.update("QuadGK");
                                     Pkg.update("Parameters");
                                     Pkg.develop([
+                                      Pkg.PackageSpec(path="./IRTSupport"),
                                       Pkg.PackageSpec(path="./CATPlots")
                                     ]);
                                     Pkg.resolve();
@@ -74,6 +75,7 @@ jobs:
           julia --project=docs/ -e 'using Pkg;
                                     Pkg.develop([
                                       Pkg.PackageSpec(path="."),
+                                      Pkg.PackageSpec(path="./IRTSupport"),
                                       Pkg.PackageSpec(path="./CATPlots")
                                     ]);
                                     Pkg.resolve();
