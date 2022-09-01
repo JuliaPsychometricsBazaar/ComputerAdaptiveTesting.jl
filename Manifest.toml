@@ -2,7 +2,7 @@
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "f8b1580f4613b9e4aa9377dddcd4f0f5b0064a67"
+project_hash = "731b5d3a30d26c56e1370c35e736425de915ed0f"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -568,9 +568,7 @@ version = "1.0.1"
 
 [[deps.Parameters]]
 deps = ["OrderedCollections", "UnPack"]
-git-tree-sha1 = "ad5730afe285eed9ed786a76c156b6c354b803a1"
-repo-rev = "kw_only"
-repo-url = "https://github.com/frankier/Parameters.jl.git"
+git-tree-sha1 = "34c0e9ad262e5f7fc75b10a9952ca7692cfc5fbe"
 uuid = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 version = "0.12.3"
 
@@ -608,11 +606,9 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[deps.QuadGK]]
 deps = ["DataStructures", "LinearAlgebra"]
-git-tree-sha1 = "8ea733d8bb6d68f3773edbd38d1d3bf23dc4194c"
-repo-rev = "298f76e71be8a36d6e3f16715f601c3d22c2241c"
-repo-url = "https://github.com/JuliaMath/QuadGK.jl"
+git-tree-sha1 = "3c009334f45dfd546a16a57960a821a1a023d241"
 uuid = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
-version = "2.4.2"
+version = "2.5.0"
 
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
