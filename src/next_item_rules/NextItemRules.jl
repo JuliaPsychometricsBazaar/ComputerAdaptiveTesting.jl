@@ -21,7 +21,7 @@ using ..ItemBanks
 using ..Aggregators
 using ..MathTraits
 
-using QuadGK, Distributions, Optim, Base.Threads, Base.Order, ResumableFunctions, FLoops, StaticArrays
+using QuadGK, Distributions, Optim, Base.Threads, Base.Order, FLoops, StaticArrays
 
 export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, init_thread
 export NextItemRule, ItemStrategyNextItemRule

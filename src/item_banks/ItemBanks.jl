@@ -22,10 +22,26 @@ import ForwardDiff
 using ..MathTraits
 
 using ..Responses: Response, BareResponses
-using ..IOUtils: get_word_list_idxs
 
 abstract type AbstractItemBank end
 const MaybeLabels = Union{Vector{String}, Nothing}
+
+function get_word_list_idxs(word_list, labels)
+    word_set = Set(word_list)
+    idxs = []
+    sizehint!(idxs, length(word_list))
+    for (idx, word) in enumerate(labels)
+        if !(word in word_set)
+            continue
+        end
+        push!(idxs, idx)
+        delete!(word_set, word)
+    end
+    if length(word_set) > 0
+        @warn "Could not find these words in IRF: " * join(word_set, ", ")
+    end
+    idxs
+end
 
 include("./io.jl")
 include("./generic.jl")

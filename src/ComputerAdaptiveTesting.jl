@@ -4,8 +4,8 @@ using Pkg
 using Reexport
 
 export ExtraDistributions, IntegralCoeffs, Integrators, Interpolators, Optimizers
-export ConfigBase, Responses, IOUtils, ItemBanks, Aggregators, NextItemRules, TerminationConditions
-export CatConfig, Sim, DummyData, Postprocess
+export ConfigBase, Responses, ItemBanks, Aggregators, NextItemRules, TerminationConditions
+export CatConfig, Sim, DummyData
 
 # Config base
 include("./ConfigBase.jl")
@@ -19,7 +19,6 @@ include("./maths/MathTraits.jl")
 
 # Base
 include("./Responses.jl")
-include("./IOUtils.jl")
 
 # Near base
 include("./maths/Integrators.jl")
@@ -36,7 +35,6 @@ include("./Sim.jl")
 
 # Peripheral / contrib
 include("DummyData.jl")
-include("postprocess/Postprocess.jl")
 
 @reexport using .CatConfig: CatLoopConfig, CatRules
 @reexport using .Sim: run_cat

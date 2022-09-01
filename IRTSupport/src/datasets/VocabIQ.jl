@@ -2,7 +2,7 @@ module VocabIQ
 
 using IRTSupport
 using ..Utils
-using ..MirtWrap
+using ...Wrap.Mirt
 using Serialization
 using DataFrames
 using CSV
@@ -80,20 +80,7 @@ function parse_coding()
 end
 
 function get_viqt()
-    @info "Downloading VIQT"
-    viqt = urldownload(
-        "http://openpsychometrics.org/_rawdata/VIQT_data.zip";
-        compress = :zip,
-        multifiles = true
-    )
-    file = nothing
-    for f in viqt
-        if f isa CSV.File
-            file = f
-            break
-        end
-    end
-    DataFrame(file)
+    get_single_csv_zip("http://openpsychometrics.org/_rawdata/VIQT_data.zip")
 end
 
 function get_marked_df(answers)
@@ -105,7 +92,7 @@ function get_marked_df(answers)
     viqt
 end
 
-get_marked_df_cached = env_cache("VIQT_DATAFRAME_PATH", get_marked_df, x -> CSV.read(x, DataFrame), CSV.write)
+get_marked_df_cached = file_cache("viqt/marked.csv", get_marked_df, x -> CSV.read(x, DataFrame), CSV.write)
 
 answers, potential_answers, gold_answers = parse_coding()
 
@@ -113,13 +100,38 @@ function get_item_bank()
     fit_4pl(get_marked_df_cached(answers); TOL=1e-2)
 end
 
-get_item_bank_cached = env_cache("VIQT_ITEM_BANK_PATH", get_item_bank, Serialization.deserialize, Serialization.serialize)
+get_item_bank_cached = file_cache("viqt/item_bank_4pl.jls", get_item_bank, Serialization.deserialize, Serialization.serialize)
 
 function get_item_bank_3pl()
     fit_3pl(get_marked_df_cached(answers); TOL=1e-2)
 end
 
+function prompt_response(response_idx)
+    options = potential_answers[response_idx, :]
+    options_fmt = join(options, "/")
+
+    function get_word(idx)
+        while true
+            print("Which two of $options_fmt have the same meaning $idx/2 (blank = do not know) > ")
+            word = readline()
+            if strip(word) == ""
+                return nothing
+            end
+            if word in options
+                return word
+            end
+            println("Could not find $word in $options_fmt")
+        end
+    end
+    word1 = get_word(1)
+    word2 = get_word(2)
+    if word1 === nothing || word2 === nothing
+        return 0
+    end
+    return Set([word1, word2]) == Set(gold_answers[response_idx, :]) ? 1 : 0
+end
+
 export get_viqt, get_marked_df, get_marked_df_cached, get_item_bank, get_item_bank_cached,
-    get_item_bank_3pl, answers, potential_answers, gold_answers
+    get_item_bank_3pl, answers, potential_answers, gold_answers, prompt_response
 
 end

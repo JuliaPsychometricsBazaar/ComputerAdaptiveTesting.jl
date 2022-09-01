@@ -1,4 +1,4 @@
-module MirtWrap
+module Mirt
 
 using Conda
 using RCall

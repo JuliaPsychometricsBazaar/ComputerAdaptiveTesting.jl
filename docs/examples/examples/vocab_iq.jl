@@ -41,28 +41,7 @@ function run_vocab_iq_cat()
     function get_response(response_idx, response_name)
         params = item_params(item_bank, response_idx)
         println("Parameters for next question: $params")
-        options = potential_answers[response_idx, :]
-        options_fmt = join(options, "/")
-
-        function get_word(idx)
-            while true
-                print("Which two of $options_fmt have the same meaning $idx/2 (blank = do not know) > ")
-                word = readline()
-                if strip(word) == ""
-                    return nothing
-                end
-                if word in options
-                    return word
-                end
-                println("Could not find $word in $options_fmt")
-            end
-        end
-        word1 = get_word(1)
-        word2 = get_word(2)
-        if word1 === nothing || word2 === nothing
-            return 0
-        end
-        return Set([word1, word2]) == Set(gold_answers[response_idx, :]) ? 1 : 0
+        prompt_response(response_idx)
     end
     function new_response_callback(tracked_responses, terminating)
         if tracked_responses.responses.values[end] > 0
