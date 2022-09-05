@@ -1,6 +1,6 @@
 using ParallelKMeans, Interpolations, Base.Filesystem
 
-using ..ItemBanks: load_bootstrapped_item_bank, save_gridify
+using ComputerAdaptiveTesting.ItemBanks: load_bootstrapped_item_bank, save_gridify
 
 function make_cdf(num_resamples)
     cdf = Array{Float64}(undef, num_resamples)

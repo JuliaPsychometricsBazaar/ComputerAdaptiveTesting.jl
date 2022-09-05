@@ -1,8 +1,12 @@
 module Utils
 
 using Base.Filesystem: joinpath, isfile
+using UrlDownload
+using ZipFile
+using CSV
+using DataFrames
 
-export file_cache
+export get_single_csv_zip, file_cache
 
 const IRT_DATASET_CACHE_VAR = "IRT_DATASETS_CACHE"
 
@@ -28,7 +32,7 @@ function file_cache(path, get_fn, read_fn, write_fn)
     function inner(args...; kwargs...)
         full_path = nothing
         if IRT_DATASET_CACHE_VAR in keys(ENV)
-            full_path = joinpath(ENV[varname], path)
+            full_path = joinpath(ENV[IRT_DATASET_CACHE_VAR], path)
             if isfile(full_path)
                 @info "Using cached $full_path"
                 return read_fn(full_path)
