@@ -6,8 +6,6 @@ using ...Wrap.Mirt
 using Serialization
 using DataFrames
 using CSV
-using ZipFile
-using UrlDownload
 using Conda
 using RCall
 using Base.Filesystem
@@ -83,7 +81,7 @@ function get_viqt()
     get_single_csv_zip("http://openpsychometrics.org/_rawdata/VIQT_data.zip")
 end
 
-function get_marked_df(answers)
+function get_marked_df()
     viqt = get_viqt()
     viqt = select(viqt, r"^Q")
     for col in names(viqt)
@@ -97,13 +95,13 @@ get_marked_df_cached = file_cache("viqt/marked.csv", get_marked_df, x -> CSV.rea
 answers, potential_answers, gold_answers = parse_coding()
 
 function get_item_bank()
-    fit_4pl(get_marked_df_cached(answers); TOL=1e-2)
+    fit_4pl(get_marked_df_cached(); TOL=1e-2)
 end
 
 get_item_bank_cached = file_cache("viqt/item_bank_4pl.jls", get_item_bank, Serialization.deserialize, Serialization.serialize)
 
 function get_item_bank_3pl()
-    fit_3pl(get_marked_df_cached(answers); TOL=1e-2)
+    fit_3pl(get_marked_df_cached(); TOL=1e-2)
 end
 
 function prompt_response(response_idx)
