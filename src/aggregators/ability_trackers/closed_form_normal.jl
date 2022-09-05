@@ -3,6 +3,7 @@ mutable struct ClosedFormNormalAbilityTracker <: AbilityTracker
 end
 
 function ClosedFormNormalAbilityTracker(prior_ability_estimator::PriorAbilityEstimator)
+    @warn "ClosedFormNormalAbilityTracker is based on equations from Liden 1998 / Owen 1975, but these appear to give poor results"
     prior = prior_ability_estimator.prior
     if !(prior isa Normal)
         error("ClosedFormNormalAbilityTracker only works with Normal priors")
