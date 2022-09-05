@@ -29,6 +29,7 @@ function main()
     lh_grid_tracker = GriddedAbilityTracker(lh_ability_est, grid)
     prior_grid_tracker = GriddedAbilityTracker(prior_ability_est, grid)
     closed_normal_tracker = ClosedFormNormalAbilityTracker(prior_ability_est)
+    laplace_normal_tracker = LaplaceAbilityTracker(prior_ability_est)
     rules = CatRules(
         MultiAbilityTracker([
             lh_grid_tracker,

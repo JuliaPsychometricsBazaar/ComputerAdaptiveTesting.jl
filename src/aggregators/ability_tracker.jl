@@ -66,6 +66,7 @@ end
 include("./ability_trackers/grid.jl")
 include("./ability_trackers/point.jl")
 include("./ability_trackers/closed_form_normal.jl")
+include("./ability_trackers/laplace.jl")
 include("./ability_trackers/multi.jl")
 
 """
