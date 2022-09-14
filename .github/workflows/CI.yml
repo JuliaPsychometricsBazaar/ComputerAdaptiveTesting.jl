@@ -45,6 +45,12 @@ jobs:
                                       Pkg.PackageSpec(path="./CATPlots")
                                     ]);
                                     Pkg.resolve();
+                                    Pkg.instantiate()' &&
+          julia --project=test/ -e 'using Pkg;
+                                    Pkg.develop(path=".");
+                                    Pkg.develop(path="IRTSupport");
+                                    Pkg.develop(path="CATPlots");
+                                    Pkg.resolve();
                                     Pkg.instantiate()'
       - uses: julia-actions/julia-buildpkg@v1
       - name: Run tests
