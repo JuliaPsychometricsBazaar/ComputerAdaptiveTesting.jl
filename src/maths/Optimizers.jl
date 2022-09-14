@@ -54,7 +54,7 @@ export
 using ..ConfigBase
 
 using Optim
-using Parameters
+using ComputerAdaptiveTesting.Parameters
 
 abstract type Optimizer end
 function Optimizer(bits...)

@@ -2,7 +2,7 @@ module CatConfig
 
 export CatRules, CatLoopConfig
 
-using Parameters
+using ComputerAdaptiveTesting.Parameters
 
 using ..Aggregators: AbilityEstimator, AbilityTracker, NullAbilityTracker
 using ..NextItemRules: NextItemRule
@@ -21,7 +21,7 @@ needed to actually run the CAT.
 This may be more a more convenient layer to integrate than CatLoopConfig if you
 want to write your own CAT loop rather than using hooks.
 """
-@with_kw struct CatRules <: CatConfigBase
+@kw_only struct CatRules <: CatConfigBase
     """
     The rule to choose the next item in the CAT given the current state.
     """

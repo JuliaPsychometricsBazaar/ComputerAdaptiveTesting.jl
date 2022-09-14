@@ -11,7 +11,7 @@ Springer, New York, NY.
 module NextItemRules
 
 using Reexport
-using Parameters
+using ComputerAdaptiveTesting.Parameters
 using LinearAlgebra
 
 using ..Responses: Response

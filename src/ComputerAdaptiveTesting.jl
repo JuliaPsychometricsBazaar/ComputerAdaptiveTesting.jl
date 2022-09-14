@@ -7,6 +7,9 @@ export ExtraDistributions, IntegralCoeffs, Integrators, Interpolators, Optimizer
 export ConfigBase, Responses, ItemBanks, Aggregators, NextItemRules, TerminationConditions
 export CatConfig, Sim, DummyData
 
+# Vendored dependencies
+include("./vendor/Parameters.jl")
+
 # Config base
 include("./ConfigBase.jl")
     
