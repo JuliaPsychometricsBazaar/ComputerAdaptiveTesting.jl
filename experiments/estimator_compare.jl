@@ -13,7 +13,7 @@ using ComputerAdaptiveTesting.Integrators
 using ComputerAdaptiveTesting.Optimizers
 import ComputerAdaptiveTesting.IntegralCoeffs
 using CATPlots
-using IRTSupport.VocabIQ
+using IRTSupport.Datasets.VocabIQ
 using GLMakie
 
 

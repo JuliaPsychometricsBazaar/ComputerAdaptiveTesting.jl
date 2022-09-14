@@ -23,7 +23,7 @@ using ComputerAdaptiveTesting.ItemBanks
 using ComputerAdaptiveTesting.Integrators
 using ComputerAdaptiveTesting.Optimizers
 import ComputerAdaptiveTesting.IntegralCoeffs
-using IRTSupport.VocabIQ
+using IRTSupport.Datasets.VocabIQ
 
 function run_vocab_iq_cat()
     item_bank = get_item_bank_cached(answers)
