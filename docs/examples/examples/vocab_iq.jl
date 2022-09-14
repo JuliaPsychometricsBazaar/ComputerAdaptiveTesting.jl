@@ -26,7 +26,7 @@ import ComputerAdaptiveTesting.IntegralCoeffs
 using IRTSupport.Datasets.VocabIQ
 
 function run_vocab_iq_cat()
-    item_bank = get_item_bank_cached(answers)
+    item_bank = get_item_bank_cached()
     integrator = FixedGKIntegrator(-6, 6, 61)
     ability_integrator = AbilityIntegrator(integrator)
     dist_ability_est = PriorAbilityEstimator(std_normal)
