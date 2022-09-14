@@ -30,6 +30,7 @@ makedocs(;
         "Getting started" => "index.md",
         demopage,
         "API reference" => "api.md",
+        "Contributing" => "contributing.md,
     ],
 )
 
