@@ -2,7 +2,7 @@
 
 julia_version = "1.8.1"
 manifest_format = "2.0"
-project_hash = "862441f6f88597837616cd537d8eab2b07e6d645"
+project_hash = "858ba1a5a27238df237453fac820dade64d8425f"
 
 [[deps.ANSIColoredPrinters]]
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
@@ -240,7 +240,7 @@ uuid = "a33af91c-f02d-484b-be07-31d278c5ca2b"
 version = "0.1.1"
 
 [[deps.ComputerAdaptiveTesting]]
-deps = ["ArgParse", "ArraysOfArrays", "Cuba", "Cubature", "Distributions", "FLoops", "Faker", "FillArrays", "ForwardDiff", "HCubature", "Interpolations", "JSON3", "KernelDensity", "Lazy", "LazyStack", "LinearAlgebra", "Literate", "MacroTools", "Measurements", "Mmap", "MonteCarloIntegration", "NLSolversBase", "Optim", "OrderedCollections", "Pkg", "QuadGK", "Random", "Reexport", "Requires", "ResumableFunctions", "Revise", "Setfield", "SparseArrays", "SparseMatricesCSR", "StatFiles", "StaticArrays", "StatsBase", "Test", "UnPack"]
+deps = ["ArgParse", "ArraysOfArrays", "Cuba", "Cubature", "Distributions", "FLoops", "Faker", "FillArrays", "ForwardDiff", "HCubature", "Interpolations", "JSON3", "KernelDensity", "Lazy", "LazyStack", "LinearAlgebra", "Literate", "MacroTools", "Measurements", "Mmap", "MonteCarloIntegration", "NLSolversBase", "Optim", "OrderedCollections", "Pkg", "QuadGK", "Random", "Reexport", "Requires", "ResumableFunctions", "Revise", "Setfield", "SparseArrays", "SparseMatricesCSR", "StatFiles", "StaticArrays", "StatsBase", "UnPack"]
 path = ".."
 uuid = "5a0d4f34-1f62-4a66-80fe-87aba0485488"
 version = "0.1.0"
@@ -374,9 +374,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[deps.Distributions]]
 deps = ["ChainRulesCore", "DensityInterface", "FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns", "Test"]
-git-tree-sha1 = "334a5896c1534bb1aa7aa2a642d30ba7707357ef"
+git-tree-sha1 = "ee407ce31ab2f1bacadc3bd987e96de17e00aed3"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.25.68"
+version = "0.25.71"
 
 [[deps.DocStringExtensions]]
 deps = ["LibGit2"]
@@ -1167,9 +1167,9 @@ version = "0.5.5+0"
 
 [[deps.Optim]]
 deps = ["Compat", "FillArrays", "ForwardDiff", "LineSearches", "LinearAlgebra", "NLSolversBase", "NaNMath", "Parameters", "PositiveFactorizations", "Printf", "SparseArrays", "StatsBase"]
-git-tree-sha1 = "ad8de074ed5dad13e87d76c467a82e5eff9c693a"
+git-tree-sha1 = "b9fe76d1a39807fdcf790b991981a922de0c3050"
 uuid = "429524aa-4258-5aef-a3af-852621145aeb"
-version = "1.7.2"
+version = "1.7.3"
 
 [[deps.Opus_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
