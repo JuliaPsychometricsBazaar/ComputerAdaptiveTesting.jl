@@ -13,40 +13,49 @@ const default_num_questions = 8000
 const default_num_testees = 30
 const std_normal = Normal()
 
-function std_mv_normal(dim)
-    MvNormal(Zeros(dim), ScalMat(dim, 1.0))
-end
+std_mv_normal(dim) = MvNormal(Zeros(dim), ScalMat(dim, 1.0))
+sent() = sentence(number_words=12, variable_nb_words=true)
 
-function sent()
-    sentence(number_words=12, variable_nb_words=true)
-end
+abs_rand(rng, dist, dims...) = abs.(rand(rng, dist, dims...))
+clamp_rand(rng, dist, dims...) = clamp.(rand(rng, dist, dims...), 0.0, 1.0)
+
+dummy_difficulties(rng, num_questions) = rand(rng, std_normal, num_questions)
+dummy_discriminations(rng, num_questions) = abs_rand(rng, Normal(1.0, 0.2), num_questions)
+dummy_guesses(rng, num_questions) = clamp_rand(rng, Normal(0.0, 0.2), num_questions)
+dummy_slips(rng, num_questions) = clamp_rand(rng, Normal(0.0, 0.2), num_questions)
 
 function dummy_2pl_item_bank(rng, num_questions)
-    discrim_normal = Normal(1.0, 0.2)
-    difficulties = rand(rng, std_normal, num_questions)
-    discriminations = abs.(rand(rng, discrim_normal, num_questions))
-    ItemBank2PL(difficulties, discriminations)
+    ItemBank2PL(
+        dummy_difficulties(rng, num_questions),
+        dummy_discriminations(rng, num_questions)
+    )
 end
 dummy_2pl_item_bank(num_questions) = dummy_2pl_item_bank(Random.default_rng(), num_questions)
 
 function dummy_3pl_item_bank(rng, num_questions)
-    discrim_normal = Normal(1.0, 0.2)
-    guess_normal = Normal(0.0, 0.2)
-    difficulties = rand(rng, std_normal, num_questions)
-    discriminations = abs.(rand(rng, discrim_normal, num_questions))
-    guesses = clamp.(rand(rng, guess_normal, num_questions), 0, 1)
-    ItemBank3PL(difficulties, discriminations, guesses)
+    ItemBank3PL(
+        dummy_difficulties(rng, num_questions),
+        dummy_discriminations(rng, num_questions),
+        dummy_guesses(rng, num_questions)
+    )
 end
 dummy_3pl_item_bank(num_questions) = dummy_3pl_item_bank(Random.default_rng(), num_questions)
 
+function dummy_4pl_item_bank(rng, num_questions)
+    ItemBank4PL(
+        dummy_difficulties(rng, num_questions),
+        dummy_discriminations(rng, num_questions),
+        dummy_guesses(rng, num_questions),
+        dummy_slips(rng, num_questions)
+    )
+end
+dummy_4pl_item_bank(num_questions) = dummy_4pl_item_bank(Random.default_rng(), num_questions)
+
 function dummy_mirt_4pl_item_bank(rng, num_questions, dims)
-    discrim_normal = Normal(1.0, 0.2)
-    guess_normal = Normal(0.0, 0.2)
-    slip_normal = Normal(0.0, 0.2)
     difficulties = rand(rng, std_normal, num_questions)
-    discriminations = abs.(rand(rng, discrim_normal, dims, num_questions))
-    guesses = clamp.(rand(rng, guess_normal, num_questions), 0.0, 1.0)
-    slips = clamp.(rand(rng, slip_normal, num_questions), 0.0, 1.0)
+    discriminations = abs_rand(rng, Normal(1.0, 0.2), dims, num_questions)
+    guesses = clamp_rand(rng, Normal(0.0, 0.2), num_questions)
+    slips = clamp_rand(rng, Normal(0.0, 0.2), num_questions)
     ItemBankMirt4PL(difficulties, discriminations, guesses, slips)
 end
 dummy_mirt_4pl_item_bank(num_questions, dims) = dummy_mirt_4pl_item_bank(Random.default_rng(), num_questions, dims)
@@ -84,6 +93,11 @@ function dummy_3pl(rng ;num_questions=default_num_questions, num_testees=default
     item_bank_to_full_dummy(rng, dummy_3pl_item_bank(rng, num_questions), num_testees)
 end
 dummy_3pl(; kwargs...) = dummy_3pl(Random.default_rng(); kwargs...)
+
+function dummy_4pl(rng ;num_questions=default_num_questions, num_testees=default_num_testees)
+    item_bank_to_full_dummy(rng, dummy_4pl_item_bank(rng, num_questions), num_testees)
+end
+dummy_4pl(; kwargs...) = dummy_4pl(Random.default_rng(); kwargs...)
 
 function dummy_mirt_4pl(rng, dims; num_questions=default_num_questions, num_testees=default_num_testees)
     mirt_item_bank_to_full_dummy(rng, dummy_mirt_4pl_item_bank(rng, num_questions, dims), num_testees, dims)
