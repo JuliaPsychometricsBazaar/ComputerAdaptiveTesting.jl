@@ -5,6 +5,7 @@ test.
 """
 module Aggregators
 
+using ComputerAdaptiveTesting.Parameters
 using StaticArrays: SVector
 using Distributions: Distribution, Normal, Distributions
 using HCubature
@@ -94,14 +95,15 @@ function AbilityOptimizer(bits...; ability_estimator=nothing)
     @returnsome Optimizer(bits...) optimizer -> FunctionOptimizer(optimizer)
 end
 
-struct TrackedResponses{
+@with_kw struct TrackedResponses{
     ItemBankT <: AbstractItemBank,
     AbilityTrackerT <: AbilityTracker
 }
     responses::BareResponses
     item_bank::ItemBankT
-    ability_tracker::AbilityTrackerT
+    ability_tracker::AbilityTrackerT = NullAbilityTracker()
 end
+
 function ItemBanks.AbilityLikelihood(tracked_responses::TrackedResponses)
     ItemBanks.AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)
 end
