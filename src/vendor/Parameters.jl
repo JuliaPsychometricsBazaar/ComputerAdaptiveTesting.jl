@@ -49,7 +49,7 @@ import Base: @__doc__
 import OrderedCollections: OrderedDict
 using UnPack: @unpack, @pack!
 
-export @with_kw, @kw_only, @with_kw_noshow, type2dict, reconstruct, @unpack, @pack!, @pack, @consts
+export @with_kw, @kw_only, @with_kw_noshow, type2dict, reconstruct, @unpack, @pack!, @consts
 
 ## Parser helpers
 #################
