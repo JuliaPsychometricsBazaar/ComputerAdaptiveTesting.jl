@@ -22,8 +22,21 @@ Aqua.test_all(
     stale_deps=false,
     deps_compat=false #tmp
 )
-Aqua.test_all(IRTSupport)
-Aqua.test_all(CATPlots)
+Aqua.test_all(
+    IRTSupport;
+    ambiguities=false
+)
+Aqua.test_all(
+    CATPlots;
+    ambiguities=false
+)
+# Workaround for https://github.com/JuliaTesting/Aqua.jl/issues/77
+Aqua.test_ambiguities([
+    ComputerAdaptiveTesting,
+    IRTSupport,
+    CATPlots,
+    Core
+])
 
 include("./ability_estimator_1d.jl")
 include("./ability_estimator_2d.jl")
