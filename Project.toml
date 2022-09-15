@@ -43,6 +43,7 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 [compat]
 ArgParse = "1"
 Cuba = "2"
+Cubature = "1"
 Distributions = "0.25"
 FLoops = "0.2"
 Faker = "0.3"
