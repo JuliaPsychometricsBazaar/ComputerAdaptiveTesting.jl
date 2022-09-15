@@ -101,7 +101,6 @@ jobs:
           USE_CAIRO_MAKIE=1 julia --project=docs/ -e '
             include("docs/make.jl")'
         env:
-          R_HOME: '*'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
       - name: Run doctest
