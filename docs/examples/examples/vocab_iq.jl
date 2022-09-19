@@ -1,6 +1,6 @@
 #md # How abilities converge on simulated 3PL data
 
-# # Running a CAT based based on real reponse data
+# # Running a CAT based based on real response data
 # 
 # This example shows how to run a CAT end-to-end on real data.
 # 
@@ -8,8 +8,6 @@
 # vocabulary IQ test using the IRTSupport package which internally, this uses
 # the `mirt` R package. Next, the model is used to administer the test
 # interactively.
-
-ENV["R_HOME"] = "*"
 
 using Base.Filesystem
 using ComputerAdaptiveTesting
