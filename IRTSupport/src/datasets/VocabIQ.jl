@@ -6,9 +6,6 @@ using ...Wrap.Mirt
 using Serialization
 using DataFrames
 using CSV
-using Conda
-using RCall
-using Base.Filesystem
 
 answers_txt = """
 Q1 	24 	tiny faded new large big 
