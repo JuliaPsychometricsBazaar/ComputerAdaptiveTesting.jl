@@ -16,27 +16,29 @@ using Distributions: ZeroMeanIsoNormal, Zeros, ScalMat
 using Optim
 using Random
 
-Aqua.test_all(
-    ComputerAdaptiveTesting;
-    ambiguities=false,
-    stale_deps=false,
-    deps_compat=false #tmp
-)
-Aqua.test_all(
-    IRTSupport;
-    ambiguities=false
-)
-Aqua.test_all(
-    CATPlots;
-    ambiguities=false
-)
-# Workaround for https://github.com/JuliaTesting/Aqua.jl/issues/77
-Aqua.test_ambiguities([
-    ComputerAdaptiveTesting,
-    IRTSupport,
-    CATPlots,
-    Core
-])
+@testset "aqua" begin
+    Aqua.test_all(
+        ComputerAdaptiveTesting;
+        ambiguities=false,
+        stale_deps=false,
+        deps_compat=false #tmp
+    )
+    Aqua.test_all(
+        IRTSupport;
+        ambiguities=false
+    )
+    Aqua.test_all(
+        CATPlots;
+        ambiguities=false
+    )
+    # Workaround for https://github.com/JuliaTesting/Aqua.jl/issues/77
+    Aqua.test_ambiguities([
+        ComputerAdaptiveTesting,
+        IRTSupport,
+        CATPlots,
+        Core
+    ])
+end
 
 include("./ability_estimator_1d.jl")
 include("./ability_estimator_2d.jl")
