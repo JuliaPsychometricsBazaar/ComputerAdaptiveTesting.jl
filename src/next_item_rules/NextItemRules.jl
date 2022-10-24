@@ -26,6 +26,7 @@ using QuadGK, Distributions, Optim, Base.Threads, Base.Order, FLoops, StaticArra
 export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, init_thread
 export NextItemRule, ItemStrategyNextItemRule
 export UrryItemCriterion, InformationItemCriterion, DRuleItemCriterion, TRuleItemCriterion
+export catr_next_item_aliases
 
 include("./objective_function.jl")
 
