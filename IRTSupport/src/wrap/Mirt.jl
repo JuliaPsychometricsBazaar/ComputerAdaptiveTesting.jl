@@ -4,7 +4,7 @@ using Conda
 using RCall
 using ComputerAdaptiveTesting.ItemBanks
 
-export fit_mirt, fit_2pl, fit_3pl, fit_4pl
+export fit_mirt, fit_2pl, fit_3pl, fit_4pl, fit_gpcm
 
 function fit_mirt(df; kwargs...)
     @debug "Fitting IRT model"
@@ -22,6 +22,13 @@ function fit_mirt(df; kwargs...)
         as.data.frame(coefs_df)
         """
     )
+end
+
+function fit_gpcm(df; kwargs...)
+    params = fit_mirt(df; model=1, itemtype="gpcm", kwargs...)
+    discriminations = convert(Matrix, select(params, r"a\d+"))
+    cut_points = convert(Matrix, select(params, r"d\d+"))
+    GPCMItemBank(discriminations, cut_points, labels=params[!, "label"])
 end
 
 function fit_4pl(df; kwargs...)
