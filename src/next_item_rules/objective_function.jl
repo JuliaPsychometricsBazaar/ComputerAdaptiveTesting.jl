@@ -145,16 +145,18 @@ function Aggregators.response_expectation(item_criterion::DistributionExpectatio
 end
 
 function (item_criterion::ExpectationBasedItemCriterion)(speculator::Speculator, tracked_responses::TrackedResponses, item_idx)
-    exp_resp = response_expectation(
+    exp_resp = Aggregators.response_expectation(
         item_criterion,
         tracked_responses,
         item_idx
     )
-    replace_speculation!(speculator, SVector(item_idx), SVector(0))
-    neg_var = item_criterion.state_criterion(speculator.responses)
-    replace_speculation!(speculator, SVector(item_idx), SVector(1))
-    pos_var = item_criterion.state_criterion(speculator.responses)
-    (1 - exp_resp) * neg_var + exp_resp * pos_var
+    possible_responses = responses(ItemResponse(tracked_responses.item_bank, item_idx))
+    res = 0.0
+    for (prob, possible_response) in zip(exp_resp, possible_responses)
+        replace_speculation!(speculator, SVector(item_idx), SVector(possible_response))
+        res += prob * item_criterion.state_criterion(speculator.responses)
+    end
+    res
 end
 
 struct UrryItemCriterion{AbilityEstimatorT <: PointAbilityEstimator} <: ItemCriterion

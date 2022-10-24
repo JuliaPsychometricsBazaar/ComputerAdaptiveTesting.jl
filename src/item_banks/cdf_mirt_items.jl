@@ -33,6 +33,7 @@ struct CdfMirtItemBank{DistT <: ContinuousUnivariateDistribution} <: AbstractIte
 end
 
 MathTraits.DomainType(::CdfMirtItemBank) = VectorContinuousDomain()
+Responses.ResponseType(::CdfMirtItemBank) = BooleanResponse()
 
 function raw_difficulty(item_bank::CdfMirtItemBank, item_idx)
     item_bank.difficulties[item_idx]
@@ -57,6 +58,19 @@ end
 
 function (ir::ItemResponse{<:CdfMirtItemBank})(θ)
     resp(ir, θ)
+end
+
+function resp_vec(ir::ItemResponse{<:CdfMirtItemBank}, θ)
+    resp1 = resp(ir, θ)
+    SVector(1.0 - resp1, resp1)
+end
+
+function resp(ir::ItemResponse{<:CdfMirtItemBank}, outcome::Bool, θ)
+    if outcome
+        resp(ir, θ)
+    else
+        cresp(ir, θ)
+    end
 end
 
 function resp(ir::ItemResponse{<:CdfMirtItemBank}, θ)

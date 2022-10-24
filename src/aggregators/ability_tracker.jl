@@ -34,24 +34,25 @@ function response_expectation(
     integrator::AbilityIntegrator,
     tracked_responses::TrackedResponses,
     item_idx
-)::Float64
-    expectation(
+)
+    exp1 = expectation(
         ItemResponse(tracked_responses.item_bank, item_idx),
         0,
         integrator,
         ability_estimator,
         tracked_responses,
     )
+    SVector(1.0 - exp1, exp1)
 end
 
 function response_expectation(
     ability_estimator::PointAbilityEstimator,
     tracked_responses::TrackedResponses,
     item_idx
-)::Float64
+)
     # TODO: use existing θ when a compatible θ tracker is used
     θ_estimate = ability_estimator(tracked_responses)
-    ItemResponse(tracked_responses.item_bank, item_idx)(θ_estimate)
+    resp_vec(ItemResponse(tracked_responses.item_bank, item_idx), θ_estimate)
 end
 
 struct NullAbilityTracker <: AbilityTracker end

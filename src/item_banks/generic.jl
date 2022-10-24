@@ -2,11 +2,43 @@ abstract type LikelihoodFunction end
 
 using ..Integrators
 
-struct ItemResponse{ItemBankT <: AbstractItemBank, IntT <: Integer} <: LikelihoodFunction 
+struct ItemResponse{ItemBankT <: AbstractItemBank}
     item_bank::ItemBankT
-    index::IntT
+    index::Int
 end
 
+function responses(ir::ItemResponse)
+    responses(ResponseType(ir), ir)
+end
+
+function responses(::BooleanResponse, ir::ItemResponse)
+    SVector(false, true)
+end
+
+function responses(::MultinomialResponse, ir::ItemResponse)
+    1:num_response_categories(ir)
+end
+
+#=
+struct ItemResponse{ItemBankT <: AbstractItemBank} <: ItemResponse
+    item_handle::ItemResponse{ItemBankT}
+    response::response_type(ResponseType(ItemBankT))
+end
+=#
+
+function p_lt(ir::ItemResponse, θ)
+    1 - p_gte(ir, θ)
+end
+
+function logp_gte(ir::ItemResponse, θ)
+    log(p_gte(ir, θ))
+end
+
+function logp_lt(ir::ItemResponse, θ)
+    log(p_lt(ir, θ))
+end
+
+#=
 # These defaults (cresp,logresp,logcresp) could have poor numerical stability.
 # Should possibly issue a warning when used to poke for more stable ones from
 # the item bank type
@@ -22,13 +54,17 @@ end
 function logcresp(ir::ItemResponse, θ)
     log(cresp(ir, θ))
 end
+=#
 
 struct AbilityLikelihood{ItemBankT} <: LikelihoodFunction where {ItemBankT <: AbstractItemBank}
     item_bank::ItemBankT
     responses::BareResponses
 end
 
-MathTraits.DomainType(lhf::Union{ItemResponse, AbilityLikelihood}) = DomainType(lhf.item_bank)
+MathTraits.DomainType(lhf::AbilityLikelihood) = DomainType(lhf.item_bank)
+Responses.ResponseType(lhf::AbilityLikelihood) = ResponseType(lhf.item_bank)
+MathTraits.DomainType(lhf::ItemResponse) = DomainType(lhf.item_bank)
+Responses.ResponseType(lhf::ItemResponse) = ResponseType(lhf.item_bank)
 
 function (ability_lh::LikelihoodFunction)(θ)
     ability_lh(DomainType(ability_lh), θ)
@@ -45,12 +81,13 @@ end
 
 function (ability_lh::AbilityLikelihood)(::ContinuousDomain, θ)
     prod(
-        pick_resp(ability_lh.responses.values[resp_idx] > 0)(
+        resp(
             ItemResponse(
                 ability_lh.item_bank,
                 ability_lh.responses.indices[resp_idx]
             ),
-            θ,
+            ability_lh.responses.values[resp_idx],
+            θ
         )
         for resp_idx in axes(ability_lh.responses.indices, 1);
         init=1.0

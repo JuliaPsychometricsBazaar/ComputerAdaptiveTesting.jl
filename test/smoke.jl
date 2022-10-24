@@ -1,4 +1,22 @@
-using ComputerAdaptiveTesting.DummyData: dummy_3pl, std_normal, dummy_mirt_4pl
+using ComputerAdaptiveTesting
+using ComputerAdaptiveTesting.Aggregators
+using ComputerAdaptiveTesting.DummyData: dummy_full, SimpleItemBankSpec, StdModel3PL,
+      VectorContinuousDomain, BooleanResponse, std_normal
+using ComputerAdaptiveTesting.ItemBanks
+using ComputerAdaptiveTesting.Integrators
+using ComputerAdaptiveTesting.Responses
+using ComputerAdaptiveTesting.Optimizers
+using ComputerAdaptiveTesting.NextItemRules
+using ComputerAdaptiveTesting.MathTraits
+using ComputerAdaptiveTesting.TerminationConditions
+using ComputerAdaptiveTesting.Sim
+using Distributions
+using Distributions: ZeroMeanIsoNormal, Zeros, ScalMat
+using Optim
+using Random
+using Test
+
+#(item_bank, question_labels, abilities, responses) = dummy_full(Random.default_rng(42), SimpleItemBankSpec(StdModel4PL(), VectorContinuousDomain(), BooleanResponse()), 2; num_questions=100, num_testees=3)
 
 const optimizers_1d = [
     FunctionOptimizer(OneDimOptimOptimizer(-6.0, 6.0, NelderMead())),
@@ -20,8 +38,12 @@ const criteria_1d = [
 ]
 
 @testset "Smoke test 1d" begin
-    Random.seed!(42)
-    (item_bank, question_labels, abilities, true_responses) = dummy_3pl(; num_questions=4, num_testees=2)
+    (item_bank, question_labels, abilities, true_responses) = dummy_full(
+        Random.default_rng(42),
+        SimpleItemBankSpec(StdModel3PL(), OneDimContinuousDomain(), BooleanResponse());
+        num_questions=4,
+        num_testees=2
+    )
     for optimizer in optimizers_1d
         for integrator in integrators_1d
             for mk_ability_estimator in ability_estimators_1d

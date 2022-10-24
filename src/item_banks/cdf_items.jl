@@ -6,6 +6,7 @@ struct TransferItemBank{DistT <: ContinuousUnivariateDistribution} <: AbstractIt
 end
 
 MathTraits.DomainType(::TransferItemBank) = OneDimContinuousDomain()
+Responses.ResponseType(::TransferItemBank) = BooleanResponse()
 
 function raw_difficulty(item_bank::TransferItemBank, item_idx)
     item_bank.difficulties[item_idx]
@@ -25,6 +26,19 @@ end
 
 function (ir::ItemResponse{<:TransferItemBank})(θ)
     resp(ir, θ)
+end
+
+function resp_vec(ir::ItemResponse{<:TransferItemBank}, θ)
+    resp1 = resp(ir, θ)
+    SVector(1.0 - resp1, resp1)
+end
+
+function resp(ir::ItemResponse{<:TransferItemBank}, outcome::Bool, θ)
+    if outcome
+        resp(ir, θ)
+    else
+        cresp(ir, θ)
+    end
 end
 
 function resp(ir::ItemResponse{<:TransferItemBank}, θ)

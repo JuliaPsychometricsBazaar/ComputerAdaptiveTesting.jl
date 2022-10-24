@@ -87,3 +87,55 @@ function ItemBankMirt4PL(
 )
     SlipItemBank(slips, ItemBankMirt3PL(difficulties, discriminations, guesses; labels=labels))
 end
+
+function ItemBankGPCM2PL(
+    discriminations,
+    cut_points;
+    labels=nothing
+)
+    GPCMItemBank(discriminations, cut_points, labels)
+end
+
+function ItemBankGPCM3PL(
+    discriminations,
+    cut_points,
+    guesses;
+    labels=nothing
+)
+    GuessItemBank(guesses, ItemBankGPCM2PL(discriminations, cut_points; labels=labels))
+end
+
+function ItemBankGPCM4PL(
+    discriminations,
+    cut_points,
+    guesses,
+    slips;
+    labels=nothing
+)
+    SlipItemBank(slips, ItemBankGPCM3PL(discriminations, cut_points, guesses; labels=labels))
+end
+
+abstract type StdModelForm end
+struct StdModel2PL <: StdModelForm end
+struct StdModel3PL <: StdModelForm end
+struct StdModel4PL <: StdModelForm end
+
+struct SimpleItemBankSpec{StdModelT <: StdModelForm, DomainTypeT <: DomainType, ResponseTypeT <: ResponseType}
+    model::StdModelT
+    domain::DomainTypeT
+    response::ResponseTypeT
+end
+
+constructor(::SimpleItemBankSpec{StdModel2PL, OneDimContinuousDomain, BooleanResponse}) = ItemBank2PL
+constructor(::SimpleItemBankSpec{StdModel3PL, OneDimContinuousDomain, BooleanResponse}) = ItemBank3PL
+constructor(::SimpleItemBankSpec{StdModel4PL, OneDimContinuousDomain, BooleanResponse}) = ItemBank4PL
+constructor(::SimpleItemBankSpec{StdModel2PL, VectorContinuousDomain, BooleanResponse}) = ItemBankMirt2PL
+constructor(::SimpleItemBankSpec{StdModel3PL, VectorContinuousDomain, BooleanResponse}) = ItemBankMirt3PL
+constructor(::SimpleItemBankSpec{StdModel4PL, VectorContinuousDomain, BooleanResponse}) = ItemBankMirt4PL
+constructor(::SimpleItemBankSpec{StdModel2PL, ContinuousDomain, MultinomialResponse}) = ItemBankGPCM2PL
+constructor(::SimpleItemBankSpec{StdModel3PL, ContinuousDomain, MultinomialResponse}) = ItemBankGPCM3PL
+constructor(::SimpleItemBankSpec{StdModel4PL, ContinuousDomain, MultinomialResponse}) = ItemBankGPCM4PL
+
+function ItemBank(spec::SimpleItemBankSpec, args...; kwargs...)
+    constructor(spec)(args...; kwargs...)
+end

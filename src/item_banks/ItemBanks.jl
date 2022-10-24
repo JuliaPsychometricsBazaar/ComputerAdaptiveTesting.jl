@@ -12,16 +12,18 @@ export item_idxs, known_item_information, expected_item_information, item_inform
 export responses_information, pick_resp, pick_logresp
 export ItemBank2PL, ItemBank3PL, ItemBank4PL
 export ItemBankMirt2PL, ItemBankMirt3PL, ItemBankMirt4PL
-export item_params, LikelihoodFunction, dim
+export item_params, LikelihoodFunction, dim, resp, logresp
+export resp_vec, responses
 
-
+using LazyStack
 using ResumableFunctions
 using Distributions
 #using Distributions: ContinuousUnivariateDistribution, cdf
 import ForwardDiff
+using StaticArrays: SVector
 using ..MathTraits
 
-using ..Responses: Response, BareResponses
+using ..Responses
 
 abstract type AbstractItemBank end
 const MaybeLabels = Union{Vector{String}, Nothing}
@@ -50,6 +52,7 @@ include("./gridded_items.jl")
 include("./guess_slip_items.jl")
 include("./cdf_items.jl")
 include("./cdf_mirt_items.jl")
+include("./nominal_items.jl")
 include("./porcelain.jl")
 
 end

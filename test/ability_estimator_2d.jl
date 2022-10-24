@@ -1,3 +1,14 @@
+using ComputerAdaptiveTesting
+using ComputerAdaptiveTesting.Aggregators
+using ComputerAdaptiveTesting.ItemBanks
+using ComputerAdaptiveTesting.Integrators
+using ComputerAdaptiveTesting.Responses
+using ComputerAdaptiveTesting.Optimizers
+using ComputerAdaptiveTesting.NextItemRules
+using ComputerAdaptiveTesting.TerminationConditions
+using ComputerAdaptiveTesting.Sim
+using Distributions: ScalMat
+
 """
 First 4 questions are centered on ability 1.
 The next ones are used to sanity check information/variance.
@@ -11,8 +22,9 @@ function mk_dummy_2d_data()
         ]
     )
     responses = BareResponses(
+        ResponseType(item_bank),
         [1, 2, 3, 4],
-        [0, 0, 1, 1]
+        [false, false, true, true]
     )
     (item_bank, responses)
 end

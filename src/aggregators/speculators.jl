@@ -6,15 +6,16 @@ struct Speculator
         responses::TrackedResponses,
         size::Int
     )
+        response_type = ResponseType(responses.item_bank)
         orig_len = length(responses.responses.indices)
         spec_len = orig_len + size
-        indices = Array{Int32}(undef, spec_len)
-        values = Array{Int8}(undef, spec_len)
+        indices = Array{Int}(undef, spec_len)
+        values = Array{concrete_response_type(response_type)}(undef, spec_len)
         indices[1 : orig_len] = responses.responses.indices
         values[1 : orig_len] = responses.responses.values
         new(
             TrackedResponses(
-                BareResponses(indices, values),
+                BareResponses(response_type, indices, values),
                 responses.item_bank,
                 responses.ability_tracker
             ),

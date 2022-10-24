@@ -1,22 +1,15 @@
-using ComputerAdaptiveTesting
-using ComputerAdaptiveTesting.Aggregators
-using ComputerAdaptiveTesting.ItemBanks
-using ComputerAdaptiveTesting.Integrators
-using ComputerAdaptiveTesting.Responses
-using ComputerAdaptiveTesting.Optimizers
-using ComputerAdaptiveTesting.NextItemRules
-using ComputerAdaptiveTesting.TerminationConditions
-using ComputerAdaptiveTesting.Sim
-using IRTSupport
-using CATPlots
 using Test
-using Aqua
-using Distributions
-using Distributions: ZeroMeanIsoNormal, Zeros, ScalMat
-using Optim
-using Random
 
-@testset "aqua" begin
+include("./utils.jl")
+
+using .CATTestUtils: @namedtestset
+
+@namedtestset aqua "Aqua automated quality checks" begin
+    using Aqua
+    using CATPlots
+    using ComputerAdaptiveTesting
+    using IRTSupport
+    print("Aqua automated quality checks")
     Aqua.test_all(
         ComputerAdaptiveTesting;
         ambiguities=false,
@@ -48,6 +41,14 @@ using Random
     Aqua.test_ambiguities([IRTSupport])
 end
 
-include("./ability_estimator_1d.jl")
-include("./ability_estimator_2d.jl")
-include("./smoke.jl")
+@namedtestset ability_estimator_1d "1-dimensional ability estimators" begin
+    include("./ability_estimator_1d.jl")
+end
+
+@namedtestset ability_estimator_2d "1-dimensional ability estimators" begin
+    include("./ability_estimator_2d.jl")
+end
+
+@namedtestset smoke "Smoke tests" begin
+    include("./smoke.jl")
+end

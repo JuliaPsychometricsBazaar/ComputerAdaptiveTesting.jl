@@ -12,7 +12,8 @@ using HCubature
 using Base.Threads
 
 using ..ItemBanks
-using ..Responses: BareResponses, Response
+using ..Responses
+using ..Responses: concrete_response_type
 using ..MathTraits
 using ..ConfigBase
 using ..Integrators
@@ -103,6 +104,8 @@ end
     item_bank::ItemBankT
     ability_tracker::AbilityTrackerT = NullAbilityTracker()
 end
+
+TrackedResponses(responses, item_bank) = TrackedResponses(responses, item_bank, NullAbilityTracker())
 
 function ItemBanks.AbilityLikelihood(tracked_responses::TrackedResponses)
     ItemBanks.AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)

@@ -1,3 +1,15 @@
+using ComputerAdaptiveTesting
+using ComputerAdaptiveTesting.Aggregators
+using ComputerAdaptiveTesting.ItemBanks
+using ComputerAdaptiveTesting.Integrators
+using ComputerAdaptiveTesting.Responses
+using ComputerAdaptiveTesting.Optimizers
+using ComputerAdaptiveTesting.NextItemRules
+using ComputerAdaptiveTesting.TerminationConditions
+using ComputerAdaptiveTesting.Sim
+using Distributions
+using Test
+
 """
 First 4 questions are centered on ability 1.
 The next ones are used to sanity check information/variance.
@@ -8,8 +20,9 @@ function mk_dummy_1d_data()
         [1.0, 1.0, 1.0, 1.0, 1.0,  1.0, 2.0,  0.5]
     )
     responses = BareResponses(
+        ResponseType(item_bank),
         [1, 2, 3, 4],
-        [0, 0, 1, 1]
+        [false, false, true, true]
     )
     (item_bank, responses)
 end
@@ -83,7 +96,7 @@ end
 @testset "1 dim variance decreases with new responses" begin
     orig_var = ability_variance_state_criterion(tracked_responses_1d)
     next_responses = deepcopy(tracked_responses_1d)
-    add_response!(next_responses, Response(5, 0))
+    add_response!(next_responses, Response(ResponseType(item_bank_1d), 5, 0))
     new_var = ability_variance_state_criterion(next_responses)
     @test new_var < orig_var
 end

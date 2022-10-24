@@ -1,6 +1,7 @@
 module Sim
 
-using ..Responses: BareResponses, Response
+using StatsBase
+using ..Responses
 using ..CatConfig: CatLoopConfig
 using ..ItemBanks: AbstractItemBank, labels
 using ..Aggregators: TrackedResponses, add_response!, Speculator
@@ -34,7 +35,7 @@ function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank)
     (; rules, get_response, new_response_callback) = cat_config
     (; next_item, termination_condition, ability_estimator, ability_tracker) = rules
     responses = TrackedResponses(
-        BareResponses(),
+        BareResponses(ResponseType(item_bank)),
         item_bank,
         ability_tracker
     )
@@ -60,7 +61,7 @@ function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank)
         @debug "Querying" next_label
         response = get_response(next_index, next_label)
         @debug "Got response" response
-        add_response!(responses, Response(next_index, response))
+        add_response!(responses, Response(ResponseType(item_bank), next_index, response))
         terminating = termination_condition(responses, item_bank)
         if new_response_callback !== nothing
             new_response_callback(responses, terminating)
