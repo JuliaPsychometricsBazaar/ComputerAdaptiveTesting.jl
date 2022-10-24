@@ -18,6 +18,8 @@ using ComputerAdaptiveTesting.Aggregators
 using ComputerAdaptiveTesting.ItemBanks
 using ComputerAdaptiveTesting.Integrators
 
+include("./comparison.jl")
+
 # Allows hline! on AlgebraOfGraphics plots. May be better way in future.
 # See: https://github.com/JuliaPlots/AlgebraOfGraphics.jl/issues/299
 function Makie.hlines!(fg::AlgebraOfGraphics.FigureGrid, args...; kws...)
