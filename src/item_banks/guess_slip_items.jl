@@ -100,8 +100,8 @@ function resp(ir::ItemResponse{<:AnySlipOrGuessItemBank}, response, θ)
 end
 
 function resp_vec(ir::ItemResponse{<:AnySlipOrGuessItemBank}, θ)
-    resp = resp_vec(inner_item_response(ir), θ)
-    SVector(transform_irf_y(ir, false, resp[1]), transform_irf_y(ir, true, resp[2]))
+    r = resp_vec(inner_item_response(ir), θ)
+    SVector(transform_irf_y(ir, false, r[1]), transform_irf_y(ir, true, r[2]))
 end
 
 # TODO: cresp / logresp / logcresp
