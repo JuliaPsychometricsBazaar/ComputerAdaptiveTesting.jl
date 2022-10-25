@@ -18,7 +18,7 @@ struct NominalItemBank{CategoryStorageT <: PerCategoryFloat} <: AbstractItemBank
     labels::MaybeLabels
 end
 
-function NominalItemBank(ranks::Matrix{Float64}, discriminations::Matrix{Float64}, cut_points::Matrix{Float64, 2}, labels=nothing)
+function NominalItemBank(ranks::Matrix{Float64}, discriminations::Matrix{Float64}, cut_points::Matrix{Float64}, labels=nothing)
     NominalItemBank(nestedview(ranks), discriminations, nestedview(cut_points), labels)
 end
 
@@ -36,7 +36,7 @@ function GPCMItemBank(discriminations, cut_points::PerCategoryFloat, labels=noth
     )
 end
 
-function GPCMItemBank(discriminations, cut_points::Matrix{Float64, 2}, labels=nothing)
+function GPCMItemBank(discriminations, cut_points::Matrix{Float64}, labels=nothing)
     GPCMItemBank(discriminations, nextedview(cut_points), labels)
 end
 
