@@ -40,46 +40,46 @@ function GPCMItemBank(discriminations, cut_points::Matrix{Float64}, labels=nothi
     GPCMItemBank(discriminations, nextedview(cut_points), labels)
 end
 
-MathTraits.DomainType(::GradedItemBank) = OneDimContinuousDomain()
-Responses.ResponseType(::GradedItemBank) = MultinomialResponse()
+MathTraits.DomainType(::NominalItemBank) = OneDimContinuousDomain()
+Responses.ResponseType(::NominalItemBank) = MultinomialResponse()
 
-function raw_difficulty(item_bank::GradedItemBank, item_idx)
+function raw_difficulty(item_bank::NominalItemBank, item_idx)
     item_bank.difficulties[item_idx]
 end
 
-function Base.length(item_bank::GradedItemBank)
+function Base.length(item_bank::NominalItemBank)
     length(item_bank.difficulties)
 end
 
-function linears(ir::ItemResponse{<:GradedItemBank}, θ)
+function linears(ir::ItemResponse{<:NominalItemBank}, θ)
     aks = @view ir.item_bank.ranks[ir.index]
     as = @view ir.item_bank.discriminations[:, ir.index]
     ds = @view ir.item_bank.cut_points[ir.index]
     aks .* (dot(as, θ) .+ ds)
 end
 
-function (ir::ItemResponse{<:GradedItemBank})(θ)
+function (ir::ItemResponse{<:NominalItemBank})(θ)
     resp(ir, θ)
 end
 
-function num_response_categories(ir::ItemResponse{<:GradedItemBank})
+function num_response_categories(ir::ItemResponse{<:NominalItemBank})
     length(ir.item_bank.cut_points[ir.index])
 end
 
-function resp_vec(ir::ItemResponse{<:TransferItemBank}, θ)
+function resp_vec(ir::ItemResponse{<:NominalItemBank}, θ)
     ir(θ)
 end
 
-function resp(ir::ItemResponse{<:GradedItemBank}, θ)
+function resp(ir::ItemResponse{<:NominalItemBank}, θ)
     outs .= exp.(linears(ir, θ))
     outs ./ sum(outs)
 end
 
-function logresp(ir::ItemResponse{<:GradedItemBank}, θ)
+function logresp(ir::ItemResponse{<:NominalItemBank}, θ)
     outs .= linears(ir, θ)
     outs .= outs - logsumexp(linears(ir, θ))
 end
 
-function item_params(item_bank::GradedItemBank, idx)
+function item_params(item_bank::NominalItemBank, idx)
     (; difficulty=item_bank.difficulties[idx], discrimination=item_bank.discriminations[idx])
 end
