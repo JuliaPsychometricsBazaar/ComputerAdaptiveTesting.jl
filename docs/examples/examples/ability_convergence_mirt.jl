@@ -29,9 +29,17 @@ using CATPlots
 # module. We generate an item bank with 100 items and fake responses for 3
 # testees.
 dims = 3
-using ComputerAdaptiveTesting.DummyData: dummy_mirt_4pl, std_mv_normal
-Random.seed!(42)
-(item_bank, question_labels, abilities, responses) = dummy_mirt_4pl(dims; num_questions=10, num_testees=2)
+using ComputerAdaptiveTesting.DummyData: dummy_full, std_mv_normal, SimpleItemBankSpec, StdModel4PL
+using ComputerAdaptiveTesting.MathTraits
+using ComputerAdaptiveTesting.Responses: BooleanResponse
+# TODO: pass in dims
+(item_bank, question_labels, abilities, true_responses) = dummy_full(
+    Random.default_rng(42),
+    SimpleItemBankSpec(StdModel4PL(), VectorContinuousDomain(), BooleanResponse()),
+    dims;
+    num_questions=10,
+    num_testees=2
+)
 
 # Simulate a CAT for each testee and record it using CatRecorder.
 # CatRecorder collects information which can be used to draw different types of plots.

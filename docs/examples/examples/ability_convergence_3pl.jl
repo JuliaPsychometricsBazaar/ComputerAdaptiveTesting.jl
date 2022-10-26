@@ -20,6 +20,7 @@ using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondit
 using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEstimator, LikelihoodAbilityEstimator
 using ComputerAdaptiveTesting.ItemBanks
 using ComputerAdaptiveTesting.Integrators
+using ComputerAdaptiveTesting.Responses: BooleanResponse
 import ComputerAdaptiveTesting.IntegralCoeffs
 using CATPlots
 
@@ -28,9 +29,14 @@ using CATPlots
 # Now we are read to generate our synthetic data using the supplied DummyData
 # module. We generate an item bank with 100 items and fake responses for 3
 # testees.
-using ComputerAdaptiveTesting.DummyData: dummy_3pl, std_normal
-Random.seed!(42)
-(item_bank, question_labels, abilities, responses) = dummy_3pl(;num_questions=100, num_testees=3)
+using ComputerAdaptiveTesting.DummyData: dummy_full, std_normal, SimpleItemBankSpec, StdModel3PL
+using ComputerAdaptiveTesting.MathTraits
+(item_bank, question_labels, abilities, true_responses) = dummy_full(
+    Random.default_rng(42),
+    SimpleItemBankSpec(StdModel3PL(), OneDimContinuousDomain(), BooleanResponse());
+    num_questions=100,
+    num_testees=3
+)
 
 # Simulate a CAT for each testee and record it using CatRecorder.
 # CatRecorder collects information which can be used to draw different types of plots.

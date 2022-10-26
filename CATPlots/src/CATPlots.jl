@@ -219,7 +219,7 @@ function (recorder::CatRecorder)(tracked_responses, resp_idx, terminating)
     item_index = tracked_responses.responses.indices[end]
     item_correct = tracked_responses.responses.values[end] > 0
     ir = ItemResponse(tracked_responses.item_bank, item_index)
-    recorder.item_responses[:, recorder.col_idx] = pick_resp(item_correct).(Ref(ir), eachmatcol(recorder.xs))
+    recorder.item_responses[:, recorder.col_idx] = resp.(Ref(ir), item_correct, eachmatcol(recorder.xs))
 
 	# Save item parameters
     recorder.item_difficulties[recorder.step, resp_idx] = raw_difficulty(tracked_responses.item_bank, item_index)
