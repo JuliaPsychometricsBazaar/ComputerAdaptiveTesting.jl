@@ -79,6 +79,8 @@ function with_testset_name(inner, name)
 end
 
 macro namedtestset(name, args...)
+    # XXX/TODO: This seems to have problems with `using` statements, unless the
+    # tests are put inside
     name_str = String(name)
     with_testset_name(name_str) do
         quote
