@@ -33,7 +33,7 @@ using ComputerAdaptiveTesting.DummyData: dummy_full, std_mv_normal, SimpleItemBa
 using ComputerAdaptiveTesting.MathTraits
 using ComputerAdaptiveTesting.Responses: BooleanResponse
 # TODO: pass in dims
-(item_bank, question_labels, abilities, true_responses) = dummy_full(
+(item_bank, question_labels, abilities, responses) = dummy_full(
     Random.default_rng(42),
     SimpleItemBankSpec(StdModel4PL(), VectorContinuousDomain(), BooleanResponse()),
     dims;

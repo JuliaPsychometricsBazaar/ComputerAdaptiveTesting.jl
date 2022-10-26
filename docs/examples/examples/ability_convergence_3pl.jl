@@ -31,7 +31,7 @@ using CATPlots
 # testees.
 using ComputerAdaptiveTesting.DummyData: dummy_full, std_normal, SimpleItemBankSpec, StdModel3PL
 using ComputerAdaptiveTesting.MathTraits
-(item_bank, question_labels, abilities, true_responses) = dummy_full(
+(item_bank, question_labels, abilities, responses) = dummy_full(
     Random.default_rng(42),
     SimpleItemBankSpec(StdModel3PL(), OneDimContinuousDomain(), BooleanResponse());
     num_questions=100,
