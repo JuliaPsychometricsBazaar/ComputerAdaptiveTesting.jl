@@ -112,7 +112,7 @@ function dummy_full(rng::AbstractRNG, spec::SimpleItemBankSpec{<: StdModelForm, 
 end
 
 function dummy_full(rng::AbstractRNG, spec::SimpleItemBankSpec{<: StdModelForm, <: VectorContinuousDomain}, dims; num_questions=default_num_questions, num_testees=default_num_testees)
-    mirt_item_bank_to_full_dummy(rng, dummy_mirt_4pl_item_bank(rng, spec, num_questions, dims), num_testees, dims)
+    mirt_item_bank_to_full_dummy(rng, dummy_item_bank(rng, spec, num_questions, dims), num_testees, dims)
 end
 
 dummy_full(spec::SimpleItemBankSpec, args...; kwargs...) = dummy_full(Random.default_rng(), spec, args...; kwargs...)
