@@ -130,13 +130,13 @@ end
 # TODO: Unclear whether this should be implemented with ExpectationBasedItemCriterion
 function expected_item_information(ir::ItemResponse, θ::Vector{Float64})
     exp_resp = ir(θ)
-    corr_hess = ForwardDiff.hessian(θ -> logresp(ir, θ), θ)
-    incorr_hess = ForwardDiff.hessian(θ -> logcresp(ir, θ), θ)
+    corr_hess = ForwardDiff.hessian(θ -> logresp(ir, true, θ), θ)
+    incorr_hess = ForwardDiff.hessian(θ -> logresp(ir, false, θ), θ)
     -(exp_resp .* corr_hess + (1.0 - exp_resp) .* incorr_hess)
 end
 
 function known_item_information(ir::ItemResponse, resp_value, θ)
-    -ForwardDiff.hessian(θ -> pick_logresp(resp_value)(ir, θ), θ)
+    -ForwardDiff.hessian(θ -> logresp(ir, resp_value, θ), θ)
 end
 
 function responses_information(item_bank::AbstractItemBank, responses::BareResponses, θ)

@@ -49,6 +49,14 @@ function cresp(ir::ItemResponse{<:TransferItemBank}, θ)
     ccdf(ir.item_bank.distribution, norm_abil(ir, θ))
 end
 
+function logresp(ir::ItemResponse{<:TransferItemBank}, outcome::Bool, θ)
+    if outcome
+        logresp(ir, θ)
+    else
+        logcresp(ir, θ)
+    end
+end
+
 function logresp(ir::ItemResponse{<:TransferItemBank}, θ)
     logcdf(ir.item_bank.distribution, norm_abil(ir, θ))
 end

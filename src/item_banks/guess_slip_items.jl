@@ -104,7 +104,14 @@ function resp_vec(ir::ItemResponse{<:AnySlipOrGuessItemBank}, θ)
     SVector(transform_irf_y(ir, false, r[1]), transform_irf_y(ir, true, r[2]))
 end
 
-# TODO: cresp / logresp / logcresp
+function logresp(ir::ItemResponse{<:AnySlipOrGuessItemBank}, θ)
+    logresp(ir, true, θ)
+end
+
+function logresp(ir::ItemResponse{<:AnySlipOrGuessItemBank}, response, θ)
+    # TODO: Improve numerical stability
+    log(transform_irf_y(ir, response, exp(logresp(inner_item_response(ir), response, θ))))
+end
 
 # XXX: Not getting dispatched to
 function (ir::ItemResponse{<:AnySlipAndGuessItemBank})(θ)

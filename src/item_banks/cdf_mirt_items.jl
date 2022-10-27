@@ -81,6 +81,14 @@ function cresp(ir::ItemResponse{<:CdfMirtItemBank}, θ)
     ccdf(ir.item_bank.distribution, norm_abil(ir, θ))
 end
 
+function logresp(ir::ItemResponse{<:CdfMirtItemBank}, outcome::Bool, θ)
+    if outcome
+        logresp(ir, θ)
+    else
+        logcresp(ir, θ)
+    end
+end
+
 function logresp(ir::ItemResponse{<:CdfMirtItemBank}, θ)
     logcdf(ir.item_bank.distribution, norm_abil(ir, θ))
 end
