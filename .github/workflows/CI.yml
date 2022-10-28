@@ -37,8 +37,7 @@ jobs:
                    Pkg.develop(path="./CATPlots");
                    Pkg.develop(path="./IRTSupport")' &&
           julia --project=CATPlots/ -e 'using Pkg;
-                                        Pkg.develop(path=".");
-                                        Pkg.develop(path="IRTSupport");' &&
+                                        Pkg.develop(path=".");' &&
           julia --project=. -e 'using Pkg;
                                     Pkg.develop([
                                       Pkg.PackageSpec(path="./IRTSupport"),
