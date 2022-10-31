@@ -39,7 +39,7 @@ function run_vocab_iq_cat()
     function get_response(response_idx, response_name)
         params = item_params(item_bank, response_idx)
         println("Parameters for next question: $params")
-        prompt_response(response_idx)
+        VocabIQ.prompt_response(response_idx)
     end
     function new_response_callback(tracked_responses, terminating)
         if tracked_responses.responses.values[end] > 0
