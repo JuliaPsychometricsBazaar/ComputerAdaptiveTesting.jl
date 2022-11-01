@@ -17,7 +17,7 @@ function fit_mirt(df; kwargs...)
         R"""
         coefs_list <- coef($irt_model)
         coefs_list["GroupPars"] <- NULL
-        coefs_df <- do.call(rbind.data.frame, coefs_list)
+        coefs_df <- do.call(c(rbind.data.frame, stringsAsFactors=FALSE), coefs_list)
         cbind(label = names(coefs_list), coefs_df)
         """
     )
