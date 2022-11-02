@@ -972,7 +972,7 @@ version = "1.7.0"
 [[deps.MLStyle]]
 git-tree-sha1 = "0638598b2ea9c60303e036be920df8df60fe2812"
 uuid = "d8e11817-5142-5d16-987a-aa16d5891078"
-version = "0.4.14"
+version = "0.4.15"
 
 [[deps.MacroTools]]
 deps = ["Markdown", "Random"]
