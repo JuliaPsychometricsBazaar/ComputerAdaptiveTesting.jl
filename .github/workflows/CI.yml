@@ -64,7 +64,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
-          version: '1'
+          version: 'nightly'
       - name: Set CAT packages to develop & resolve env
         run: |
           julia -e 'using Pkg;
