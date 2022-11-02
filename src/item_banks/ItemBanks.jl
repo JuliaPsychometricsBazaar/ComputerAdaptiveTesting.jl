@@ -15,7 +15,6 @@ export ItemBankMirt2PL, ItemBankMirt3PL, ItemBankMirt4PL
 export item_params, LikelihoodFunction, dim, resp, logresp
 export resp_vec, responses
 
-using LazyStack
 using ResumableFunctions
 using Distributions
 #using Distributions: ContinuousUnivariateDistribution, cdf

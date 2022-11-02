@@ -2,7 +2,7 @@
 
 julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "d89f924360652f9177a66ce3cbde8672f9eae93f"
+project_hash = "53ab8bfc60ded5d6f24eb7fb64d0d50c3d14da24"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -377,12 +377,6 @@ deps = ["MacroTools"]
 git-tree-sha1 = "1370f8202dac30758f3c345f9909b97f53d87d3f"
 uuid = "50d2b5c4-7a5e-59d5-8109-a42b560f39c0"
 version = "0.15.1"
-
-[[deps.LazyStack]]
-deps = ["ChainRulesCore", "Compat", "LinearAlgebra"]
-git-tree-sha1 = "fe426ebaf20ab5ffe983a5a2980fa1ff5f540217"
-uuid = "1fad7336-0346-5a1a-a56f-a06ba010965b"
-version = "0.1.1"
 
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
