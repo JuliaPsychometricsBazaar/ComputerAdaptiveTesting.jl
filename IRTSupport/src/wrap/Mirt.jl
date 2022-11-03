@@ -13,7 +13,7 @@ function fit_mirt(df; kwargs...)
     library(mirt)
     """
     irt_model = rcall(:mirt, df; kwargs...)
-    rcopy(
+    df = rcopy(
         R"""
         coefs_list <- coef($irt_model)
         coefs_list["GroupPars"] <- NULL
@@ -21,6 +21,8 @@ function fit_mirt(df; kwargs...)
         cbind(label = names(coefs_list), coefs_df)
         """
     )
+    @info "fit_mirt" df
+    return df
 end
 
 function fit_gpcm(df; kwargs...)
