@@ -342,8 +342,8 @@ version = "1.9.0"
 
 [[deps.DemoCards]]
 deps = ["Dates", "Documenter", "FileIO", "HTTP", "ImageCore", "JSON", "Literate", "Mustache", "Suppressor", "YAML"]
-git-tree-sha1 = "128ee470e3b31de4a01eb06af55ad83bd3eae03b"
-repo-rev = "optional-execute-generate"
+git-tree-sha1 = "858f817282e19f97a9c3f3b8db04eccfd224c100"
+repo-rev = "catdoc"
 repo-url = "https://github.com/frankier/DemoCards.jl"
 uuid = "311a05b2-6137-4a5a-b473-18580a3d38b5"
 version = "0.4.9"
