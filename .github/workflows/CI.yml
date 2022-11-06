@@ -66,20 +66,7 @@ jobs:
           version: 'nightly'
       - name: Set CAT packages to develop & resolve env
         run: |
-          julia -e 'using Pkg;
-                   Pkg.develop(path=".");
-                   Pkg.develop(path="./CATPlots");
-                   Pkg.develop(path="./IRTSupport")' &&
-          julia --project=CATPlots/ -e 'using Pkg;
-                                        Pkg.develop(path=".");
-                                        Pkg.develop(path="IRTSupport");' &&
           julia --project=docs/ -e 'using Pkg;
-                                    Pkg.develop([
-                                      Pkg.PackageSpec(path="."),
-                                      Pkg.PackageSpec(path="./IRTSupport"),
-                                      Pkg.PackageSpec(path="./CATPlots")
-                                    ]);
-                                    Pkg.resolve();
                                     Pkg.instantiate()'
         env:
           R_HOME: '*'
