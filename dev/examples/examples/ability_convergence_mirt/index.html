@@ -24,7 +24,7 @@ using ComputerAdaptiveTesting.Responses: BooleanResponse</code></pre><p>TODO: pa
     dims;
     num_questions=10,
     num_testees=2
-)</code></pre><pre><code class="nohighlight hljs">(ComputerAdaptiveTesting.ItemBanks.SlipItemBank{ComputerAdaptiveTesting.ItemBanks.GuessItemBank{ComputerAdaptiveTesting.ItemBanks.CdfMirtItemBank{Distributions.Logistic{Float64}}}}([0.023912513863875308, 0.0, 0.15353809584826839, 0.10656445357681131, 0.052743481874599846, 0.11402563936589763, 0.20061498465718866, 0.076176971259935, 0.0, 0.237237696847274], ComputerAdaptiveTesting.ItemBanks.GuessItemBank{ComputerAdaptiveTesting.ItemBanks.CdfMirtItemBank{Distributions.Logistic{Float64}}}([0.0, 0.2212884805705068, 0.3503584223601633, 0.11739362038139112, 0.0, 0.026058645443881506, 0.2440750770414704, 0.0, 0.0, 0.06840794392911723], ComputerAdaptiveTesting.ItemBanks.CdfMirtItemBank{Distributions.Logistic{Float64}}(Distributions.Logistic{Float64}(μ=0.0, θ=0.5875440658049353), [-2.0096963351237416, -0.3753752233240537, 1.224165630245063, 2.471084341786806, -2.113798745128066, 0.9204218489555178, 1.8882227598789103, -1.2216289958769184, -0.6409152516083017, -0.1226899623606879], [0.9433260932483163 0.822085672873083 0.895403647014317 1.0220328044320488 1.011190405330945 0.9715709801120117 1.0564305682254636 1.2959591805110022 1.182582941791194 1.1312331730513223; 0.8496763350574478 0.9928336275648609 1.3097699656277881 1.1768094223886056 1.2490823307764847 0.9667878159216293 1.3414619163381822 1.1118212544646915 0.8201766784357124 0.9999354831082334], nothing))), [&quot;Pariatur voluptatem voluptas voluptatem a consequatur.&quot;, &quot;Quia quia corporis ut architecto laudantium id maiores soluta.&quot;, &quot;Velit architecto nam cumque alias perspiciatis.&quot;, &quot;Et in sed optio quos atque et iste temporibus aut.&quot;, &quot;Amet voluptatum eos modi dolore dignissimos dolor.&quot;, &quot;Ut quos asperiores amet ut rerum.&quot;, &quot;Ex sint adipisci quo amet expedita minus voluptate ullam accusantium iste consequuntur.&quot;, &quot;Quod.&quot;, &quot;Dolores veritatis laboriosam.&quot;, &quot;Quidem et eum perferendis maxime dolores expedita ullam odit.&quot;], [-0.1549227792890839 1.2541503570973496; -0.529546269422748 1.9125093881358741], Bool[1 1; 1 1; 1 1; 0 0; 1 1; 0 1; 0 1; 1 1; 1 1; 1 1])</code></pre><p>Simulate a CAT for each testee and record it using CatRecorder. CatRecorder collects information which can be used to draw different types of plots.</p><pre><code class="language-julia hljs">max_questions = 9
+)</code></pre><pre><code class="nohighlight hljs">(ComputerAdaptiveTesting.ItemBanks.SlipItemBank{ComputerAdaptiveTesting.ItemBanks.GuessItemBank{ComputerAdaptiveTesting.ItemBanks.CdfMirtItemBank{Distributions.Logistic{Float64}}}}([0.0, 0.0, 0.0, 0.3222051791122058, 0.0, 0.0, 0.26043622600827504, 0.0, 0.3380142661498923, 0.04011494152637418], ComputerAdaptiveTesting.ItemBanks.GuessItemBank{ComputerAdaptiveTesting.ItemBanks.CdfMirtItemBank{Distributions.Logistic{Float64}}}([0.0, 0.0, 0.0, 0.0, 0.4048139272371676, 0.0, 0.0, 0.0, 0.1713738574536168, 0.09647295933238288], ComputerAdaptiveTesting.ItemBanks.CdfMirtItemBank{Distributions.Logistic{Float64}}(Distributions.Logistic{Float64}(μ=0.0, θ=0.5875440658049353), [-0.1892994979614123, -0.17481616341818274, 0.046694301676762036, -0.11374667046761268, 0.5708725092039798, 0.12026617993961669, 0.015892903720919636, 2.0392507200545174, 0.5161661919535006, -1.8555507386886134], [1.2644574655265195 1.345744402888328 0.7436332113179631 0.7737868679354684 0.7939999110573819 1.1526566488615881 1.2651521659183993 1.2766152904244181 0.9679888374785921 1.3320103914514292; 1.064394677489471 1.1025481801834747 0.6846372474709561 0.9401759263215158 1.5035671592878077 1.1431501932414727 0.6256159881709307 1.0281112354044113 1.3093454495946948 0.9676382668554294], nothing))), [&quot;Possimus assumenda nobis a aut exercitationem.&quot;, &quot;Enim dolor.&quot;, &quot;Nihil sed veritatis est.&quot;, &quot;Aliquam qui.&quot;, &quot;Fugit omnis illo soluta quas qui corporis autem placeat sequi.&quot;, &quot;Voluptate at sit alias consectetur provident itaque dolores nihil.&quot;, &quot;Nostrum hic.&quot;, &quot;Voluptatem tempore occaecati dolor id omnis saepe nobis voluptas eos.&quot;, &quot;Ut nobis.&quot;, &quot;Autem nihil quia.&quot;], [0.3136080917942928 -1.0339635659900224; 1.2966119757674883 0.7684981795025537], Bool[1 1; 1 0; 1 0; 1 0; 1 0; 1 0; 1 0; 0 0; 1 0; 1 1])</code></pre><p>Simulate a CAT for each testee and record it using CatRecorder. CatRecorder collects information which can be used to draw different types of plots.</p><pre><code class="language-julia hljs">max_questions = 9
 integrator = CubaIntegrator([-6.0, -6.0], [6.0, 6.0], CubaVegas(); rtol=1e-2)
 ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(dims)), integrator)
 rules = CatRules(
@@ -56,23 +56,23 @@ for testee_idx in axes(responses, 2)
 end</code></pre><pre><code class="nohighlight hljs">┌ Info: convergence
 │   true_θ =
 │    2-element Vector{Float64}:
-│     -0.1549227792890839
-│     -0.529546269422748
+│     0.3136080917942928
+│     1.2966119757674883
 │   θ =
 │    2-element Vector{Float64}:
-│     0.4205493576555336
-│     0.4379398957486302
-└   abs_err = 1.5429583021159958
+│     0.9303320073063528
+│     1.0508937419771167
+└   abs_err = 0.8624421493024317
 ┌ Info: convergence
 │   true_θ =
 │    2-element Vector{Float64}:
-│     1.2541503570973496
-│     1.9125093881358741
+│     -1.0339635659900224
+│      0.7684981795025537
 │   θ =
 │    2-element Vector{Float64}:
-│     1.0986205249633771
-│     1.2655456816306678
-└   abs_err = 0.8024935386391787
+│     -0.42392811137524955
+│     -0.46129492464789656
+└   abs_err = 1.8398285587652232
 </code></pre><p>Make a plot showing how the estimated value converges during the CAT.</p><pre><code class="language-julia hljs">conv_lines_fig = ability_convergence_lines(recorder; abilities=abilities)
 conv_lines_fig</code></pre><div data-jscall-id="17"><script data-jscall-id="18" type="text/javascript">
     function register_resize_handler(remote_origin) {
@@ -83,7 +83,7 @@ conv_lines_fig</code></pre><div data-jscall-id="17"><script data-jscall-id="18" 
             const uuid = event.data[0];
             const width = event.data[1];
             const height = event.data[2];
-            const iframe = document.getElementById('9afa3bd1-6b10-43e3-ad57-fa2266b9e015');
+            const iframe = document.getElementById('f2538d04-646f-4813-8e6e-40f2ff93f327');
             if (iframe) {
                 iframe.style.width = width + "px";
                 iframe.style.height = height + "px";
@@ -97,5 +97,5 @@ conv_lines_fig</code></pre><div data-jscall-id="17"><script data-jscall-id="18" 
     }
     register_resize_handler('http://127.0.0.1:9284')
 
-</script><iframe scrolling="no" id="9afa3bd1-6b10-43e3-ad57-fa2266b9e015" data-jscall-id="16" src="http://127.0.0.1:9284/9afa3bd1-6b10-43e3-ad57-fa2266b9e015" style="position: relative; display: block; width: 100%; height: 100%; padding: 0; overflow: hidden; border: none"></iframe></div>
-<hr/><p><em>This page was generated using <a href="https://github.com/johnnychen94/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Sunday 6 November 2022 10:00">Sunday 6 November 2022</span>. Using Julia version 1.9.0-DEV.1757.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</script><iframe scrolling="no" id="f2538d04-646f-4813-8e6e-40f2ff93f327" data-jscall-id="16" src="http://127.0.0.1:9284/f2538d04-646f-4813-8e6e-40f2ff93f327" style="position: relative; display: block; width: 100%; height: 100%; padding: 0; overflow: hidden; border: none"></iframe></div>
+<hr/><p><em>This page was generated using <a href="https://github.com/johnnychen94/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Sunday 6 November 2022 11:34">Sunday 6 November 2022</span>. Using Julia version 1.9.0-DEV.1757.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
