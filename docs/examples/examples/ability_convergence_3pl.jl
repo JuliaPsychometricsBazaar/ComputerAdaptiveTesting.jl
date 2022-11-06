@@ -1,3 +1,9 @@
+# ---
+# title: How abilities converge on simulated 3PL data
+# id: ability_convergence_3pl
+# generate_cover: false
+# ---
+
 #md # How abilities converge on simulated 3PL data
 
 # # Running a CAT based on a synthetic correct/incorrect 3PL IRT model

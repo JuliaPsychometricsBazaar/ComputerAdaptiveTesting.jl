@@ -1,6 +1,10 @@
-#md # How abilities converge on simulated 3PL data
+# ---
+# title: Running a CAT based based on real response data
+# id: vocab_iq
+# execute: false
+# ---
 
-# # Running a CAT based based on real response data
+#md # Running a CAT based based on real response data
 # 
 # This example shows how to run a CAT end-to-end on real data.
 # 

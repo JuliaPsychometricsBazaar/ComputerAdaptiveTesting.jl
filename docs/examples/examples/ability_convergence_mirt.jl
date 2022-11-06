@@ -1,3 +1,9 @@
+# ---
+# title: How abilities converge on simulated MIRT data
+# id: ability_convergence_mirt
+# generate_cover: false
+# ---
+
 #md # How abilities converge on simulated MIRT data
 
 # # Running a CAT based on a synthetic correct/incorrect MIRT model
