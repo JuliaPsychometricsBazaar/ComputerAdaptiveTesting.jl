@@ -30,9 +30,11 @@ makedocs(;
         "Getting started" => "index.md",
         demopage,
         "API reference" => "api.md",
-        "Contributing" => "contributing.md,
+        "Contributing" => "contributing.md",
     ],
 )
+
+postprocess_cb()
 
 deploydocs(;
     repo="github.com/frankier/ComputerAdaptiveTesting.jl",
