@@ -11,14 +11,20 @@ using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondit
 using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEstimator, LikelihoodAbilityEstimator
 using ComputerAdaptiveTesting.ItemBanks
 using ComputerAdaptiveTesting.Integrators
+using ComputerAdaptiveTesting.Responses: BooleanResponse
 import ComputerAdaptiveTesting.IntegralCoeffs
 using CATPlots
 
 @automakie()
 
-using ComputerAdaptiveTesting.DummyData: dummy_3pl, std_normal
-Random.seed!(42)
-(item_bank, question_labels, abilities, responses) = dummy_3pl(;num_questions=100, num_testees=3)
+using ComputerAdaptiveTesting.DummyData: dummy_full, std_normal, SimpleItemBankSpec, StdModel3PL
+using ComputerAdaptiveTesting.MathTraits
+(item_bank, question_labels, abilities, responses) = dummy_full(
+    Random.default_rng(42),
+    SimpleItemBankSpec(StdModel3PL(), OneDimContinuousDomain(), BooleanResponse());
+    num_questions=100,
+    num_testees=3
+)
 
 max_questions = 99
 integrator = FixedGKIntegrator(-6, 6, 80)

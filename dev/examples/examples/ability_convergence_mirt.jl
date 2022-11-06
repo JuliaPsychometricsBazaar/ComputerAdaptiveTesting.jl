@@ -16,14 +16,22 @@ using CATPlots
 
 @automakie()
 
-dims = 3
-using ComputerAdaptiveTesting.DummyData: dummy_mirt_4pl, std_mv_normal
-Random.seed!(42)
-(item_bank, question_labels, abilities, responses) = dummy_mirt_4pl(dims; num_questions=10, num_testees=2)
+dims = 2
+using ComputerAdaptiveTesting.DummyData: dummy_full, std_mv_normal, SimpleItemBankSpec, StdModel4PL
+using ComputerAdaptiveTesting.MathTraits
+using ComputerAdaptiveTesting.Responses: BooleanResponse
+
+(item_bank, question_labels, abilities, responses) = dummy_full(
+    Random.default_rng(42),
+    SimpleItemBankSpec(StdModel4PL(), VectorContinuousDomain(), BooleanResponse()),
+    dims;
+    num_questions=10,
+    num_testees=2
+)
 
 max_questions = 9
-integrator = CubaIntegrator([-6.0, -6.0, -6.0], [6.0, 6.0, 6.0], CubaVegas())
-ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(3)), integrator)
+integrator = CubaIntegrator([-6.0, -6.0], [6.0, 6.0], CubaVegas(); rtol=1e-2)
+ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(dims)), integrator)
 rules = CatRules(
     ability_estimator,
     DRuleItemCriterion(ability_estimator),

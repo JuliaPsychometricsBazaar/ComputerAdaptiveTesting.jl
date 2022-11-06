@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Perf plots · ComputerAdaptiveTesting.jl</title><script data-outdated-warner src="../../../assets/warner.js"></script><link rel="canonical" href="https://frankier.github.io/ComputerAdaptiveTesting.jl/examples/examples/perf_plots/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script><link href="../../../democards/listtheme.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">ComputerAdaptiveTesting.jl</a></span></div><form class="docs-search" action="../../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../../">Getting started</a></li><li><a class="tocitem" href="../../">Examples</a></li><li><a class="tocitem" href="../../../api/">API reference</a></li><li><a class="tocitem" href="../../../contributing/">Contributing</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Perf plots</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Perf plots</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/frankier/ComputerAdaptiveTesting.jl/blob/main/docs/examples/examples/perf_plots.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Perf-plots"><a class="docs-heading-anchor" href="#Perf-plots">Perf plots</a><a id="Perf-plots-1"></a><a class="docs-heading-anchor-permalink" href="#Perf-plots" title="Permalink"></a></h1><p><a href="../perf_plots.jl"><img src="https://img.shields.io/badge/download-julia-brightgreen.svg" alt="Source code"/></a> <a href="https://nbviewer.jupyter.org/github/frankier/ComputerAdaptiveTesting.jl/blob/gh-pages/dev/examples/examples/perf_plots.ipynb"><img src="https://img.shields.io/badge/show-nbviewer-579ACA.svg" alt="notebook"/></a></p><p>Plots for performance of different integrators for ability estimators</p><pre><code class="language-julia hljs">using Makie
+import Pkg
+using CSV
+using DataFrames
+using CategoricalArrays: levels
+using IterTools: chain
+using ComputerAdaptiveTesting
+using CATPlots
+using CATPlots: LabelledToggleGrid, MenuGrid
+
+DOCS_DATA = pkgdir(ComputerAdaptiveTesting) * &quot;/docs/data/&quot;
+
+@automakie()
+
+df = CSV.read(
+	(DOCS_DATA * &quot;integrator_benchmark_results.csv&quot;),
+	DataFrame;
+	types=Dict(
+		&quot;value&quot; =&gt; Float64,
+		&quot;err&quot; =&gt; Float64,
+		&quot;bytes&quot; =&gt; Int64,
+		&quot;response&quot; =&gt; Int32,
+		&quot;item_bank&quot; =&gt; Int32,
+		&quot;dim&quot; =&gt; Int32,
+		&quot;trial&quot; =&gt; Int32,
+		&quot;time&quot; =&gt; Float64,
+		&quot;gctime&quot; =&gt; Float64,
+		&quot;rtol&quot; =&gt; Float64,
+	)
+)
+
+function plot(df)
+	fig = Figure()
+	ax = Axis(fig[1, 1])
+
+	groupables = [&quot;item_bank&quot;, &quot;response&quot;, &quot;trial&quot;, &quot;dim&quot;, &quot;integrator&quot;]
+	regressables = [&quot;integrator&quot;, &quot;dim&quot;, &quot;rtol&quot;, &quot;value&quot;, &quot;err&quot;, &quot;bytes&quot;, &quot;gctime&quot;]
+
+	Menu(fig, options = [&quot;none&quot;, groupables...], default = &quot;none&quot;)
+	toggles = []
+	sliders = []
+	slider_idxs = []
+	menus = []
+	menu_idxs = []
+	for (idx, groupable) in enumerate(groupables)
+		push!(toggles, (
+			label = groupable,
+		))
+		opts = sort(levels(df[!, groupable]))
+		if eltype(opts) &lt;: AbstractString
+			push!(slider_idxs, idx)
+			push!(menus, (
+				label = groupable,
+				options = opts
+			))
+		else
+			push!(menu_idxs, idx)
+			push!(sliders, (
+				label = groupable,
+				range = opts
+			))
+		end
+	end
+	tgrid = LabelledToggleGrid(
+		fig,
+		toggles...,
+		width = 350,
+		tellheight = false
+	)
+	lsgrid = SliderGrid(
+		fig,
+		sliders...,
+		width = 350,
+		tellheight = false
+	)
+	mgrid = MenuGrid(
+		fig,
+		menus...,
+		width = 350,
+		tellheight = false
+	)
+
+	working_df = Observable(nothing)
+	function update_working_df(_)
+		df_prime = df
+		slider_menu_vals = Vector{Any}(undef, length(sliders) + length(menus))
+		slider_menu_vals[slider_idxs] = [slider.value for slider in lsgrid.sliders]
+		slider_menu_vals[menu_idxs] = [menu.selection for menu in mgrid.menus]
+		for (groupable, toggle, value) in zip(groupables, tgrid.toggles, slider_menu_vals)
+			if !toggle.value
+				continue
+			end
+			df_prime = filter(working_df, groupable =&gt; value)
+		end
+		working_df[] = df_prime
+	end
+
+	for observable in chain(
+		(t.active for t in tgrid.toggles),
+		(s.value for s in lsgrid.sliders),
+		(m.selection for m in mgrid.menus)
+	)
+		on(update_working_df, observable)
+	end
+
+	x_var_menu = Menu(fig, options = regressables)
+	y_var_menu = Menu(fig, options = regressables)
+	coded_menu = Menu(fig, options = regressables)
+
+	xs = @lift($working_df !== nothing &amp;&amp; $(x_var_menu.selection) !== nothing ? $working_df[$(x_var_menu.selection)] : nothing)
+	ys = @lift($working_df !== nothing &amp;&amp; $(y_var_menu.selection) !== nothing ? $working_df[$(y_var_menu.selection)] : nothing)
+
+	scatter = @lift(
+		$xs !== nothing &amp;&amp; $ys !== nothing &amp;&amp; $(coded_menu.selection) !== nothing ?
+			lines!(
+				ax,
+				$xs,
+				$ys;
+				color=$(coded_menu.selection)
+			) : nothing
+	)
+
+	fig
+end
+
+plot(df)</code></pre><div data-jscall-id="29"><script data-jscall-id="30" type="text/javascript">
+    function register_resize_handler(remote_origin) {
+        function resize_callback(event) {
+            if (event.origin !== remote_origin) {
+                return;
+            }
+            const uuid = event.data[0];
+            const width = event.data[1];
+            const height = event.data[2];
+            const iframe = document.getElementById('c821fb93-15e1-4bc9-88c2-75df0f9532c1');
+            if (iframe) {
+                iframe.style.width = width + "px";
+                iframe.style.height = height + "px";
+            }
+        }
+        if (window.addEventListener) {
+            window.addEventListener("message", resize_callback, false);
+        } else if (window.attachEvent) {
+            window.attachEvent("onmessage", resize_callback);
+        }
+    }
+    register_resize_handler('http://127.0.0.1:9284')
+
+</script><iframe scrolling="no" id="c821fb93-15e1-4bc9-88c2-75df0f9532c1" data-jscall-id="28" src="http://127.0.0.1:9284/c821fb93-15e1-4bc9-88c2-75df0f9532c1" style="position: relative; display: block; width: 100%; height: 100%; padding: 0; overflow: hidden; border: none"></iframe></div>
+<hr/><p><em>This page was generated using <a href="https://github.com/johnnychen94/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Sunday 6 November 2022 10:00">Sunday 6 November 2022</span>. Using Julia version 1.9.0-DEV.1757.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

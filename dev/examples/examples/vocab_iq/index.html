@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Running a CAT based based on real response data · ComputerAdaptiveTesting.jl</title><script data-outdated-warner src="../../../assets/warner.js"></script><link rel="canonical" href="https://frankier.github.io/ComputerAdaptiveTesting.jl/examples/examples/vocab_iq/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script><link href="../../../democards/listtheme.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">ComputerAdaptiveTesting.jl</a></span></div><form class="docs-search" action="../../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../../">Getting started</a></li><li><a class="tocitem" href="../../">Examples</a></li><li><a class="tocitem" href="../../../api/">API reference</a></li><li><a class="tocitem" href="../../../contributing/">Contributing</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Running a CAT based based on real response data</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Running a CAT based based on real response data</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/frankier/ComputerAdaptiveTesting.jl/blob/main/docs/examples/examples/vocab_iq.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="vocab_iq"><a class="docs-heading-anchor" href="#vocab_iq">Running a CAT based based on real response data</a><a id="vocab_iq-1"></a><a class="docs-heading-anchor-permalink" href="#vocab_iq" title="Permalink"></a></h1><p><a href="../vocab_iq.jl"><img src="https://img.shields.io/badge/download-julia-brightgreen.svg" alt="Source code"/></a> <a href="https://nbviewer.jupyter.org/github/frankier/ComputerAdaptiveTesting.jl/blob/gh-pages/dev/examples/examples/vocab_iq.ipynb"><img src="https://img.shields.io/badge/show-nbviewer-579ACA.svg" alt="notebook"/></a></p><p>Running a CAT based based on real response data</p><p>This example shows how to run a CAT end-to-end on real data.</p><p>First a 1-dimensional IRT model is fitted based on open response data to the vocabulary IQ test using the IRTSupport package which internally, this uses the <code>mirt</code> R package. Next, the model is used to administer the test interactively.</p><pre><code class="language-julia hljs">using Base.Filesystem
+using ComputerAdaptiveTesting
+using ComputerAdaptiveTesting.DummyData: std_normal
+using ComputerAdaptiveTesting.ExtraDistributions
+using ComputerAdaptiveTesting.Sim
+using ComputerAdaptiveTesting.NextItemRules
+using ComputerAdaptiveTesting.TerminationConditions
+using ComputerAdaptiveTesting.Aggregators
+using ComputerAdaptiveTesting.ItemBanks
+using ComputerAdaptiveTesting.Integrators
+using ComputerAdaptiveTesting.Optimizers
+import ComputerAdaptiveTesting.IntegralCoeffs
+using IRTSupport.Datasets.VocabIQ
+
+function run_vocab_iq_cat()
+    item_bank = get_item_bank_cached()
+    integrator = FixedGKIntegrator(-6, 6, 61)
+    ability_integrator = AbilityIntegrator(integrator)
+    dist_ability_est = PriorAbilityEstimator(std_normal)
+    optimizer = AbilityOptimizer(OneDimOptimOptimizer(-6.0, 6.0, NelderMead()))
+    ability_estimator = ModeAbilityEstimator(dist_ability_est, optimizer)
+    @info &quot;run_cat&quot; ability_estimator
+    rules = CatRules(
+        ability_estimator,
+        AbilityVarianceStateCriterion(dist_ability_est, ability_integrator),
+        FixedItemsTerminationCondition(45)
+    )
+    function get_response(response_idx, response_name)
+        params = item_params(item_bank, response_idx)
+        println(&quot;Parameters for next question: $params&quot;)
+        VocabIQ.prompt_response(response_idx)
+    end
+    function new_response_callback(tracked_responses, terminating)
+        if tracked_responses.responses.values[end] &gt; 0
+            println(&quot;Correct&quot;)
+        else
+            println(&quot;Wrong&quot;)
+        end
+        ability = ability_estimator(tracked_responses)
+        var = variance_given_mean(ability_integrator, dist_ability_est, tracked_responses, ability)
+        println(&quot;Got ability estimate: $ability ± $var&quot;)
+        println(&quot;&quot;)
+    end
+    loop_config = CatLoopConfig(
+        rules=rules,
+        get_response=get_response,
+        new_response_callback=new_response_callback
+    )
+    run_cat(loop_config, item_bank)
+end
+
+run_vocab_iq_cat()</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/johnnychen94/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Sunday 6 November 2022 10:00">Sunday 6 November 2022</span>. Using Julia version 1.9.0-DEV.1757.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
