@@ -34,6 +34,10 @@ jobs:
       - name: Set CAT packages to develop & resolve env
         run: |
           julia --project=test/ -e 'using Pkg;
+                                    Pkg.develop(path=".");
+                                    Pkg.develop(path="IRTSupport");
+                                    Pkg.develop(path="CATPlots");
+                                    Pkg.resolve();
                                     Pkg.instantiate()'
       - uses: julia-actions/julia-buildpkg@v1
       - name: Run tests
