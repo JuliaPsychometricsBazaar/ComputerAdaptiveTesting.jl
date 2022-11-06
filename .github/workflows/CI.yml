@@ -73,10 +73,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
-      - name: Run doctest
-        run: |
-          julia --project=docs/ -e '
-            using Documenter: DocMeta, doctest
-            using ComputerAdaptiveTesting
-            DocMeta.setdocmeta!(ComputerAdaptiveTesting, :DocTestSetup, :(using ComputerAdaptiveTesting); recursive=true)
-            doctest(ComputerAdaptiveTesting)'
