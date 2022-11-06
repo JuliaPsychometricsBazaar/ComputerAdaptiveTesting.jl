@@ -33,24 +33,7 @@ jobs:
       - uses: julia-actions/cache@v1
       - name: Set CAT packages to develop & resolve env
         run: |
-          julia -e 'using Pkg;
-                   Pkg.develop(path=".");
-                   Pkg.develop(path="./CATPlots");
-                   Pkg.develop(path="./IRTSupport")' &&
-          julia --project=CATPlots/ -e 'using Pkg;
-                                        Pkg.develop(path=".");' &&
-          julia --project=. -e 'using Pkg;
-                                    Pkg.develop([
-                                      Pkg.PackageSpec(path="./IRTSupport"),
-                                      Pkg.PackageSpec(path="./CATPlots")
-                                    ]);
-                                    Pkg.resolve();
-                                    Pkg.instantiate()' &&
           julia --project=test/ -e 'using Pkg;
-                                    Pkg.develop(path=".");
-                                    Pkg.develop(path="IRTSupport");
-                                    Pkg.develop(path="CATPlots");
-                                    Pkg.resolve();
                                     Pkg.instantiate()'
       - uses: julia-actions/julia-buildpkg@v1
       - name: Run tests
