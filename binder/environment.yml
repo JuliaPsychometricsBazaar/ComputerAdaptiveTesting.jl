@@ -1,0 +1,5 @@
+name: cat
+channels:
+ - conda-forge
+dependencies:
+ - r-base=4.2.2
