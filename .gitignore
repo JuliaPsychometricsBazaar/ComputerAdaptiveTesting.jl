@@ -4,6 +4,7 @@
 Manifest.toml
 !/docs/Manifest.toml
 !/test/Manifest.toml
+!/binder/Manifest.toml
 /docs/build/
 /attic/
 /.vscode/
