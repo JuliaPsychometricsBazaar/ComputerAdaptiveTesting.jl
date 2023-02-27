@@ -513,10 +513,4 @@ macro automakie()
 	end
 end
 
-#=
-fig[1, 2] = GridLayout()
-fig[1, 2][1, 1] = lsgrid.layout
-fig[1, 2][2, 1] = grid!(hcat(toggles, labels), tellheight = false)
-=#
-
 end
