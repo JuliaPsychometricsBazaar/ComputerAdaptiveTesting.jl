@@ -19,15 +19,15 @@ import Random
 using Distributions: Normal, cdf
 using AlgebraOfGraphics
 using ComputerAdaptiveTesting
-using ComputerAdaptiveTesting.ExtraDistributions: NormalScaledLogistic
 using ComputerAdaptiveTesting.Sim: auto_responder
 using ComputerAdaptiveTesting.NextItemRules: AbilityVarianceStateCriterion
 using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
 using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEstimator, LikelihoodAbilityEstimator
 using ComputerAdaptiveTesting.ItemBanks
-using ComputerAdaptiveTesting.Integrators
 using ComputerAdaptiveTesting.Responses: BooleanResponse
-import ComputerAdaptiveTesting.IntegralCoeffs
+import PsychometricsBazzarBase.IntegralCoeffs
+using PsychometricsBazzarBase.Integrators
+using PsychometricsBazzarBase.ConstDistributions: normal_scaled_logistic
 using CATPlots
 
 @automakie()

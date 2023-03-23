@@ -1,6 +1,6 @@
 abstract type LikelihoodFunction end
 
-using ..Integrators
+using PsychometricsBazzarBase.Integrators
 
 struct ItemResponse{ItemBankT <: AbstractItemBank}
     item_bank::ItemBankT

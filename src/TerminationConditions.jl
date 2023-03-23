@@ -3,6 +3,7 @@ module TerminationConditions
 using ..ItemBanks: AbstractItemBank
 using ..Aggregators: TrackedResponses
 using ..ConfigBase
+using PsychometricsBazzarBase.ConfigTools
 using ..MathTraits
 
 export TerminationCondition, FixedItemsTerminationCondition, SimpleFunctionTerminationCondition

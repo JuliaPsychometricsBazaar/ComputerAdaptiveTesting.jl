@@ -1,8 +1,8 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.9.0-DEV"
+julia_version = "1.9.0-rc1"
 manifest_format = "2.0"
-project_hash = "c62a166b3db7564aa9767c422632a21950e8a49b"
+project_hash = "f5044e00bcc4e34bd974b5140d139ee3845fbc42"
 
 [[deps.ANSIColoredPrinters]]
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
@@ -95,7 +95,7 @@ uuid = "6e34b625-4abd-537c-b88f-471c36dfa7a0"
 version = "1.0.8+0"
 
 [[deps.CATPlots]]
-deps = ["AlgebraOfGraphics", "ComputerAdaptiveTesting", "DataFrames", "Distributions", "EffectSizes", "HypothesisTests", "Makie"]
+deps = ["AlgebraOfGraphics", "ComputerAdaptiveTesting", "DataFrames", "Distributions", "EffectSizes", "HypothesisTests", "Makie", "PsychometricsBazzarBase"]
 path = "../CATPlots"
 uuid = "d194c7c1-4081-4169-ba52-101f65b44e42"
 version = "0.1.0"
@@ -124,7 +124,7 @@ uuid = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 version = "0.9.0"
 
 [[deps.Cairo_jll]]
-deps = ["Artifacts", "Bzip2_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "JLLWrappers", "LZO_jll", "Libdl", "Pixman_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libXrender_jll", "Zlib_jll", "libpng_jll"]
+deps = ["Artifacts", "Bzip2_jll", "CompilerSupportLibraries_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "JLLWrappers", "LZO_jll", "Libdl", "Pixman_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libXrender_jll", "Zlib_jll", "libpng_jll"]
 git-tree-sha1 = "4b859a208b2397a7a623a03449e4636bdb17bcf2"
 uuid = "83423d85-b0ee-5818-9007-b63ccbeb887a"
 version = "1.16.1+1"
@@ -232,7 +232,7 @@ version = "4.3.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "0.5.2+0"
+version = "1.0.2+0"
 
 [[deps.CompositionsBase]]
 git-tree-sha1 = "455419f7e328a1a2493cabc6428d79e951349769"
@@ -240,7 +240,7 @@ uuid = "a33af91c-f02d-484b-be07-31d278c5ca2b"
 version = "0.1.1"
 
 [[deps.ComputerAdaptiveTesting]]
-deps = ["ArgParse", "Cuba", "Cubature", "Distributions", "FLoops", "Faker", "FillArrays", "ForwardDiff", "HCubature", "Interpolations", "JSON3", "Lazy", "LinearAlgebra", "Literate", "MacroTools", "Measurements", "Mmap", "MonteCarloIntegration", "NLSolversBase", "Optim", "OrderedCollections", "Pkg", "QuadGK", "Random", "Reexport", "Requires", "ResumableFunctions", "Revise", "Setfield", "SparseArrays", "SparseMatricesCSR", "StatFiles", "StaticArrays", "StatsBase", "UnPack"]
+deps = ["ArgParse", "Cuba", "Cubature", "Distributions", "FLoops", "Faker", "FillArrays", "ForwardDiff", "HCubature", "Interpolations", "JSON3", "Lazy", "LinearAlgebra", "Literate", "MacroTools", "Measurements", "Mmap", "MonteCarloIntegration", "NLSolversBase", "Optim", "OrderedCollections", "Pkg", "PsychometricsBazzarBase", "QuadGK", "Random", "Reexport", "Requires", "ResumableFunctions", "Revise", "Setfield", "SparseArrays", "SparseMatricesCSR", "StatFiles", "StaticArrays", "StatsBase", "UnPack"]
 path = ".."
 uuid = "5a0d4f34-1f62-4a66-80fe-87aba0485488"
 version = "0.1.0"
@@ -1062,7 +1062,7 @@ version = "1.1.7"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
-version = "2.28.0+0"
+version = "2.28.2+0"
 
 [[deps.Measurements]]
 deps = ["Calculus", "LinearAlgebra", "Printf", "RecipesBase", "Requires"]
@@ -1173,7 +1173,7 @@ version = "1.3.5+1"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
-version = "0.3.21+0"
+version = "0.3.21+4"
 
 [[deps.OpenEXR]]
 deps = ["Colors", "FileIO", "OpenEXR_jll"]
@@ -1224,7 +1224,7 @@ version = "1.4.1"
 [[deps.PCRE2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "efcefdf7-47ab-520b-bdef-62a2eaa19f15"
-version = "10.40.0+0"
+version = "10.42.0+0"
 
 [[deps.PDMats]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
@@ -1283,7 +1283,7 @@ version = "0.40.1+0"
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "FileWatching", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
-version = "1.8.0"
+version = "1.9.0"
 
 [[deps.PkgVersion]]
 deps = ["Pkg"]
@@ -1346,6 +1346,12 @@ deps = ["Distributed", "Printf"]
 git-tree-sha1 = "d7a7aef8f8f2d537104f170139553b14dfe39fe9"
 uuid = "92933f4c-e287-5a05-a399-4b506db050ca"
 version = "1.7.2"
+
+[[deps.PsychometricsBazzarBase]]
+deps = ["Cuba", "Cubature", "Distributions", "DocStringExtensions", "FillArrays", "HCubature", "Interpolations", "Lazy", "LinearAlgebra", "MacroTools", "Measurements", "MonteCarloIntegration", "NLSolversBase", "Optim", "OrderedCollections", "QuadGK", "UnPack"]
+git-tree-sha1 = "2a5e87ac04620c01ca9f328dcd7923c017a217d3"
+uuid = "8a5e4057-03e0-4a42-ba57-0eb88ce604f5"
+version = "0.2.0"
 
 [[deps.QOI]]
 deps = ["ColorTypes", "FileIO", "FixedPointNumbers"]
@@ -1564,9 +1570,9 @@ uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
 
 [[deps.SortingAlgorithms]]
 deps = ["DataStructures"]
-git-tree-sha1 = "b3363d7460f7d098ca0912c69b082f75625d7508"
+git-tree-sha1 = "a4ada03f999bd01b3a25dcaa30b2d929fe537e00"
 uuid = "a2af1166-a08f-5f64-846c-94a0d3cef48c"
-version = "1.0.1"
+version = "1.1.0"
 
 [[deps.SparseArrays]]
 deps = ["Libdl", "LinearAlgebra", "Random", "Serialization", "SuiteSparse_jll"]
@@ -1684,7 +1690,7 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 [[deps.SuiteSparse_jll]]
 deps = ["Artifacts", "Libdl", "Pkg", "libblastrampoline_jll"]
 uuid = "bea87d4a-7f5b-5778-9afe-8cc45184846c"
-version = "5.10.1+0"
+version = "5.10.1+6"
 
 [[deps.Suppressor]]
 git-tree-sha1 = "c6ed566db2fe3931292865b966d6d140b7ef32a9"
@@ -1694,7 +1700,7 @@ version = "0.2.1"
 [[deps.TOML]]
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
-version = "1.0.0"
+version = "1.0.3"
 
 [[deps.TableShowUtils]]
 deps = ["DataValues", "Dates", "JSON", "Markdown", "Test"]
@@ -1925,7 +1931,7 @@ version = "0.10.0"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
-version = "1.2.12+3"
+version = "1.2.13+0"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1960,7 +1966,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
-version = "5.2.0+0"
+version = "5.4.0+0"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]

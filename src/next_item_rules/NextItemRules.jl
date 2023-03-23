@@ -16,7 +16,8 @@ using LinearAlgebra
 
 using ..Responses: Response
 using ..ConfigBase
-import ..IntegralCoeffs
+using PsychometricsBazzarBase.ConfigTools
+import PsychometricsBazzarBase.IntegralCoeffs
 using ..ItemBanks
 using ..Aggregators
 using ..MathTraits

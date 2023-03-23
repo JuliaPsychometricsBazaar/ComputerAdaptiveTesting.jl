@@ -16,13 +16,14 @@ using ..Responses
 using ..Responses: concrete_response_type
 using ..MathTraits
 using ..ConfigBase
-using ..Integrators
-using ComputerAdaptiveTesting: Integrators
-using ..Optimizers
-using ..ExtraDistributions: std_normal
+using PsychometricsBazzarBase.ConfigTools
+using PsychometricsBazzarBase.Integrators
+using PsychometricsBazzarBase: Integrators
+using PsychometricsBazzarBase.Optimizers
+using PsychometricsBazzarBase.ConstDistributions: std_normal
 
 import ..ItemBanks
-import ..IntegralCoeffs
+import PsychometricsBazzarBase.IntegralCoeffs
 
 export AbilityEstimator, TrackedResponses
 export AbilityTracker, NullAbilityTracker, PointAbilityTracker, GriddedAbilityTracker

@@ -8,7 +8,7 @@ CurrentModule = ComputerAdaptiveTesting
 ```
 
 ```@autodocs
-Modules = [ComputerAdaptiveTesting, ComputerAdaptiveTesting.Aggregators, ComputerAdaptiveTesting.ItemBanks, ComputerAdaptiveTesting.Postprocess, ComputerAdaptiveTesting.ConfigBase, ComputerAdaptiveTesting.Responses, ComputerAdaptiveTesting.Sim, ComputerAdaptiveTesting.TerminationConditions, ComputerAdaptiveTesting.NextItemRules, ComputerAdaptiveTesting.Integrators, ComputerAdaptiveTesting.IntegralCoeffs, ComputerAdaptiveTesting.CatConfig]
+Modules = [ComputerAdaptiveTesting, ComputerAdaptiveTesting.Aggregators, ComputerAdaptiveTesting.ItemBanks, ComputerAdaptiveTesting.Postprocess, ComputerAdaptiveTesting.Responses, ComputerAdaptiveTesting.Sim, ComputerAdaptiveTesting.TerminationConditions, ComputerAdaptiveTesting.NextItemRules, ComputerAdaptiveTesting.CatConfig]
 ```
 
 ```@meta

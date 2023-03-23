@@ -1,4 +1,7 @@
-struct TransferItemBank{DistT <: ContinuousUnivariateDistribution} <: AbstractItemBank
+"""
+Typically DistT <: ContinuousUnivariateDistribution
+"""
+struct TransferItemBank{DistT} <: AbstractItemBank
     distribution::DistT
     difficulties::Vector{Float64}
     discriminations::Vector{Float64}

@@ -16,15 +16,14 @@
 using Base.Filesystem
 using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.DummyData: std_normal
-using ComputerAdaptiveTesting.ExtraDistributions
 using ComputerAdaptiveTesting.Sim
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.TerminationConditions
 using ComputerAdaptiveTesting.Aggregators
 using ComputerAdaptiveTesting.ItemBanks
-using ComputerAdaptiveTesting.Integrators
-using ComputerAdaptiveTesting.Optimizers
-import ComputerAdaptiveTesting.IntegralCoeffs
+import PsychometricsBazzarBase.IntegralCoeffs
+using PsychometricsBazzarBase.Integrators
+using PsychometricsBazzarBase.Optimizers
 using IRTSupport.Datasets.VocabIQ
 
 function run_vocab_iq_cat()

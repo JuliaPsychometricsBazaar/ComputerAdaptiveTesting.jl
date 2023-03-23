@@ -16,7 +16,7 @@ using Makie: @Block
 using ComputerAdaptiveTesting: Aggregators
 using ComputerAdaptiveTesting.Aggregators
 using ComputerAdaptiveTesting.ItemBanks
-using ComputerAdaptiveTesting.Integrators
+using PsychometricsBazzarBase.Integrators
 
 include("./comparison.jl")
 

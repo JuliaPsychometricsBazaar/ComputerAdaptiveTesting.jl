@@ -1,4 +1,4 @@
-using ..ExtraDistributions: NormalScaledLogistic
+using PsychometricsBazzarBase.ConstDistributions: normal_scaled_logistic
 
 function FixedGuessSlipItemBank(guess::Float64, slip::Float64, item_bank)
     FixedSlipItemBank(slip, FixedGuessItemBank(guess, item_bank))
@@ -19,7 +19,7 @@ function ItemBank2PL(
     discriminations;
     labels=nothing
 )
-    TransferItemBank(NormalScaledLogistic(), difficulties, discriminations, labels)
+    TransferItemBank(normal_scaled_logistic, difficulties, discriminations, labels)
 end
 
 """
@@ -58,7 +58,7 @@ function ItemBankMirt2PL(
     discriminations;
     labels=nothing
 )
-    CdfMirtItemBank(NormalScaledLogistic(), difficulties, discriminations, labels)
+    CdfMirtItemBank(normal_scaled_logistic, difficulties, discriminations, labels)
 end
 
 """

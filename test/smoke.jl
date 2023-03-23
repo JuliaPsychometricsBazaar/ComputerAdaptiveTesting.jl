@@ -3,13 +3,13 @@ using ComputerAdaptiveTesting.Aggregators
 using ComputerAdaptiveTesting.DummyData: dummy_full, SimpleItemBankSpec, StdModel3PL,
       VectorContinuousDomain, BooleanResponse, std_normal
 using ComputerAdaptiveTesting.ItemBanks
-using ComputerAdaptiveTesting.Integrators
 using ComputerAdaptiveTesting.Responses
-using ComputerAdaptiveTesting.Optimizers
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.MathTraits
 using ComputerAdaptiveTesting.TerminationConditions
 using ComputerAdaptiveTesting.Sim
+using PsychometricsBazzarBase.Integrators
+using PsychometricsBazzarBase.Optimizers
 using Distributions
 using Distributions: ZeroMeanIsoNormal, Zeros, ScalMat
 using Optim

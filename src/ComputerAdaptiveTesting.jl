@@ -3,7 +3,6 @@ module ComputerAdaptiveTesting
 using Pkg
 using Reexport
 
-export ExtraDistributions, IntegralCoeffs, Integrators, Interpolators, Optimizers
 export ConfigBase, Responses, ItemBanks, Aggregators, NextItemRules, TerminationConditions
 export CatConfig, Sim, DummyData
 
@@ -13,18 +12,11 @@ include("./vendor/Parameters.jl")
 # Config base
 include("./ConfigBase.jl")
     
-# Maths stuff (no dependencies)
-include("./maths/ExtraDistributions.jl")
-include("./maths/IntegralCoeffs.jl")
-include("./maths/Interpolators.jl")
-include("./maths/Optimizers.jl")
-include("./maths/MathTraits.jl")
-
 # Base
 include("./Responses.jl")
+include("./MathTraits.jl")
 
 # Near base
-include("./maths/Integrators.jl")
 include("./item_banks/ItemBanks.jl")
 include("./aggregators/Aggregators.jl")
 
