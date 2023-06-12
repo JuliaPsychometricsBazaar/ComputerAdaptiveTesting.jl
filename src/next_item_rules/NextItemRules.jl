@@ -14,21 +14,23 @@ using Reexport
 using ComputerAdaptiveTesting.Parameters
 using LinearAlgebra
 
-using ..Responses: Response
+using ..Responses: Response, BareResponses
 using ..ConfigBase
-using PsychometricsBazzarBase.ConfigTools
-import PsychometricsBazzarBase.IntegralCoeffs
-using ..ItemBanks
+using PsychometricsBazaarBase.ConfigTools
+import PsychometricsBazaarBase.IntegralCoeffs
+using FittedItemBanks
+using FittedItemBanks: item_params
 using ..Aggregators
-using ..MathTraits
 
 using QuadGK, Distributions, Optim, Base.Threads, Base.Order, FLoops, StaticArrays
+import ForwardDiff
 
 export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, init_thread
 export NextItemRule, ItemStrategyNextItemRule
 export UrryItemCriterion, InformationItemCriterion, DRuleItemCriterion, TRuleItemCriterion
 export catr_next_item_aliases
 
+include("./information.jl")
 include("./objective_function.jl")
 
 abstract type NextItemRule <: CatConfigBase end
@@ -136,7 +138,7 @@ function choose_item_1ply(
     else
         ex = SequentialEx()
     end
-    @floop ex for item_idx in item_idxs(items)
+    @floop ex for item_idx in eachindex(items)
         # TODO: Add these back in
         @init objective_state = init_thread(objective, responses)
         #@init irf_states_storage = zeros(Int, length(responses) + 1)

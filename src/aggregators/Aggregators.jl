@@ -11,19 +11,18 @@ using Distributions: Distribution, Normal, Distributions
 using HCubature
 using Base.Threads
 
-using ..ItemBanks
+using FittedItemBanks
 using ..Responses
 using ..Responses: concrete_response_type
-using ..MathTraits
 using ..ConfigBase
-using PsychometricsBazzarBase.ConfigTools
-using PsychometricsBazzarBase.Integrators
-using PsychometricsBazzarBase: Integrators
-using PsychometricsBazzarBase.Optimizers
-using PsychometricsBazzarBase.ConstDistributions: std_normal
+using PsychometricsBazaarBase.ConfigTools
+using PsychometricsBazaarBase.Integrators
+using PsychometricsBazaarBase: Integrators
+using PsychometricsBazaarBase.Optimizers
+using PsychometricsBazaarBase.ConstDistributions: std_normal
 
-import ..ItemBanks
-import PsychometricsBazzarBase.IntegralCoeffs
+import FittedItemBanks
+import PsychometricsBazaarBase.IntegralCoeffs
 
 export AbilityEstimator, TrackedResponses
 export AbilityTracker, NullAbilityTracker, PointAbilityTracker, GriddedAbilityTracker
@@ -33,8 +32,7 @@ export PointAbilityEstimator, PriorAbilityEstimator, LikelihoodAbilityEstimator
 export ModeAbilityEstimator, MeanAbilityEstimator
 export Speculator, replace_speculation!, normdenom, maybe_tracked_ability_estimate
 export AbilityIntegrator, AbilityOptimizer
-export FunctionIntegrator, RiemannEnumerationIntegrator
-export FunctionOptimizer, EnumerationOptimizer
+export FunctionOptimizer, EnumerationOptimizer, FunctionIntegrator
 export DistributionAbilityEstimator
 export variance, variance_given_mean, mean_1d
 
@@ -108,8 +106,8 @@ end
 
 TrackedResponses(responses, item_bank) = TrackedResponses(responses, item_bank, NullAbilityTracker())
 
-function ItemBanks.AbilityLikelihood(tracked_responses::TrackedResponses)
-    ItemBanks.AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)
+function Responses.AbilityLikelihood(tracked_responses::TrackedResponses)
+    Responses.AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)
 end
 
 function Base.length(responses::TrackedResponses)

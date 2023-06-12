@@ -1,17 +1,12 @@
 using Aqua
 using CATPlots
 using ComputerAdaptiveTesting
-using IRTSupport
 
 Aqua.test_all(
     ComputerAdaptiveTesting;
     ambiguities=false,
     stale_deps=false,
     deps_compat=false #tmp
-)
-Aqua.test_all(
-    IRTSupport;
-    ambiguities=false
 )
 Aqua.test_all(
     CATPlots;
@@ -31,4 +26,3 @@ Aqua.test_ambiguities([CATPlots])
 # Could possibly get some of these fixed in ForwardDiff eventually?
 # https://github.com/JuliaDiff/ForwardDiff.jl/issues/597
 Aqua.test_ambiguities([ComputerAdaptiveTesting])
-Aqua.test_ambiguities([IRTSupport])

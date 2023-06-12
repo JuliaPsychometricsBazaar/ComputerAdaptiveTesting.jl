@@ -1,9 +1,9 @@
 module Sim
 
 using StatsBase
+using FittedItemBanks: AbstractItemBank, ResponseType
 using ..Responses
 using ..CatConfig: CatLoopConfig
-using ..ItemBanks: AbstractItemBank, labels
 using ..Aggregators: TrackedResponses, add_response!, Speculator
 
 export run_cat, prompt_response, auto_responder
@@ -31,7 +31,7 @@ abstract type NextItemError <: Exception end
 """
 Run a given CatLoopConfig
 """
-function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank)
+function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank; ib_labels=nothing)
     (; rules, get_response, new_response_callback) = cat_config
     (; next_item, termination_condition, ability_estimator, ability_tracker) = rules
     responses = TrackedResponses(
@@ -39,7 +39,6 @@ function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank)
         item_bank,
         ability_tracker
     )
-    ib_labels = labels(item_bank)
     while true
         local next_index
         try

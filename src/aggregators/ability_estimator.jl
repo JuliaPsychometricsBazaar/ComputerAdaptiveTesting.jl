@@ -211,7 +211,7 @@ function (est::MeanAbilityEstimator)(::OneDimContinuousDomain, rett::IntReturnTy
 end
 
 function (est::MeanAbilityEstimator)(::VectorContinuousDomain, rett::IntReturnType, tracked_responses::TrackedResponses)
-    expectation(rett, IntegralCoeffs.id, ndims(tracked_responses.item_bank), est.integrator, est.dist_est, tracked_responses)
+    expectation(rett, IntegralCoeffs.id, domdims(tracked_responses.item_bank), est.integrator, est.dist_est, tracked_responses)
 end
 
 function maybe_apply_prior(f::F, est::PriorAbilityEstimator) where {F}

@@ -5,17 +5,7 @@ end
 function(integrator::FunctionIntegrator)(
     f::F,
     ncomp,
-    lh_function::LikelihoodFunction
-) where {F}
-    integrator(DomainType(lh_function), f, ncomp, lh_function)
-end
-
-function(integrator::FunctionIntegrator)(
-    ::ContinuousDomain,
-    f::F,
-    ncomp,
-    lh_function::LikelihoodFunction;
-    buf=nothing
+    lh_function
 ) where {F}
     # TODO: Make integration range configurable
     # TODO: Make integration technique configurable
@@ -25,23 +15,6 @@ function(integrator::FunctionIntegrator)(
         end
     end
     integrator.integrator(comp_f, ncomp)
-end
-
-function(integrator::FunctionIntegrator)(
-    ::DiscreteIterableDomain,
-    f::F,
-    ncomp,
-    lh_function::LikelihoodFunction
-) where {F}
-    error("TODO")
-end
-
-function(integrator::FunctionIntegrator)(
-    ::DiscreteIndexableDomain,
-    f::F,
-    lh_function::LikelihoodFunction
-) where {F}
-    error("TODO")
 end
 
 """

@@ -4,7 +4,7 @@ end
 
 function(optim::FunctionOptimizer)(
     f::F,
-    lh_function::LikelihoodFunction
+    lh_function
 ) where {F}
     comp_f = let f=f, lh_function=lh_function
         x -> f(x) * lh_function(x)

@@ -13,10 +13,11 @@ using AlgebraOfGraphics
 using DataFrames
 using Makie
 using Makie: @Block
+using FittedItemBanks
+using FittedItemBanks: item_params
 using ComputerAdaptiveTesting: Aggregators
 using ComputerAdaptiveTesting.Aggregators
-using ComputerAdaptiveTesting.ItemBanks
-using PsychometricsBazzarBase.Integrators
+using PsychometricsBazaarBase.Integrators
 
 include("./comparison.jl")
 
@@ -222,7 +223,7 @@ function (recorder::CatRecorder)(tracked_responses, resp_idx, terminating)
     recorder.item_responses[:, recorder.col_idx] = resp.(Ref(ir), item_correct, eachmatcol(recorder.xs))
 
 	# Save item parameters
-    recorder.item_difficulties[recorder.step, resp_idx] = raw_difficulty(tracked_responses.item_bank, item_index)
+    recorder.item_difficulties[recorder.step, resp_idx] = item_params(tracked_responses.item_bank, item_index).difficulty
     recorder.item_correctness[recorder.step, resp_idx] = item_correct
 
     recorder.col_idx += 1

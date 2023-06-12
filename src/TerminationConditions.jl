@@ -1,10 +1,10 @@
 module TerminationConditions
 
-using ..ItemBanks: AbstractItemBank
+using FittedItemBanks: AbstractItemBank
 using ..Aggregators: TrackedResponses
 using ..ConfigBase
-using PsychometricsBazzarBase.ConfigTools
-using ..MathTraits
+using PsychometricsBazaarBase.ConfigTools
+using FittedItemBanks
 
 export TerminationCondition, FixedItemsTerminationCondition, SimpleFunctionTerminationCondition
 

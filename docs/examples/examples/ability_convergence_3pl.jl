@@ -23,11 +23,11 @@ using ComputerAdaptiveTesting.Sim: auto_responder
 using ComputerAdaptiveTesting.NextItemRules: AbilityVarianceStateCriterion
 using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
 using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEstimator, LikelihoodAbilityEstimator
-using ComputerAdaptiveTesting.ItemBanks
+using FittedItemBanks
 using ComputerAdaptiveTesting.Responses: BooleanResponse
-import PsychometricsBazzarBase.IntegralCoeffs
-using PsychometricsBazzarBase.Integrators
-using PsychometricsBazzarBase.ConstDistributions: normal_scaled_logistic
+import PsychometricsBazaarBase.IntegralCoeffs
+using PsychometricsBazaarBase.Integrators
+using PsychometricsBazaarBase.ConstDistributions: normal_scaled_logistic
 using CATPlots
 
 @automakie()
@@ -35,9 +35,8 @@ using CATPlots
 # Now we are read to generate our synthetic data using the supplied DummyData
 # module. We generate an item bank with 100 items and fake responses for 3
 # testees.
-using ComputerAdaptiveTesting.DummyData: dummy_full, std_normal, SimpleItemBankSpec, StdModel3PL
-using ComputerAdaptiveTesting.MathTraits
-(item_bank, question_labels, abilities, responses) = dummy_full(
+using FittedItemBanks.DummyData: dummy_full, std_normal, SimpleItemBankSpec, StdModel3PL
+(item_bank, abilities, responses) = dummy_full(
     Random.default_rng(42),
     SimpleItemBankSpec(StdModel3PL(), OneDimContinuousDomain(), BooleanResponse());
     num_questions=100,

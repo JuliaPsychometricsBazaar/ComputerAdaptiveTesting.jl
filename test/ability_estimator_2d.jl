@@ -1,12 +1,12 @@
 using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.Aggregators
-using ComputerAdaptiveTesting.ItemBanks
+using FittedItemBanks
 using ComputerAdaptiveTesting.Responses
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.TerminationConditions
 using ComputerAdaptiveTesting.Sim
-using PsychometricsBazzarBase.Integrators
-using PsychometricsBazzarBase.Optimizers
+using PsychometricsBazaarBase.Integrators
+using PsychometricsBazaarBase.Optimizers
 using Distributions: ScalMat
 
 """

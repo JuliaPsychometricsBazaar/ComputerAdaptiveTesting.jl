@@ -3,7 +3,7 @@
 using Makie
 import Pkg
 using Distributions: Normal, cdf
-using PsychometricsBazzarBase.ConstDistributions: normal_scaled_logistic
+using PsychometricsBazaarBase.ConstDistributions: normal_scaled_logistic
 using CATPlots
 
 @automakie()

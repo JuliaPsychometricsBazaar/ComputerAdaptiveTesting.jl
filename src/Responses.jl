@@ -1,11 +1,8 @@
 module Responses
 
-export ResponseType, Response, BareResponses, BooleanResponse, MultinomialResponse
+using FittedItemBanks: AbstractItemBank, BooleanResponse, MultinomialResponse, ResponseType, ItemResponse, resp
 
-abstract type ResponseType end
-
-struct BooleanResponse <: ResponseType end
-struct MultinomialResponse <: ResponseType end
+export Response, BareResponses, AbilityLikelihood
 
 concrete_response_type(::BooleanResponse) = Bool
 concrete_response_type(::MultinomialResponse) = Int
@@ -52,5 +49,25 @@ struct BareResponses{
 end
 
 BareResponses(rt::ResponseType) = BareResponses(rt, Int[], concrete_response_type(rt)[])
+
+struct AbilityLikelihood{ItemBankT <: AbstractItemBank}
+    item_bank::ItemBankT
+    responses::BareResponses
+end
+
+function (ability_lh::AbilityLikelihood)(θ)
+    prod(
+        resp(
+            ItemResponse(
+                ability_lh.item_bank,
+                ability_lh.responses.indices[resp_idx]
+            ),
+            ability_lh.responses.values[resp_idx],
+            θ
+        )
+        for resp_idx in axes(ability_lh.responses.indices, 1);
+        init=1.0
+    )
+end
 
 end
