@@ -28,9 +28,13 @@ function AbilityVarianceStateCriterion(bits...)
     # This needs ot be explicitly passed dist_est and integrator, but this may
     # be burried within a MeanAbilityEstimator
     @returnsome find1_instance(AbilityVarianceStateCriterion, bits)
-    @requiresome dist_est = DistributionAbilityEstimator(bits...)
-    @requiresome integrator = AbilityIntegrator(bits...)
-    AbilityVarianceStateCriterion(dist_est, integrator)
+    dist_est = DistributionAbilityEstimator(bits...)
+    integrator = AbilityIntegrator(bits...)
+    if dist_est !== nothing && integrator !== nothing
+        return AbilityVarianceStateCriterion(dist_est, integrator)
+    end
+    @requiresome mean_ability_est = MeanAbilityEstimator(bits...)
+    return AbilityVarianceStateCriterion(mean_ability_est.dist_est, mean_ability_est.integrator)
 end
 
 function (criterion::AbilityVarianceStateCriterion)(tracked_responses::TrackedResponses)::Float64
