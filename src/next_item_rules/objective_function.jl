@@ -33,6 +33,8 @@ function AbilityVarianceStateCriterion(bits...)
     if dist_est !== nothing && integrator !== nothing
         return AbilityVarianceStateCriterion(dist_est, integrator)
     end
+    # So let's just handle this case individually for now
+    # (Is this going to cause a problem with this being picked over something more appropriate?)
     @requiresome mean_ability_est = MeanAbilityEstimator(bits...)
     return AbilityVarianceStateCriterion(mean_ability_est.dist_est, mean_ability_est.integrator)
 end
