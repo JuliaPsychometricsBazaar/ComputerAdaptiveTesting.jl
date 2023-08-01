@@ -1,24 +1,28 @@
-ENV["R_HOME"] = "*"
-
 using Base.Filesystem
 using ComputerAdaptiveTesting
-using ComputerAdaptiveTesting.DummyData: std_normal
-using ComputerAdaptiveTesting.ExtraDistributions
+using FittedItemBanks.DummyData: std_normal
 using ComputerAdaptiveTesting.Sim
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.TerminationConditions
 using ComputerAdaptiveTesting.Aggregators
-using ComputerAdaptiveTesting.ItemBanks
-using ComputerAdaptiveTesting.Integrators
-using ComputerAdaptiveTesting.Optimizers
-import ComputerAdaptiveTesting.IntegralCoeffs
+using FittedItemBanks
+using PsychometricsBazaarBase.Integrators
+using PsychometricsBazaarBase.Optimizers
+import PsychometricsBazaarBase.IntegralCoeffs
 using CATPlots
-using IRTSupport.Datasets.VocabIQ
+using ItemResponseDatasets.VocabIQ
+using ItemResponseDatasets.VocabIQ: prompt_response
 using GLMakie
+using RIrtWrappers.Mirt
+
+
+function get_item_bank()
+    fit_4pl(get_marked_df_cached(); TOL=1e-2)[1]
+end
 
 
 function main()
-    item_bank = get_item_bank_3pl()
+    item_bank = get_item_bank()
     integrator = FixedGKIntegrator(-6, 6, 61)
     ability_integrator = AbilityIntegrator(integrator)
     lh_ability_est = LikelihoodAbilityEstimator()
@@ -29,7 +33,7 @@ function main()
     lh_grid_tracker = GriddedAbilityTracker(lh_ability_est, grid)
     prior_grid_tracker = GriddedAbilityTracker(prior_ability_est, grid)
     closed_normal_tracker = ClosedFormNormalAbilityTracker(prior_ability_est)
-    laplace_normal_tracker = LaplaceAbilityTracker(prior_ability_est)
+    #laplace_normal_tracker = LaplaceAbilityTracker(prior_ability_est)
     rules = CatRules(
         MultiAbilityTracker([
             lh_grid_tracker,
