@@ -232,5 +232,5 @@ function (item_criterion::ARuleItemCriterion)(acc_info::Nothing, tracked_respons
     # TODO
     # Step 1. Get covariance of ability estimate
     # Basically the same idea as AbilityVarianceStateCriterion
-    # Step 2. Get the (weighted trace)
+    # Step 2. Get the (weighted) trace
 end
