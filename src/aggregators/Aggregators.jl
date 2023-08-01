@@ -61,6 +61,14 @@ end
 abstract type PointAbilityEstimator <: AbilityEstimator end
 function PointAbilityEstimator(bits...)
     @returnsome find1_instance(PointAbilityEstimator, bits)
+    mode_ability_estimator = find1_type(ModeAbilityEstimator, bits)
+    if mode_ability_estimator !== nothing
+        return mode_ability_estimator(bits...)
+    end
+    mean_ability_estimator = find1_type(MeanAbilityEstimator, bits)
+    if mean_ability_estimator !== nothing
+        return mean_ability_estimator(bits...)
+    end
 end
 
 abstract type AbilityTracker end
