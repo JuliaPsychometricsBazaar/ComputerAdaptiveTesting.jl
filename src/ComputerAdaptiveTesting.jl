@@ -8,6 +8,7 @@ export CatConfig, Sim
 
 # Vendored dependencies
 include("./vendor/Parameters.jl")
+include("./vendor/PushVectors.jl")
 
 # Config base
 include("./ConfigBase.jl")
@@ -25,6 +26,7 @@ include("./TerminationConditions.jl")
 # Combining / running
 include("./CatConfig.jl")
 include("./Sim.jl")
+include("./DecisionTree.jl")
 
 @reexport using .CatConfig: CatLoopConfig, CatRules
 @reexport using .Sim: run_cat
