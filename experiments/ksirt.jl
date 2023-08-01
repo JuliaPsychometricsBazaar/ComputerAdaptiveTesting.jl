@@ -10,8 +10,8 @@ using PsychometricsBazaarBase.Integrators
 using PsychometricsBazaarBase.Optimizers
 import PsychometricsBazaarBase.IntegralCoeffs
 using CATPlots
+using ItemResponseDatasets: prompt_readline
 using ItemResponseDatasets.VocabIQ
-using ItemResponseDatasets.VocabIQ: prompt_response
 using RIrtWrappers.KernSmoothIRT
 using GLMakie
 
@@ -31,7 +31,7 @@ function main()
         FixedItemsTerminationCondition(45)
     )
     function get_response(response_idx, response_name)
-        prompt_response(response_idx)
+        prompt_readline(VocabIQ.questions[response_idx])
     end
     function new_response_callback(tracked_responses, terminating)
         if tracked_responses.responses.values[end] > 0

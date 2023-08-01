@@ -25,6 +25,7 @@ using FittedItemBanks: item_params
 import PsychometricsBazaarBase.IntegralCoeffs
 using PsychometricsBazaarBase.Integrators
 using PsychometricsBazaarBase.Optimizers
+using ItemResponseDatasets: prompt_readline
 using ItemResponseDatasets.VocabIQ
 using RIrtWrappers.Mirt
 
@@ -48,7 +49,7 @@ function run_vocab_iq_cat()
     function get_response(response_idx, response_name)
         params = item_params(item_bank, response_idx)
         println("Parameters for next question: $params")
-        VocabIQ.prompt_response(response_idx)
+        prompt_readline(VocabIQ.questions[response_idx])
     end
     function new_response_callback(tracked_responses, terminating)
         if tracked_responses.responses.values[end] > 0
