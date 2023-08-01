@@ -102,7 +102,6 @@ function run_random_comparison(next_item, ability_estimator, item_bank::Abstract
         for cat_iter in 1:max_num_questions
             #rand_question_idx = rand_question_idxs[cat_iter, rand(1:rand_samples)]
             for rand_sample_idx in 1:rand_samples
-                @info "rand iter" rand_sample_idx rand_samples
                 idxs = @view rand_question_idxs[1:cat_iter, rand_sample_idx]
                 ability_est = ability_estimator(TrackedResponses(
                     testee_responses(idxs),
