@@ -7,14 +7,16 @@ using Base64: base64encode
 using Base.Threads: nthreads
 using Base.Filesystem: mkpath
 using ComputerAdaptiveTesting.Aggregators: TrackedResponses, NullAbilityTracker, PriorAbilityEstimator, MeanAbilityEstimator
-using ComputerAdaptiveTesting.DummyData: dummy_mirt_4pl, std_mv_normal, dummy_responses
+using FittedItemBanks.DummyData: dummy_full, std_mv_normal, SimpleItemBankSpec, StdModel4PL, VectorContinuousDomain, BooleanResponse
 using ComputerAdaptiveTesting.Responses: BareResponses
-using ComputerAdaptiveTesting.Integrators
+using PsychometricsBazaarBase.Integrators
+using FittedItemBanks
 
 const total_num_questions = 50
 const total_num_item_banks = 3
 const total_num_respondents = 3
 const trials_per_config = 3
+const spec = SimpleItemBankSpec(StdModel4PL(), VectorContinuousDomain(), BooleanResponse())
 
 function build_cat_states(rng, dims, num_item_banks, num_respondents)
     #abilities = randn(dims, num_respondents)
@@ -27,10 +29,22 @@ function build_cat_states(rng, dims, num_item_banks, num_respondents)
     for dim in dims
         all_responses[dim] = Array{TrackedResponses}(undef, (num_item_banks, num_respondents))
         for item_bank_i in 1:num_item_banks
-            (item_bank, question_labels_, abilities_, actual_responses) = dummy_mirt_4pl(rng, dim; num_questions=total_num_questions, num_testees=num_respondents)
+            (item_bank, abilities_, actual_responses) = dummy_full(
+                rng,
+                spec,
+                dim;
+                num_questions=total_num_questions,
+                num_testees=total_num_respondents
+            )
             for respondent_i in 1:num_respondents
                 question_idxs = question_answered_idxs[1:num_questions_answered[respondent_i], respondent_i]
-                all_responses[dim][item_bank_i, respondent_i] = dummy_responses(item_bank, (@view actual_responses[:, respondent_i]), question_idxs)
+
+                response_values = actual_responses[question_idxs]
+                all_responses[dim][item_bank_i, respondent_i] = TrackedResponses(
+                    BareResponses(ResponseType(item_bank), question_idxs, response_values),
+                    item_bank,
+                    NullAbilityTracker()
+                )
             end
         end
     end
@@ -158,10 +172,10 @@ function run_and_save(config, run_func)
             result[:trial] = trial
             timing = @timed run_func()
             val = timing[:value]
-            result[:value] = Measurements.value(val)
-            result[:err] = Measurements.uncertainty(val)
+            result[:value] = Measurements.value.(val)
+            result[:err] = Measurements.uncertainty.(val)
             result[:gcstats] = tuplify(timing[:gcstats])
-            for fieldname in fieldnames(timing)
+            for fieldname in keys(timing)
                 if fieldname in (:value, :gcstats)
                     continue
                 end
