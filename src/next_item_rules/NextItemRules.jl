@@ -243,7 +243,7 @@ const catr_next_item_aliases = Dict(
     #"MLWI",
     #"MPWI",
     #"MEI",
-    "MEPV" => (ability_estimator; parallel=true) -> ItemStrategyNextItemRule(ExhaustiveSearch1Ply(parallel), ExpectationBasedItemCriterion(ability_estimator, AbilityVarianceStateCriterion())),
+    "MEPV" => (ability_estimator; parallel=true) -> ItemStrategyNextItemRule(ExhaustiveSearch1Ply(parallel), ExpectationBasedItemCriterion(ability_estimator, AbilityVarianceStateCriterion(ability_estimator))),
     #"progressive",
     #"proportional",
     #"KL",
