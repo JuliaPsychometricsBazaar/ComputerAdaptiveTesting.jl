@@ -16,7 +16,7 @@ PsychometricsBazaarBase = "b0d9cada-d963-45e9-a4c6-4746243987f1"
 
 [compat]
 AlgebraOfGraphics = "0.6.12"
-ComputerAdaptiveTesting = "0.1.0"
+ComputerAdaptiveTesting = "0.2.0"
 DataFrames = "1.4.1"
 Distributions = "0.25.76"
 EffectSizes = "1.0.0"
