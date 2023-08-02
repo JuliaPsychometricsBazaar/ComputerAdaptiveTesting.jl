@@ -514,7 +514,7 @@ version = "2.21.1"
 
 [[deps.FittedItemBanks]]
 deps = ["ArraysOfArrays", "Distributions", "DocStringExtensions", "Lazy", "LinearAlgebra", "PsychometricsBazaarBase", "Random", "Setfield", "StaticArrays"]
-path = "../../FittedItemBanks.jl"
+git-tree-sha1 = "6ea5f6b982a23a0856a3fa60ad3497b188fde627"
 uuid = "3f797b09-34e4-41d7-acf6-3302ae3248a5"
 version = "0.3.2"
 
