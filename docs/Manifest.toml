@@ -305,7 +305,7 @@ version = "0.1.2"
 deps = ["ArgParse", "Cuba", "Cubature", "Distributions", "FLoops", "Faker", "FillArrays", "FittedItemBanks", "ForwardDiff", "HCubature", "Interpolations", "JSON3", "Lazy", "LinearAlgebra", "Literate", "MacroTools", "Measurements", "Mmap", "MonteCarloIntegration", "NLSolversBase", "Optim", "OrderedCollections", "Pkg", "PsychometricsBazaarBase", "QuadGK", "Random", "Reexport", "Requires", "ResumableFunctions", "Revise", "Setfield", "SparseArrays", "SparseMatricesCSR", "StatFiles", "StaticArrays", "StatsBase", "StatsFuns", "UnPack"]
 path = ".."
 uuid = "5a0d4f34-1f62-4a66-80fe-87aba0485488"
-version = "0.1.0"
+version = "0.2.0"
 
 [[deps.Conda]]
 deps = ["Downloads", "JSON", "VersionParsing"]
@@ -599,7 +599,7 @@ version = "2.21.1"
 
 [[deps.FittedItemBanks]]
 deps = ["ArraysOfArrays", "Distributions", "DocStringExtensions", "Lazy", "LinearAlgebra", "PsychometricsBazaarBase", "Random", "Setfield", "StaticArrays"]
-path = "../../FittedItemBanks.jl"
+git-tree-sha1 = "6ea5f6b982a23a0856a3fa60ad3497b188fde627"
 uuid = "3f797b09-34e4-41d7-acf6-3302ae3248a5"
 version = "0.3.2"
 
@@ -888,7 +888,7 @@ version = "0.1.1"
 
 [[deps.ItemResponseDatasets]]
 deps = ["CSV", "DataFrames", "JSON", "RDataGet", "Random", "Scratch", "Serialization", "UrlDownload", "ZipFile"]
-path = "../../ItemResponseDatasets.jl"
+git-tree-sha1 = "0f0ec139790ac9f614491dfbba5ff00967fc875b"
 uuid = "e47bb625-2913-44fb-8b24-b88572ac4ea9"
 version = "0.2.0"
 
@@ -1544,7 +1544,7 @@ uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 
 [[deps.RIrtWrappers]]
 deps = ["CondaPkg", "DataFrames", "FittedItemBanks", "Pkg", "RCall", "Random"]
-path = "../../RIrtWrappers.jl"
+git-tree-sha1 = "91949f939c22629f819664b95450eba536bb45cf"
 uuid = "3c499bf4-8795-40ff-83c0-5639be88f347"
 version = "0.1.0"
 
