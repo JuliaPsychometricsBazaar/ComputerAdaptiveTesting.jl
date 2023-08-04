@@ -2,48 +2,9 @@
 # https://github.com/mauro3/Parameters.jl/pull/147
 # It can be removed when equivalent functionality is in Parameters.jl or another
 # package
+# + Comments removed to avoid problems with doctest
 __precompile__()
 
-"""
-This is a package I use to handle numerical-model parameters,
-thus the name. However, it should be useful otherwise too.
-It has two main features:
-- keyword type constructors with default values, and
-- unpacking and packing of composite types and dicts.
-
-The macro `@with_kw` which decorates a type definition to
-allow default values and a keyword constructor:
-
-```
-julia> using Parameters
-
-julia> @with_kw struct A
-           a::Int = 6
-           b::Float64 = -1.1
-           c::UInt8
-       end
-
-julia> A(c=4)
-A
-  a: 6
-  b: -1.1
-  c: 4
-```
-
-Unpacking is done with `@unpack` (`@pack!` is similar):
-```
-struct B
-    a
-    b
-    c
-end
-@unpack a, c = B(4,5,6)
-# is equivalent to
-BB = B(4,5,6)
-a = BB.a
-c = BB.c
-```
-"""
 module Parameters
 import Base: @__doc__
 import OrderedCollections: OrderedDict
@@ -176,23 +137,6 @@ end
 
 ## Exported helper functions
 #####################
-"""
-Transforms a type-instance into a dictionary.
-
-```
-julia> struct T
-           a
-           b
-       end
-
-julia> type2dict(T(4,5))
-Dict{Symbol,Any} with 2 entries:
-  :a => 4
-  :b => 5
-```
-
-Note that this uses `getproperty`.
-"""
 function type2dict(dt)
     di = Dict{Symbol,Any}()
     for n in propertynames(dt)
@@ -201,45 +145,6 @@ function type2dict(dt)
     di
 end
 
-"""
-    reconstruct(pp; kws...
-    reconstruct(T::Type, pp; kws...)
-
-Make a new instance of a type with the same values as the input type
-except for the fields given in the keyword args.  Works for types, Dicts,
-and NamedTuples.  Can also reconstruct to another type, which is probably
-mostly useful for parameterised types where the parameter changes on
-reconstruction.
-
-Note: this is not very performant.  Check Setfield.jl for a faster &
-nicer implementation.
-
-```jldoctest
-julia> using Parameters
-
-julia> struct A
-           a
-           b
-       end
-
-julia> x = A(3,4)
-A(3, 4)
-
-julia> reconstruct(x, b=99)
-A(3, 99)
-
-julia> struct B{T}
-          a::T
-          b
-       end
-
-julia> y = B(sin, 1)
-B{typeof(sin)}(sin, 1)
-
-julia> reconstruct(B, y, a=cos) # note reconstruct(y, a=cos) errors!
-B{typeof(cos)}(cos, 1)
-```
-"""
 reconstruct(pp::T, di) where T = reconstruct(T, pp, di)
 reconstruct(pp; kws...) = reconstruct(pp, kws)
 reconstruct(T::Type, pp; kws...) = reconstruct(T, pp, kws)
@@ -293,43 +198,6 @@ function _pack_new(T, fields)
     Expr(:call, T, fields...)
 end
 
-"""
-This function is called by the `@with_kw` macro and does the syntax
-transformation from:
-
-```julia
-@with_kw struct MM{R}
-    r::R = 1000.
-    a::R
-end
-```
-
-into
-
-```julia
-struct MM{R}
-    r::R
-    a::R
-    MM{R}(r,a) where {R} = new(r,a)
-    MM{R}(;r=1000., a=error("no default for a")) where {R} = MM{R}(r,a) # inner kw, type-paras are required when calling
-end
-MM(r::R,a::R) where {R} = MM{R}(r,a) # default outer positional constructor
-MM(;r=1000,a=error("no default for a")) =  MM(r,a) # outer kw, so no type-paras are needed when calling
-MM(m::MM; kws...) = reconstruct(mm,kws)
-MM(m::MM, di::Union{AbstractDict, Tuple{Symbol,Any}}) = reconstruct(mm, di)
-macro unpack_MM(varname)
-    esc(quote
-    r = varname.r
-    a = varname.a
-    end)
-end
-macro pack_MM(varname)
-    esc(quote
-    varname = $Parameters.reconstruct(varname,r=r,a=a)
-    end)
-end
-```
-"""
 function with_kw(typedef, mod::Module, withshow=true, allow_default=true)
     if typedef.head==:tuple # named-tuple
         withshow==false && error("`@with_kw_noshow` not supported for named tuples")
@@ -634,9 +502,6 @@ function with_kw(typedef, mod::Module, withshow=true, allow_default=true)
     end
 end
 
-"""
-Do the with-kw stuff for named tuples.
-"""
 function with_kw_nt(typedef, mod)
     kwargs = []
     args = []
@@ -667,20 +532,6 @@ function with_kw_nt(typedef, mod)
     end
 end
 
-"""
-Macro which allows default values for field types and a few other features.
-
-Basic usage:
-
-```julia
-@with_kw struct MM{R}
-    r::R = 1000.
-    a::Int = 4
-end
-```
-
-For more details see manual.
-"""
 macro with_kw(typedef)
     return esc(with_kw(typedef, __module__, true))
 end
@@ -692,27 +543,10 @@ macro with_kw(args...)
           """)
 end
 
-"""
-As `@with_kw` but does not declare a default constructor when no inner
-constructor is found.
-"""
 macro kw_only(typedef)
     return esc(with_kw(typedef, __module__, true, false))
 end
 
-"""
-As `@with_kw` but does not define a `show` method to avoid annoying
-redefinition warnings.
-
-```julia
-@with_kw_noshow struct MM{R}
-    r::R = 1000.
-    a::Int = 4
-end
-```
-
-For more details see manual.
-"""
 macro with_kw_noshow(typedef)
     return esc(with_kw(typedef, __module__, false))
 end
@@ -720,9 +554,6 @@ end
 ###########
 # @consts macro
 
-"""
-
-"""
 macro consts(block)
     @assert block.head == :block
     args = block.args
