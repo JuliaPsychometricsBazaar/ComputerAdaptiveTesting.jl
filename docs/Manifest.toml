@@ -2,7 +2,7 @@
 
 julia_version = "1.9.0"
 manifest_format = "2.0"
-project_hash = "431df5a4e13dbd13b60b5fccbf791831c39f0119"
+project_hash = "60b84a46933b60e923b63d72d908651664635161"
 
 [[deps.ANSIColoredPrinters]]
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
@@ -305,7 +305,7 @@ version = "0.1.2"
 deps = ["ArgParse", "Cuba", "Cubature", "Distributions", "FLoops", "Faker", "FillArrays", "FittedItemBanks", "ForwardDiff", "HCubature", "Interpolations", "JSON3", "Lazy", "LinearAlgebra", "Literate", "MacroTools", "Measurements", "Mmap", "MonteCarloIntegration", "NLSolversBase", "Optim", "OrderedCollections", "Pkg", "PsychometricsBazaarBase", "QuadGK", "Random", "Reexport", "Requires", "ResumableFunctions", "Revise", "Setfield", "SparseArrays", "SparseMatricesCSR", "StatFiles", "StaticArrays", "StatsBase", "StatsFuns", "UnPack"]
 path = ".."
 uuid = "5a0d4f34-1f62-4a66-80fe-87aba0485488"
-version = "0.2.0"
+version = "0.1.0"
 
 [[deps.Conda]]
 deps = ["Downloads", "JSON", "VersionParsing"]
@@ -1450,6 +1450,12 @@ deps = ["Preferences"]
 git-tree-sha1 = "9673d39decc5feece56ef3940e5dafba15ba0f81"
 uuid = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 version = "1.1.2"
+
+[[deps.PreferenceTools]]
+deps = ["Markdown", "Pkg", "Preferences"]
+git-tree-sha1 = "44ffbe8eb0b8bdff44bd1e9898de5157fcae7893"
+uuid = "ba661fbb-e901-4445-b070-854aec6bfbc5"
+version = "0.1.2"
 
 [[deps.Preferences]]
 deps = ["TOML"]
