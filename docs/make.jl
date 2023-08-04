@@ -1,5 +1,3 @@
-include("./setup_r.jl")
-
 using ComputerAdaptiveTesting
 using CATPlots
 

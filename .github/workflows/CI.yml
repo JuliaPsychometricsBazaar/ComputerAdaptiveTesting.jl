@@ -73,7 +73,7 @@ jobs:
           R_HOME: '*'
       - name: Make docs
         run: |
-          julia --project=docs/ docs/setup_r.jl &&
+          julia --project=docs/ docs/fix_r_preferences.jl &&
           USE_CAIRO_MAKIE=1 julia --project=docs/ -e '
             include("docs/make.jl")'
         env:

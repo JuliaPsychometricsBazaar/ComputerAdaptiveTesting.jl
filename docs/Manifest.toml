@@ -1522,7 +1522,9 @@ version = "0.2.19"
 
 [[deps.RCall]]
 deps = ["CategoricalArrays", "Conda", "DataFrames", "DataStructures", "Dates", "Libdl", "Missings", "REPL", "Random", "Requires", "StatsModels", "WinReg"]
-git-tree-sha1 = "d441bdeea943f8e8f293e0e3a78fe2d7c3aa24e6"
+git-tree-sha1 = "c0cbc8173a6782e19df785a6a12ddfd9e0c31ca7"
+repo-rev = "master"
+repo-url = "https://github.com/frankier/RCall.jl.git#preferences-r-installation"
 uuid = "6f49c342-dc21-5d91-9882-a32aef131414"
 version = "0.13.15"
 
