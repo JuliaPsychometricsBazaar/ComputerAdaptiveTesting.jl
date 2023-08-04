@@ -1,7 +1,7 @@
 name = "ComputerAdaptiveTesting"
 uuid = "5a0d4f34-1f62-4a66-80fe-87aba0485488"
 authors = ["Frankie Robertson"]
-version = "0.2.0"
+version = "0.1.0"
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
