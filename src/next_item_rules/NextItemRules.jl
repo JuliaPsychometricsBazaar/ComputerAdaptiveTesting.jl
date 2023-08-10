@@ -10,6 +10,7 @@ Springer, New York, NY.
 """
 module NextItemRules
 
+using Accessors
 using Reexport
 using ComputerAdaptiveTesting.Parameters
 using LinearAlgebra
@@ -17,6 +18,8 @@ using LinearAlgebra
 using ..Responses: Response, BareResponses
 using ..ConfigBase
 using PsychometricsBazaarBase.ConfigTools
+using PsychometricsBazaarBase.Integrators: Integrator
+using PsychometricsBazaarBase: Integrators
 import PsychometricsBazaarBase.IntegralCoeffs
 using FittedItemBanks
 using FittedItemBanks: item_params
@@ -126,41 +129,50 @@ end
 #[responses; Response(0, 0)]
 
 #ability_estimator::AbilityEstimatorT, AbilityEstimatorT, 
-function choose_item_1ply(
-    objective::ItemCriterion,
-    responses::TrackedResponses,
-    items::AbstractItemBank,
-    parallel=true
-)
-    #pre_next_item(expectation_tracker, items)
-    if parallel
-        ex = ThreadedEx()
-    else
-        ex = SequentialEx()
+
+function preallocate(objective::ItemCriterion)::ItemCriterion
+    # TODO: Is it possible to generate this as a generate/specialised function
+    # depending on the particular ItemCriterion?
+    preallocatables = IdDict()
+    walk(objective) do item, lens
+        if isa(item, Integrator)
+            if !haskey(preallocatables, item)
+                preallocatables[item] = []
+            end
+            push!(preallocatables[item], lens)
+        end
     end
-    @floop ex for item_idx in eachindex(items)
+    for (preallocatable, lenses) in preallocatables
+        preallocated = Integrators.preallocate(preallocatable)
+        for lens in lenses
+            objective = set(objective, lens, preallocated)
+        end
+    end
+    return objective
+end
+
+function choose_item_1ply(
+    objective::ItemCriterionT,
+    responses::TrackedResponseT,
+    items::AbstractItemBank
+)::Tuple{Int, Float64} where {ItemCriterionT <: ItemCriterion, TrackedResponseT <: TrackedResponses}
+    #pre_next_item(expectation_tracker, items)
+    @info "choose_item_1ply" objective
+    objective_state = init_thread(objective, responses)
+    min_obj_idx::Int = -1
+    min_obj_val::Float64 = Inf
+    for item_idx in eachindex(items)
         # TODO: Add these back in
-        @init objective_state = init_thread(objective, responses)
         #@init irf_states_storage = zeros(Int, length(responses) + 1)
         if (findfirst(idx -> idx == item_idx, responses.responses.indices) !== nothing)
             continue
         end
 
-        #=
-        exp_resp = response_expectation(
-            ability_estimator,
-            responses,
-            item_idx
-        )
-        var = expected_variance!(working_responses, items, item_idx, exp_resp, irf_states_storage=irf_states_storage)
-        =#
         obj_val = objective(objective_state, responses, item_idx)
-        
-        @reduce() do (min_obj_idx = -1; item_idx), (min_obj_val = Inf; obj_val)
-            if obj_val < min_obj_val
-                min_obj_val = obj_val
-                min_obj_idx = item_idx
-            end
+
+        if obj_val < min_obj_val
+            min_obj_val = obj_val
+            min_obj_idx = item_idx
         end
     end
     (min_obj_idx, min_obj_val)
@@ -200,7 +212,10 @@ function ItemStrategyNextItemRule(bits...; parallel=true, ability_estimator=noth
 end
 
 function (rule::ItemStrategyNextItemRule{ExhaustiveSearch1Ply, ItemCriterionT})(responses, items) where {ItemCriterionT <: ItemCriterion}
-    choose_item_1ply(rule.criterion, responses, items, rule.strategy.parallel)[1]
+    #, rule.strategy.parallel
+    criterion = preallocate(rule.criterion)
+    @info "preallocate choose_item_1ply" criterion
+    choose_item_1ply(criterion, responses, items)[1]
 end
 
 function (item_criterion::ItemCriterion)(::Nothing, tracked_responses, item_idx)

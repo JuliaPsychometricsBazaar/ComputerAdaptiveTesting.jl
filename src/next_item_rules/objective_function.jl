@@ -1,5 +1,4 @@
-abstract type ItemCriterionConfig end
-abstract type ItemCriterion end
+abstract type ItemCriterion <: CatConfigBase end
 
 function ItemCriterion(bits...; ability_estimator=nothing)
     @returnsome find1_instance(ItemCriterion, bits)
@@ -7,7 +6,7 @@ function ItemCriterion(bits...; ability_estimator=nothing)
     @returnsome ExpectationBasedItemCriterion(bits...; ability_estimator=ability_estimator)
 end
 
-abstract type StateCriterion end
+abstract type StateCriterion <: CatConfigBase end
 
 function StateCriterion(bits...; ability_estimator=nothing)
     @returnsome find1_instance(StateCriterion, bits)

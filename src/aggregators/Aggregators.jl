@@ -38,7 +38,7 @@ export variance, variance_given_mean, mean_1d
 
 # Basic types
 # XXX: Does having a common supertype of DistributionAbilityEstimator and PointAbilityEstimator make sense?
-abstract type AbilityEstimator end
+abstract type AbilityEstimator <: CatConfigBase end
 
 function AbilityEstimator(bits...; ability_estimator=nothing)
     @returnsome ability_estimator
@@ -71,7 +71,7 @@ function PointAbilityEstimator(bits...)
     end
 end
 
-abstract type AbilityTracker end
+abstract type AbilityTracker <: CatConfigBase end
 
 function AbilityTracker(bits...; ability_estimator=nothing)
     @returnsome find1_instance(AbilityTracker, bits)
@@ -83,7 +83,7 @@ function AbilityTracker(bits...; ability_estimator=nothing)
     # TODO: find if ability_estimator is GriddedAbilityEstimator and then propagate stuff to GriddedAbilityTracker
 end
 
-abstract type AbilityIntegrator end
+abstract type AbilityIntegrator <: CatConfigBase end
 function AbilityIntegrator(bits...; ability_estimator=nothing)
     @returnsome find1_instance(AbilityIntegrator, bits)
     zero_arg_intergrators = find1_type(RiemannEnumerationIntegrator, bits)
