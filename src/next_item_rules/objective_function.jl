@@ -57,7 +57,9 @@ function (criterion::AbilityVarianceStateCriterion)(::OneDimContinuousDomain, tr
         tracked_responses,
         denom
     )
-    expectation(
+    # XXX: This is not type stable and seems to possibly allocate. We need to
+    # show that mean is the same as our tracked responses.
+    return expectation(
         IntegralCoeffs.SqDev(mean),
         0,
         criterion.integrator,
