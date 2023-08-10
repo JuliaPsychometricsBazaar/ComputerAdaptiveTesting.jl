@@ -21,23 +21,28 @@ needed to actually run the CAT.
 This may be more a more convenient layer to integrate than CatLoopConfig if you
 want to write your own CAT loop rather than using hooks.
 """
-@kw_only struct CatRules <: CatConfigBase
+@kw_only struct CatRules{
+    NextItemRuleT <: NextItemRule,
+    TerminationConditionT <: TerminationCondition,
+    AbilityEstimatorT <: AbilityEstimator,
+    AbilityTrackerT <: AbilityTracker
+} <: CatConfigBase
     """
     The rule to choose the next item in the CAT given the current state.
     """
-    next_item::NextItemRule
+    next_item::NextItemRuleT
     """
     The rule to choose when to terminate the CAT.
     """
-    termination_condition::TerminationCondition
+    termination_condition::TerminationConditionT
     """
     The ability estimator, which estimates the testee's current ability.
     """
-    ability_estimator::AbilityEstimator
+    ability_estimator::AbilityEstimatorT
     """
     The ability tracker, which tracks the testee's current ability level.
     """
-    ability_tracker::AbilityTracker = NullAbilityTracker()
+    ability_tracker::AbilityTrackerT = NullAbilityTracker()
 
     CatRules(_::Impossible) = error("Cannot construct")
 end

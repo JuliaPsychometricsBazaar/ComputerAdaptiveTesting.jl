@@ -50,9 +50,9 @@ end
 
 BareResponses(rt::ResponseType) = BareResponses(rt, Int[], concrete_response_type(rt)[])
 
-struct AbilityLikelihood{ItemBankT <: AbstractItemBank}
+struct AbilityLikelihood{ItemBankT <: AbstractItemBank, BareResponsesT <: BareResponses}
     item_bank::ItemBankT
-    responses::BareResponses
+    responses::BareResponsesT
 end
 
 function (ability_lh::AbilityLikelihood)(θ)

@@ -104,18 +104,25 @@ function AbilityOptimizer(bits...; ability_estimator=nothing)
 end
 
 @with_kw struct TrackedResponses{
+    BareResponsesT <: BareResponses,
     ItemBankT <: AbstractItemBank,
     AbilityTrackerT <: AbilityTracker
 }
-    responses::BareResponses
+    responses::BareResponsesT
     item_bank::ItemBankT
     ability_tracker::AbilityTrackerT = NullAbilityTracker()
 end
 
 TrackedResponses(responses, item_bank) = TrackedResponses(responses, item_bank, NullAbilityTracker())
 
-function Responses.AbilityLikelihood(tracked_responses::TrackedResponses)
-    Responses.AbilityLikelihood(tracked_responses.item_bank, tracked_responses.responses)
+function Responses.AbilityLikelihood(
+    tracked_responses::TrackedResponses{BareResponsesT, ItemBankT, AbilityTrackerT}
+) where {
+    BareResponsesT <: BareResponses,
+    ItemBankT <: AbstractItemBank,
+    AbilityTrackerT <: AbilityTracker
+}
+    Responses.AbilityLikelihood{ItemBankT, BareResponsesT}(tracked_responses.item_bank, tracked_responses.responses)
 end
 
 function Base.length(responses::TrackedResponses)

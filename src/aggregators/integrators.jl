@@ -5,16 +5,14 @@ end
 function(integrator::FunctionIntegrator)(
     f::F,
     ncomp,
-    lh_function
-) where {F}
+    lh_function::LHF
+) where {F, LHF}
+    # XXX: This allocates and/or is type unsafe
     # TODO: Make integration range configurable
     # TODO: Make integration technique configurable
-    comp_f = let f=f, lh_function=lh_function
-        x -> begin
-            f(x) * lh_function(x)
-        end
+    integrator.integrator(ncomp) do x
+        f(x) * lh_function(x)
     end
-    integrator.integrator(comp_f, ncomp)
 end
 
 """

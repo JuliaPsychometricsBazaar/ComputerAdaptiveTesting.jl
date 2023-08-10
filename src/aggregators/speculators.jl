@@ -1,11 +1,11 @@
-struct Speculator
-    responses::TrackedResponses
+struct Speculator{TrackedResponsesT <: TrackedResponses}
+    responses::TrackedResponsesT
     size::Int
 
     function Speculator(
-        responses::TrackedResponses,
+        responses::TrackedResponsesT,
         size::Int
-    )
+    ) where {TrackedResponsesT}
         response_type = ResponseType(responses.item_bank)
         orig_len = length(responses.responses.indices)
         spec_len = orig_len + size
@@ -13,7 +13,7 @@ struct Speculator
         values = Array{concrete_response_type(response_type)}(undef, spec_len)
         indices[1 : orig_len] = responses.responses.indices
         values[1 : orig_len] = responses.responses.values
-        new(
+        new{TrackedResponsesT}(
             TrackedResponses(
                 BareResponses(response_type, indices, values),
                 responses.item_bank,

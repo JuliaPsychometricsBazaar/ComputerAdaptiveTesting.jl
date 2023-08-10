@@ -97,7 +97,11 @@ function iteration_precompute!(state::FixedRectDecisionTreeGenerationState)
 end
 =#
 
-Base.@kwdef struct DecisionTreeGenerationConfig
+Base.@kwdef struct DecisionTreeGenerationConfig{
+    NextItemRuleT <: NextItemRule,
+    AbilityEstimatorT <: AbilityEstimator,
+    AbilityTrackerT <: AbilityTracker
+}
     """
     xx
     """
@@ -105,15 +109,15 @@ Base.@kwdef struct DecisionTreeGenerationConfig
     """
     The rule to choose the next item in the CAT given the current state.
     """
-    next_item::NextItemRule
+    next_item::NextItemRuleT
     """
     The ability estimator, which estimates the testee's current ability.
     """
-    ability_estimator::AbilityEstimator
+    ability_estimator::AbilityEstimatorT
     """
     The ability tracker, which tracks the testee's current ability level.
     """
-    ability_tracker::AbilityTracker = NullAbilityTracker()
+    ability_tracker::AbilityTrackerT = NullAbilityTracker()
 end
 
 function generate_dt_cat(config::DecisionTreeGenerationConfig, item_bank)
