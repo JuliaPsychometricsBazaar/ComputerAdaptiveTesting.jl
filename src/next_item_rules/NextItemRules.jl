@@ -157,7 +157,6 @@ function choose_item_1ply(
     items::AbstractItemBank
 )::Tuple{Int, Float64} where {ItemCriterionT <: ItemCriterion, TrackedResponseT <: TrackedResponses}
     #pre_next_item(expectation_tracker, items)
-    @info "choose_item_1ply" objective
     objective_state = init_thread(objective, responses)
     min_obj_idx::Int = -1
     min_obj_val::Float64 = Inf
@@ -214,7 +213,6 @@ end
 function (rule::ItemStrategyNextItemRule{ExhaustiveSearch1Ply, ItemCriterionT})(responses, items) where {ItemCriterionT <: ItemCriterion}
     #, rule.strategy.parallel
     criterion = preallocate(rule.criterion)
-    @info "preallocate choose_item_1ply" criterion
     choose_item_1ply(criterion, responses, items)[1]
 end
 
