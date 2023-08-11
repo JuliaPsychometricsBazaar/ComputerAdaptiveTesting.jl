@@ -12,7 +12,7 @@ module NextItemRules
 
 using Accessors
 using Reexport
-using ComputerAdaptiveTesting.Parameters
+using PsychometricsBazaarBase.Parameters
 using LinearAlgebra
 
 using ..Responses: Response, BareResponses

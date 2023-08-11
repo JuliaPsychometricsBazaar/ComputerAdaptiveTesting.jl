@@ -7,7 +7,6 @@ export ConfigBase, Responses, Aggregators, NextItemRules, TerminationConditions
 export CatConfig, Sim
 
 # Vendored dependencies
-include("./vendor/Parameters.jl")
 include("./vendor/PushVectors.jl")
 
 # Config base

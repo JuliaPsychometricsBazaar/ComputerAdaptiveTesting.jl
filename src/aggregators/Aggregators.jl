@@ -5,7 +5,7 @@ test.
 """
 module Aggregators
 
-using ComputerAdaptiveTesting.Parameters
+using PsychometricsBazaarBase.Parameters
 using StaticArrays: SVector
 using Distributions: Distribution, Normal, Distributions
 using HCubature

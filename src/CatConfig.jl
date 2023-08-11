@@ -2,7 +2,7 @@ module CatConfig
 
 export CatRules, CatLoopConfig
 
-using ComputerAdaptiveTesting.Parameters
+using PsychometricsBazaarBase.Parameters
 
 using ..Aggregators: AbilityEstimator, AbilityTracker, NullAbilityTracker
 using ..NextItemRules: NextItemRule
