@@ -9,10 +9,6 @@ using ..NextItemRules: NextItemRule
 using ..TerminationConditions: TerminationCondition
 using ..ConfigBase
 
-struct Impossible
-    Impossible() = error("Cannot construct")
-end
-
 """
 Configuration of the rules for a CAT. This all includes all the basic rules for
 the CAT's operation, but not the item bank, nor any of the interactivity hooks
@@ -43,8 +39,6 @@ want to write your own CAT loop rather than using hooks.
     The ability tracker, which tracks the testee's current ability level.
     """
     ability_tracker::AbilityTrackerT = NullAbilityTracker()
-
-    CatRules(_::Impossible) = error("Cannot construct")
 end
 
 function item_bank_type(bits...)
