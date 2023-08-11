@@ -55,10 +55,9 @@ struct AbilityLikelihood{ItemBankT <: AbstractItemBank, BareResponsesT <: BareRe
     responses::BareResponsesT
 end
 
-function (ability_lh::AbilityLikelihood)(θ::Float64)::Float64
-    res = 1.0
-    for resp_idx in axes(ability_lh.responses.indices, 1)
-        res *= resp(
+function (ability_lh::AbilityLikelihood)(θ)
+    prod(
+        resp(
             ItemResponse(
                 ability_lh.item_bank,
                 ability_lh.responses.indices[resp_idx]
@@ -66,8 +65,9 @@ function (ability_lh::AbilityLikelihood)(θ::Float64)::Float64
             ability_lh.responses.values[resp_idx],
             θ
         )
-    end
-    return res
+        for resp_idx in axes(ability_lh.responses.indices, 1);
+        init=1.0
+    )
 end
 
 end
