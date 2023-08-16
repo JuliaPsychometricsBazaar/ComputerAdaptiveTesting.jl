@@ -2,7 +2,7 @@
 
 julia_version = "1.9.0"
 manifest_format = "2.0"
-project_hash = "d28a59ededf814b9d3c73d1cc6b428316f4cc3df"
+project_hash = "50e3ce86bdc5b640065d9e2481a921108b6f1d41"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -530,9 +530,9 @@ version = "2.21.1"
 
 [[deps.FittedItemBanks]]
 deps = ["ArraysOfArrays", "Distributions", "DocStringExtensions", "Lazy", "LinearAlgebra", "PsychometricsBazaarBase", "Random", "Setfield", "StaticArrays"]
-git-tree-sha1 = "6ea5f6b982a23a0856a3fa60ad3497b188fde627"
+git-tree-sha1 = "b670f7081a387967bd50cc5a1235344c89779fee"
 uuid = "3f797b09-34e4-41d7-acf6-3302ae3248a5"
-version = "0.3.2"
+version = "0.3.3"
 
 [[deps.FixedPointNumbers]]
 deps = ["Statistics"]
@@ -1328,9 +1328,9 @@ version = "1.7.2"
 
 [[deps.PsychometricsBazaarBase]]
 deps = ["Cuba", "Cubature", "Distributions", "DocStringExtensions", "FillArrays", "HCubature", "Interpolations", "Lazy", "LinearAlgebra", "MacroTools", "Measurements", "MonteCarloIntegration", "NLSolversBase", "Optim", "OrderedCollections", "QuadGK", "UnPack"]
-path = "/home/frankier/edu/doc/JuliaPsychometricsBazaar/PsychometricsBazaarBase.jl"
+git-tree-sha1 = "6718a757e4ea195700d4bb9646b586f24d495fb7"
 uuid = "b0d9cada-d963-45e9-a4c6-4746243987f1"
-version = "0.5.0"
+version = "0.6.0"
 
 [[deps.QOI]]
 deps = ["ColorTypes", "FileIO", "FixedPointNumbers"]
