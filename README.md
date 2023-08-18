@@ -32,7 +32,14 @@ Statistics for Social and Behavioral Sciences.](https://doi.org/10.1007/978-0-38
 
 ## Installation
 
-The package is only published through GitHub for the time being. Install like so:
+The package is available through `Pkg`. Install like so:
+
+```
+julia> using Pkg
+julia> Pkg.add("ComputerAdaptiveTesting")
+```
+
+For the current development version (e.g. before filing an issue), install like so:
 
 ```
 julia> using Pkg
