@@ -76,7 +76,7 @@ evaluated in a CAT setting.
 ## What next?
 
 You can [read the
-documentation](https://frankier.github.io/ComputerAdaptiveTesting.jl/dev) which
+documentation](https://juliapsychometricsbazaar.github.io/ComputerAdaptiveTesting.jl/dev/) which
 also contains a number of examples.
 
 ## Repo organisation
