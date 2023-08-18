@@ -45,91 +45,6 @@ end
 
 const default_prior = IntegralCoeffs.Prior(Cauchy(5, 2))
 
-#=
-
-function lh_abil_given_resps(responses::AbstractVector{Response}, items::AbstractItemBank, θ)
-    prod((resp -> pick_outcome(irf(items, resp.index, θ), resp.value)), responses; init=1.0)
-end
-
-function int_lh_g_abil_given_resps{F}(f::F, responses::AbstractVector{Response}, items::AbstractItemBank; lo=0.0, hi=10.0, irf_states_storage=nothing)::Float64 where {F}
-    int_lh_abil_given_resps(IntegralCoeffs.PriorApply(default_prior, f), responses, items; lo=lo, hi=hi, irf_states_storage=irf_states_storage)
-end
-
-function max_lh_g_abil_given_resps{F}(f::F, responses::AbstractVector{Response}, items::AbstractItemBank; lo=0.0, hi=10.0) where {F}
-    max_lh_abil_given_resps(IntegralCoeffs.PriorApply(default_prior, f), responses, items; lo=lo, hi=hi)
-end
-
-"""
-Unnormalised version of equation (1.8) from [1]
-"""
-function g_abil_given_resps(responses::AbstractVector{Response}, items::AbstractItemBank, θ)
-    IntegralCoeffs.PriorApply(default_prior, θ -> lh_abil_given_resps(responses, items, θ))
-end
-=#
-
-#=
-function var_abil(responses::AbstractVector{Response}, items::AbstractItemBank; mean::Union{Float64, Nothing}=nothing, denom::Union{Float64, Nothing}=nothing, irf_states_storage=nothing)::Float64
-    # XXX: Profiling suggests many allocations here but not sure why
-    # OTT type annotations are mainly a workaround for https://github.com/JuliaLang/julia/issues/15276
-    if denom === nothing
-        final_denom::Float64 = int_abil_posterior_given_resps(one, responses, items; irf_states_storage=irf_states_storage)
-    else
-        final_denom = denom::Float64
-    end
-    if mean === nothing
-        final_mean::Float64 = mean_θ(responses, items; denom = final_denom, irf_states_storage=irf_states_storage)
-    else
-        final_mean = mean::Float64
-    end
-    int_abil_posterior_given_resps(SqDev(final_mean), responses, items; irf_states_storage=irf_states_storage) / final_denom
-end
-
-function mode_abil(responses::AbstractVector{Response}, items::AbstractItemBank)::Float64
-    max_abil_posterior_given_resps(IntegralCoeffs.one, responses, items)
-end
-
-function mean_abil(responses::AbstractVector{Response}, items::AbstractItemBank; denom::Union{Float64, Nothing}=nothing, irf_states_storage=nothing)::Float64
-    if denom === nothing
-        final_denom::Float64 = int_abil_posterior_given_resps(IntegralCoeffs.one, responses, items, irf_states_storage=irf_states_storage)
-    else
-        final_denom = denom::Float64
-    end
-    int_abil_posterior_given_resps(IntegralCoeffs.id, responses, items, irf_states_storage=irf_states_storage) / final_denom
-end
-
-function expected_variance!(responses::AbstractVector{Response}, items::AbstractItemBank, item_idx::Int, exp_resp::Float64; irf_states_storage=nothing)::Float64
-    responses[end] = Response(item_idx, 0)
-    neg_var = var_abil(responses, items; irf_states_storage=irf_states_storage)
-    responses[end] = Response(item_idx, 1)
-    pos_var = var_abil(responses, items; irf_states_storage=irf_states_storage)
-    pick_outcome(exp_resp, false) * neg_var + pick_outcome(exp_resp, true) * pos_var
-end
-
-function expected_variance(responses::AbstractVector{Response}, items::AbstractItemBank, item_idx::Int, exp_resp::Float64; irf_states_storage=nothing)::Float64
-    expected_variance!([responses; Response(0, 0)], items, item_idx, exp_resp; irf_states_storage=irf_states_storage)
-end
-
-function expected_variance_one(responses::AbstractVector{Response}, items::AbstractItemBank, item_idx::Int; irf_states_storage=nothing)::Float64
-    # TODO: Marginalise over θ here
-    θ_mean = mean_θ(responses, items; irf_states_storage=irf_states_storage)
-    exp_resp = irf(items, item_idx, θ_mean)
-    expected_variance!([responses; Response(0, 0)], items, item_idx, exp_resp; irf_states_storage=irf_states_storage)
-end
-=#
-
-#=
-function (obj_func::ObjectiveFunction)()
-    purity
-end
-=#
-
-#function init_thread(_::ItemCriterion, expected_num_responses)
-    #nothing
-#end
-#[responses; Response(0, 0)]
-
-#ability_estimator::AbilityEstimatorT, AbilityEstimatorT, 
-
 function preallocate(objective::ItemCriterion)::ItemCriterion
     # TODO: Is it possible to generate this as a generate/specialised function
     # depending on the particular ItemCriterion?
@@ -227,23 +142,6 @@ function (item_criterion::ItemCriterion)(tracked_responses, item_idx)
     end
     item_criterion(criterion_state, tracked_responses, item_idx)
 end
-
-#=
-struct MinExpectedVariance{} <: NextItemRule end
-ConfigPurity(::MinExpectedVariance) = ImpureConfig
-
-function (ability_estimator::MinExpectedVariance{<:AbilityEstimator})(responses::TrackedResponses, items::AbstractItemBank)
-    min_expected_variance(ability_estimator, responses, items)[1]
-end
-=#
-
-#=
-struct SimpleFunctionNextItemRule{} <: NextItemRule end
-ConfigPurity(::MinExpectedVariance) = PureConfig
-
-struct FunctionFactoryNextItemRule{} <: NextItemRule end
-ConfigPurity(::MinExpectedVariance) = ImpureConfig
-=#
 
 """
 This mapping provides next item rules through the same names that they are
