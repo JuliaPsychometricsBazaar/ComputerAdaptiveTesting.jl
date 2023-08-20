@@ -1,5 +1,7 @@
 using XUnit
 
+include("./dummy.jl")
+using .Dummy
 
 
 @testset "aqua" begin
