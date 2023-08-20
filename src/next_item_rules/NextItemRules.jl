@@ -14,6 +14,7 @@ using Accessors
 using Reexport
 using PsychometricsBazaarBase.Parameters
 using LinearAlgebra
+using Random
 
 using ..Responses: Response, BareResponses
 using ..ConfigBase
@@ -31,10 +32,8 @@ import ForwardDiff
 export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, init_thread
 export NextItemRule, ItemStrategyNextItemRule
 export UrryItemCriterion, InformationItemCriterion, DRuleItemCriterion, TRuleItemCriterion
+export RandomNextItemRule
 export catr_next_item_aliases
-
-include("./information.jl")
-include("./objective_function.jl")
 
 abstract type NextItemRule <: CatConfigBase end
 
@@ -42,6 +41,10 @@ function NextItemRule(bits...; ability_estimator=nothing, parallel=true)
     @returnsome find1_instance(NextItemRule, bits)
     @returnsome ItemStrategyNextItemRule(bits..., ability_estimator=ability_estimator, parallel=parallel)
 end
+
+include("./random.jl")
+include("./information.jl")
+include("./objective_function.jl")
 
 const default_prior = IntegralCoeffs.Prior(Cauchy(5, 2))
 
