@@ -1,3 +1,6 @@
+"""
+$(TYPEDEF)
+"""
 abstract type ItemCriterion <: CatConfigBase end
 
 function ItemCriterion(bits...; ability_estimator=nothing)
@@ -6,6 +9,9 @@ function ItemCriterion(bits...; ability_estimator=nothing)
     @returnsome ExpectationBasedItemCriterion(bits...; ability_estimator=ability_estimator)
 end
 
+"""
+$(TYPEDEF)
+"""
 abstract type StateCriterion <: CatConfigBase end
 
 function StateCriterion(bits...; ability_estimator=nothing)
@@ -14,8 +20,11 @@ function StateCriterion(bits...; ability_estimator=nothing)
 end
 
 """
-This StateCriterion returns the variance of the ability estimate given a set of
-responses.
+$(TYPEDEF)
+$(TYPEDFIELDS)
+
+This `StateCriterion` returns the variance of the ability estimate given a set
+of responses.
 """
 struct AbilityVarianceStateCriterion{DistEst <: DistributionAbilityEstimator, IntegratorT <: AbilityIntegrator} <: StateCriterion
     dist_est::DistEst
@@ -112,6 +121,9 @@ function ExpectationBasedItemCriterion(ability_estimator::DistributionAbilityEst
 end
 
 """
+$(TYPEDEF)
+$(TYPEDFIELDS)
+
 This ItemCriterion wraps a StateCriterion and looks at its expected value for a
 particular item 1-ply ahead based on a point ability estimate.
 """
@@ -121,6 +133,9 @@ struct PointExpectationBasedItemCriterion{PointAbilityEstimatorT <: PointAbility
 end
 
 """
+$(TYPEDEF)
+$(TYPEDFIELDS)
+
 This ItemCriterion wraps a StateCriterion and looks at its expected value for a
 particular item 1-ply ahead by integrating over an ability curve.
 """
@@ -166,6 +181,13 @@ function (item_criterion::ExpectationBasedItemCriterion)(speculator::Speculator,
     res
 end
 
+"""
+$(TYPEDEF)
+$(TYPEDFIELDS)
+
+This item criterion just picks the item with the raw difficulty closest to the
+current ability estimate.
+"""
 struct UrryItemCriterion{AbilityEstimatorT <: PointAbilityEstimator} <: ItemCriterion
     ability_estimator::AbilityEstimatorT
 end

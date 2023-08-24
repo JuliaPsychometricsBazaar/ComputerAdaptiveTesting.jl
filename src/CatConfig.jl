@@ -2,6 +2,8 @@ module CatConfig
 
 export CatRules, CatLoopConfig
 
+using DocStringExtensions
+
 using PsychometricsBazaarBase.Parameters
 
 using ..Aggregators: AbilityEstimator, AbilityTracker, NullAbilityTracker
@@ -9,13 +11,25 @@ using ..NextItemRules: NextItemRule
 using ..TerminationConditions: TerminationCondition
 using ..ConfigBase
 
+
 """
+$(TYPEDEF)
+$(TYPEDFIELDS)
+
 Configuration of the rules for a CAT. This all includes all the basic rules for
 the CAT's operation, but not the item bank, nor any of the interactivity hooks
 needed to actually run the CAT.
 
 This may be more a more convenient layer to integrate than CatLoopConfig if you
 want to write your own CAT loop rather than using hooks.
+
+    $(FUNCTIONNAME)(; next_item=..., termination_condition=..., ability_estimator=..., ability_tracker=...)
+
+Explicit constructor for $(FUNCTIONNAME).
+
+    $(FUNCTIONNAME)(bits...)
+
+Implicit constructor for $(FUNCTIONNAME).
 """
 @kw_only struct CatRules{
     NextItemRuleT <: NextItemRule,

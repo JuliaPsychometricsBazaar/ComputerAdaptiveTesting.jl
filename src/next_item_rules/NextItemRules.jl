@@ -11,6 +11,7 @@ Springer, New York, NY.
 module NextItemRules
 
 using Accessors
+using DocStringExtensions
 using Reexport
 using PsychometricsBazaarBase.Parameters
 using LinearAlgebra
@@ -35,6 +36,18 @@ export UrryItemCriterion, InformationItemCriterion, DRuleItemCriterion, TRuleIte
 export RandomNextItemRule
 export catr_next_item_aliases
 
+"""
+$(TYPEDEF)
+
+Abstract base type for all item selection rules. All descendants of this type
+are expected to implement the interface
+`(rule::NextItemRule)(responses::TrackedResponses, items::AbstractItemBank)::Int`
+
+    $(FUNCTIONNAME)(bits...; ability_estimator=nothing, parallel=true)
+
+Implicit constructor for $(FUNCTIONNAME). Uses any given `NextItemRule` or
+delegates to `ItemStrategyNextItemRule`.
+"""
 abstract type NextItemRule <: CatConfigBase end
 
 function NextItemRule(bits...; ability_estimator=nothing, parallel=true)
@@ -99,6 +112,9 @@ function init_thread(::ItemCriterion, ::TrackedResponses)
     nothing
 end
 
+"""
+$(TYPEDEF)
+"""
 abstract type NextItemStrategy <: CatConfigBase end
 
 function NextItemStrategy(; parallel=true)
@@ -111,10 +127,27 @@ function NextItemStrategy(bits...; parallel=true)
     @returnsome NextItemStrategy(; parallel=parallel)
 end
 
+"""
+$(TYPEDEF)
+$(TYPEDFIELDS)
+
+"""
 @with_kw struct ExhaustiveSearch1Ply <: NextItemStrategy
     parallel::Bool
 end
 
+"""
+$(TYPEDEF)
+$(TYPEDFIELDS)
+
+`ItemStrategyNextItemRule` which together with a `NextItemStrategy` acts as an
+adapter by which an `ItemCriterion` can serve as a `NextItemRule`.
+
+    $(FUNCTIONNAME)(bits...; ability_estimator=nothing, parallel=true)
+
+Implicit constructor for $(FUNCTIONNAME). Will default to
+`ExhaustiveSearch1Ply` when no `NextItemStrategy` is given.
+"""
 struct ItemStrategyNextItemRule{NextItemStrategyT <: NextItemStrategy, ItemCriterionT <: ItemCriterion} <: NextItemRule
     strategy::NextItemStrategyT 
     criterion::ItemCriterionT

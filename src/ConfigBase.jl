@@ -1,9 +1,13 @@
 module ConfigBase
 
 using Accessors
+using DocStringExtensions
 
 export CatConfigBase, walk
 
+"""
+$(TYPEDEF)
+"""
 abstract type CatConfigBase end
 
 function walk(f, x::CatConfigBase, lens=identity)

@@ -1,5 +1,6 @@
 module TerminationConditions
 
+using DocStringExtensions
 using FittedItemBanks: AbstractItemBank
 using ..Aggregators: TrackedResponses
 using ..ConfigBase
@@ -8,12 +9,19 @@ using FittedItemBanks
 
 export TerminationCondition, FixedItemsTerminationCondition, SimpleFunctionTerminationCondition
 
+"""
+$(TYPEDEF)
+"""
 abstract type TerminationCondition <: CatConfigBase end
 
 function TerminationCondition(bits...)
     @returnsome find1_instance(TerminationCondition, bits)
 end
 
+"""
+$(TYPEDEF)
+$(TYPEDFIELDS)
+"""
 struct FixedItemsTerminationCondition{} <: TerminationCondition
     num_items::Int64
 end

@@ -1,3 +1,11 @@
+"""
+$(TYPEDEF)
+$(TYPEDFIELDS)
+
+This is the most basic rule for choosing the next item in a CAT. It simply
+picks a random item from the set of items that have not yet been
+administered.
+"""
 @with_kw struct RandomNextItemRule{RandomT <: AbstractRNG} <: NextItemRule
     rng::RandomT=Xoshiro()
 end
