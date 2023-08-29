@@ -6,12 +6,18 @@ using Documenter.Remotes: GitHub
 using Literate
 using DemoCards
 
+build_demos = !("SKIP_DEMOS" in keys(ENV))
+
 DocMeta.setdocmeta!(ComputerAdaptiveTesting, :DocTestSetup, :(using ComputerAdaptiveTesting; using CATPlots); recursive=true)
 
-demopage, postprocess_cb, demo_assets = makedemos("examples"; throw_error=true)
+if build_demos
+    demopage, postprocess_cb, demo_assets = makedemos("examples"; throw_error=true)
+end
 
 assets = []
-isnothing(demo_assets) || (push!(assets, demo_assets))
+if build_demos
+    isnothing(demo_assets) || (push!(assets, demo_assets))
+end
 
 format = Documenter.HTML(
     prettyurls=get(ENV, "CI", "false") == "true",
@@ -36,7 +42,9 @@ makedocs(;
     warnonly=[:missing_docs, :cross_references]
 )
 
-postprocess_cb()
+if build_demos
+    postprocess_cb()
+end
 
 deploydocs(;
     repo="github.com/frankier/ComputerAdaptiveTesting.jl",
