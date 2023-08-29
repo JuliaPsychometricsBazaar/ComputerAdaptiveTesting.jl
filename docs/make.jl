@@ -2,6 +2,7 @@ using ComputerAdaptiveTesting
 using CATPlots
 
 using Documenter
+using Documenter.Remotes: GitHub
 using Literate
 using DemoCards
 
@@ -21,7 +22,7 @@ format = Documenter.HTML(
 makedocs(;
     modules=[ComputerAdaptiveTesting, CATPlots],
     authors="Frankie Robertson",
-    repo="https://github.com/frankier/ComputerAdaptiveTesting.jl/blob/{commit}{path}#{line}",
+    repo=GitHub("JuliaPsychometricsBazaar", "ComputerAdaptiveTesting.jl"),
     sitename="ComputerAdaptiveTesting.jl",
     format=format,
     pages=[
@@ -32,6 +33,7 @@ makedocs(;
         "API reference" => "api.md",
         "Contributing" => "contributing.md",
     ],
+    warnonly=[:missing_docs, :cross_references]
 )
 
 postprocess_cb()
