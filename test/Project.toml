@@ -1,4 +1,5 @@
 [deps]
+Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 CATPlots = "d194c7c1-4081-4169-ba52-101f65b44e42"
 ComputerAdaptiveTesting = "5a0d4f34-1f62-4a66-80fe-87aba0485488"
