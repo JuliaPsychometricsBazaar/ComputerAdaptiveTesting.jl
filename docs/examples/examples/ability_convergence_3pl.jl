@@ -1,7 +1,7 @@
 # ---
 # title: How abilities converge on simulated 3PL data
 # id: ability_convergence_3pl
-# generate_cover: false
+# execute: false
 # ---
 
 #md # How abilities converge on simulated 3PL data

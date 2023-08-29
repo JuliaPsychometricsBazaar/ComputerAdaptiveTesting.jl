@@ -1,7 +1,7 @@
 # ---
 # title: How abilities converge on simulated MIRT data
 # id: ability_convergence_mirt
-# generate_cover: false
+# execute: false
 # ---
 
 #md # How abilities converge on simulated MIRT data
