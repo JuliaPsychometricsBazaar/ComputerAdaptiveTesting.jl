@@ -8,11 +8,11 @@ CurrentModule = ComputerAdaptiveTesting
 ```
 
 ```@autodocs
-Modules = [ComputerAdaptiveTesting, ComputerAdaptiveTesting.Aggregators, ComputerAdaptiveTesting.ItemBanks, ComputerAdaptiveTesting.Postprocess, ComputerAdaptiveTesting.Responses, ComputerAdaptiveTesting.Sim, ComputerAdaptiveTesting.TerminationConditions, ComputerAdaptiveTesting.NextItemRules, ComputerAdaptiveTesting.CatConfig]
+Modules = [ComputerAdaptiveTesting, ComputerAdaptiveTesting.Aggregators, ComputerAdaptiveTesting.Responses, ComputerAdaptiveTesting.Sim, ComputerAdaptiveTesting.TerminationConditions, ComputerAdaptiveTesting.NextItemRules, ComputerAdaptiveTesting.CatConfig]
 ```
 
 ```@meta
-CurrentModule = ComputerAdaptiveTesting
+CurrentModule = CATPlots
 ```
 
 ```@autodocs

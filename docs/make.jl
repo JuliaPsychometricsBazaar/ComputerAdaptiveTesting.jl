@@ -26,7 +26,9 @@ makedocs(;
     format=format,
     pages=[
         "Getting started" => "index.md",
-        demopage,
+        "Creating a CAT" => "creating_a_cat.md",
+        "Using your CAT" => "using_your_cat.md",
+        (build_demos ? demopage : "Demo page skipped" => []),
         "API reference" => "api.md",
         "Contributing" => "contributing.md",
     ],

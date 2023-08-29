@@ -6,6 +6,13 @@ For information about the purpose of the package and its installation, please
 [see the
 README.md](https://github.com/frankier/ComputerAdaptiveTesting.jl/blob/main/README.md).
 
-The documentation is currently mainly limited to [Examples](@ref) and an [API
-reference](@ref). The currently recommended way to get started is by hacking an
-existing example.
+## Contents
+
+ * [Creating a CAT](@ref): A guide to creating a CAT using the configuration
+   structs in `ComputerAdaptiveTesting.jl`
+ * [Using your CAT](@ref): A collection of mini topical guides about:
+   simulating CATs, integrating into a user-facing applications, evaluating
+   CATs, visualising CATs, and constructing decision trees from CATs
+ * [Examples](@ref): A collection of example code which you can run and modify
+   to get a feel for how to use the package
+ * [API reference](@ref): The full API reference for the package
