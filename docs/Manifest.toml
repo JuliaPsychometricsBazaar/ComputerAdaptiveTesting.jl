@@ -319,7 +319,7 @@ version = "1.9.1"
 
 [[deps.CondaPkg]]
 deps = ["JSON3", "Markdown", "MicroMamba", "Pidfile", "Pkg", "TOML"]
-path = "/home/frankier/sources/CondaPkg.jl"
+git-tree-sha1 = "741146cf2ced5859faae76a84b541aa9af1a78bb"
 uuid = "992eb4ea-22a4-4c89-a5bb-47a3300528ab"
 version = "0.2.18"
 
