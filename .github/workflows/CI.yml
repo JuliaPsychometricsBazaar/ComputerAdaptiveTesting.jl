@@ -50,6 +50,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniforge-version: latest
       - uses: julia-actions/setup-julia@v1
         with:
           version: '1.9'
@@ -74,7 +77,9 @@ jobs:
       - name: Make docs
         run: |
           julia --project=docs/ docs/fix_r_preferences.jl &&
-          USE_CAIRO_MAKIE=1 julia --project=docs/ -e '
+          USE_CAIRO_MAKIE=1 \
+          JULIA_CONDAPKG_BACKEND=System \
+          julia --project=docs/ -e '
             include("docs/make.jl")'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
