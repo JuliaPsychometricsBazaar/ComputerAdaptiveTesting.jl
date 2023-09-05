@@ -5,9 +5,12 @@ Manifest.toml
 !/docs/Manifest.toml
 !/test/Manifest.toml
 !/binder/Manifest.toml
-/docs/build/
 /attic/
 /.vscode/
+/docs/attic/
+/docs/build/
+/docs/.CondaPkg/
+/docs/LocalPreferences.toml
 /docs/src/generated/
 /docs/src/democards/
 /docs/src/examples/
