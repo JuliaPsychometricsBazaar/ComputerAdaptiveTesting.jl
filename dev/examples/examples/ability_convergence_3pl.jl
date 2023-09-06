@@ -4,22 +4,21 @@ import Random
 using Distributions: Normal, cdf
 using AlgebraOfGraphics
 using ComputerAdaptiveTesting
-using ComputerAdaptiveTesting.ExtraDistributions: NormalScaledLogistic
 using ComputerAdaptiveTesting.Sim: auto_responder
 using ComputerAdaptiveTesting.NextItemRules: AbilityVarianceStateCriterion
 using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
 using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEstimator, LikelihoodAbilityEstimator
-using ComputerAdaptiveTesting.ItemBanks
-using ComputerAdaptiveTesting.Integrators
+using FittedItemBanks
 using ComputerAdaptiveTesting.Responses: BooleanResponse
-import ComputerAdaptiveTesting.IntegralCoeffs
+import PsychometricsBazaarBase.IntegralCoeffs
+using PsychometricsBazaarBase.Integrators
+using PsychometricsBazaarBase.ConstDistributions: normal_scaled_logistic
 using CATPlots
 
 @automakie()
 
-using ComputerAdaptiveTesting.DummyData: dummy_full, std_normal, SimpleItemBankSpec, StdModel3PL
-using ComputerAdaptiveTesting.MathTraits
-(item_bank, question_labels, abilities, responses) = dummy_full(
+using FittedItemBanks.DummyData: dummy_full, std_normal, SimpleItemBankSpec, StdModel3PL
+(item_bank, abilities, responses) = dummy_full(
     Random.default_rng(42),
     SimpleItemBankSpec(StdModel3PL(), OneDimContinuousDomain(), BooleanResponse());
     num_questions=100,
@@ -60,4 +59,3 @@ conv_dist_fig = lh_evolution_interactive(recorder; abilities=abilities)
 conv_dist_fig
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
-

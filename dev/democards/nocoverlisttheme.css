@@ -17,19 +17,6 @@
     font-size: large;
 }
 
-.list-card-cover img {
-    width: 100%;
-}
-
-.list-card-cover {
-    width: 140px;
-    max-height: 160px;
-    padding: 5px;
-    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
-    transition: 0.3s;
-    border-radius: 5px;
-}
-
 .list-card-description {
     width: 550px;
     max-height: 250px;

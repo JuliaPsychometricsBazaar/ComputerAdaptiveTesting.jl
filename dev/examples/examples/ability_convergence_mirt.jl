@@ -4,24 +4,23 @@ import Random
 using Distributions: Normal, cdf
 using AlgebraOfGraphics
 using ComputerAdaptiveTesting
-using ComputerAdaptiveTesting.ExtraDistributions: NormalScaledLogistic
 using ComputerAdaptiveTesting.Sim: auto_responder
 using ComputerAdaptiveTesting.NextItemRules: DRuleItemCriterion
 using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
 using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEstimator, LikelihoodAbilityEstimator
-using ComputerAdaptiveTesting.ItemBanks
-using ComputerAdaptiveTesting.Integrators
-import ComputerAdaptiveTesting.IntegralCoeffs
+using FittedItemBanks
+import PsychometricsBazaarBase.IntegralCoeffs
+using PsychometricsBazaarBase.Integrators
+using PsychometricsBazaarBase.ConstDistributions: normal_scaled_logistic
 using CATPlots
 
 @automakie()
 
 dims = 2
-using ComputerAdaptiveTesting.DummyData: dummy_full, std_mv_normal, SimpleItemBankSpec, StdModel4PL
-using ComputerAdaptiveTesting.MathTraits
+using FittedItemBanks.DummyData: dummy_full, std_mv_normal, SimpleItemBankSpec, StdModel4PL
 using ComputerAdaptiveTesting.Responses: BooleanResponse
 
-(item_bank, question_labels, abilities, responses) = dummy_full(
+(item_bank, abilities, responses) = dummy_full(
     Random.default_rng(42),
     SimpleItemBankSpec(StdModel4PL(), VectorContinuousDomain(), BooleanResponse()),
     dims;
@@ -61,4 +60,3 @@ conv_lines_fig = ability_convergence_lines(recorder; abilities=abilities)
 conv_lines_fig
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
-

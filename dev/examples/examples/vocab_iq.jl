@@ -1,19 +1,25 @@
 using Base.Filesystem
 using ComputerAdaptiveTesting
-using ComputerAdaptiveTesting.DummyData: std_normal
-using ComputerAdaptiveTesting.ExtraDistributions
+using FittedItemBanks.DummyData: std_normal
 using ComputerAdaptiveTesting.Sim
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.TerminationConditions
 using ComputerAdaptiveTesting.Aggregators
-using ComputerAdaptiveTesting.ItemBanks
-using ComputerAdaptiveTesting.Integrators
-using ComputerAdaptiveTesting.Optimizers
-import ComputerAdaptiveTesting.IntegralCoeffs
-using IRTSupport.Datasets.VocabIQ
+using FittedItemBanks
+using FittedItemBanks: item_params
+import PsychometricsBazaarBase.IntegralCoeffs
+using PsychometricsBazaarBase.Integrators
+using PsychometricsBazaarBase.Optimizers
+using ItemResponseDatasets: prompt_readline
+using ItemResponseDatasets.VocabIQ
+using RIrtWrappers.Mirt
+
+function get_item_bank()
+    fit_4pl(get_marked_df_cached(); TOL=1e-2)
+end
 
 function run_vocab_iq_cat()
-    item_bank = get_item_bank_cached()
+    item_bank, labels = get_item_bank()
     integrator = FixedGKIntegrator(-6, 6, 61)
     ability_integrator = AbilityIntegrator(integrator)
     dist_ability_est = PriorAbilityEstimator(std_normal)
@@ -28,7 +34,7 @@ function run_vocab_iq_cat()
     function get_response(response_idx, response_name)
         params = item_params(item_bank, response_idx)
         println("Parameters for next question: $params")
-        VocabIQ.prompt_response(response_idx)
+        prompt_readline(VocabIQ.questions[response_idx])
     end
     function new_response_callback(tracked_responses, terminating)
         if tracked_responses.responses.values[end] > 0
@@ -52,4 +58,3 @@ end
 run_vocab_iq_cat()
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
-
