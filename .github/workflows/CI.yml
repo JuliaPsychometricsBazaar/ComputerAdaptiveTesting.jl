@@ -60,20 +60,16 @@ jobs:
         run: |
           julia --project=docs/ -e 'using Pkg;
                                     Pkg.instantiate()'
-        env:
-          R_HOME: '*'
       - uses: julia-actions/julia-buildpkg@v1
         with:
           project: 'docs'
-        env:
-          R_HOME: '*'
       - name: Install GitHubActions.jl in docs env
         run: |
           julia --project=docs/ -e '
             using Pkg
             Pkg.add(Pkg.PackageSpec(name="GitHubActions", version="0.1"))'
         env:
-          R_HOME: '*'
+          JULIA_CONDAPKG_BACKEND: 'System'
       - name: Make docs
         run: |
           julia --project=docs/ docs/fix_r_preferences.jl &&
@@ -82,5 +78,6 @@ jobs:
           julia --project=docs/ -e '
             include("docs/make.jl")'
         env:
+          JULIA_CONDAPKG_BACKEND: 'System'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
