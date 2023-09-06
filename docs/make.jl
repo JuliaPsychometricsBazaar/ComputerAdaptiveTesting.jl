@@ -21,7 +21,7 @@ end
 
 format = Documenter.HTML(
     prettyurls=get(ENV, "CI", "false") == "true",
-    canonical="https://frankier.github.io/ComputerAdaptiveTesting.jl",
+    canonical="https://JuliaPsychometricsBazaar.github.io/ComputerAdaptiveTesting.jl",
     assets=assets
 )
 
@@ -47,6 +47,6 @@ if build_demos
 end
 
 deploydocs(;
-    repo="github.com/frankier/ComputerAdaptiveTesting.jl",
+    repo="github.com/JuliaPsychometricsBazaar/ComputerAdaptiveTesting.jl",
     devbranch="main",
 )

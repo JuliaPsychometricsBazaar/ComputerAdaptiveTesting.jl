@@ -11,7 +11,7 @@ interactive plots inline with the code, you can clone the repository and run
 `docs/build_nbs.jl` like so:
 
 ```
-$ git clone https://github.com/frankier/ComputerAdaptiveTesting.jl.git
+$ git clone https://github.com/JuliaPsychometricsBazaar/ComputerAdaptiveTesting.jl.git
 $ cd ComputerAdaptiveTesting
 $ julia --project=. docs/build_nbs.jl
 ```

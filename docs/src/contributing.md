@@ -12,4 +12,4 @@ julia --project=test test/runtests.jl
 ```
 
 Unfortunately, `Pkg.test()` does not work properly at the moment. See [this
-issue](https://github.com/frankier/ComputerAdaptiveTesting.jl/issues/52).
+issue](https://github.com/JuliaPsychometricsBazaar/ComputerAdaptiveTesting.jl/issues/52).

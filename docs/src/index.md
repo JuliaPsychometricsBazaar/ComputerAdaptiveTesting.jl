@@ -1,10 +1,10 @@
 # Getting started
 
 This is the documentation for
-[ComputerAdaptiveTesting](https://github.com/frankier/ComputerAdaptiveTesting.jl).
+[ComputerAdaptiveTesting](https://github.com/JuliaPsychometricsBazaar/ComputerAdaptiveTesting.jl).
 For information about the purpose of the package and its installation, please
 [see the
-README.md](https://github.com/frankier/ComputerAdaptiveTesting.jl/blob/main/README.md).
+README.md](https://github.com/JuliaPsychometricsBazaar/ComputerAdaptiveTesting.jl/blob/main/README.md).
 
 ## Contents
 
