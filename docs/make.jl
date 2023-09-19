@@ -39,7 +39,8 @@ makedocs(;
         "API reference" => "api.md",
         "Contributing" => "contributing.md",
     ],
-    warnonly=[:missing_docs, :cross_references]
+    warnonly=[:missing_docs],
+    linkcheck=true
 )
 
 if build_demos

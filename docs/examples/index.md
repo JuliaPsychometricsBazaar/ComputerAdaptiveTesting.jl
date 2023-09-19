@@ -1,4 +1,4 @@
-## Examples
+## [Examples and demos](@id demo-page)
 
 You can browse through the examples below. Each example has code and outputs,
 as well as links to download a script to run locally or to view as a Jupyter

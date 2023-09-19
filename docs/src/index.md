@@ -13,6 +13,6 @@ README.md](https://github.com/JuliaPsychometricsBazaar/ComputerAdaptiveTesting.j
  * [Using your CAT](@ref): A collection of mini topical guides about:
    simulating CATs, integrating into a user-facing applications, evaluating
    CATs, visualising CATs, and constructing decision trees from CATs
- * [Examples](@ref): A collection of example code which you can run and modify
+ * [Examples](@ref demo-page): A collection of example code which you can run and modify
    to get a feel for how to use the package
  * [API reference](@ref): The full API reference for the package

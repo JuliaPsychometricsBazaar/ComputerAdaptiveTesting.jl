@@ -12,7 +12,7 @@ configuration structs in `ComputerAdaptiveTesting.jl`.
 The configuration of a CAT is built up as a tree of configuration structs.
 These structs are all subtypes of `CatConfigBase`.
 
-```@docs secondary
+```@docs; canonical=false
 ComputerAdaptiveTesting.CatConfig.CatConfigBase
 ```
 
@@ -58,7 +58,7 @@ This is the main type for configuring a CAT. It contains the item bank, the
 next item selection rule, and the stopping rule. `CatRules` has explicit and
 implicit constructors.
 
-```@docs secondary
+```@docs; canonical=false
 ComputerAdaptiveTesting.CatConfig.CatRules
 ```
 
@@ -67,13 +67,13 @@ ComputerAdaptiveTesting.CatConfig.CatRules
 The next item selection rule is the most important part of the CAT. Each rule
 extends the `NextItemRule` abstract type.
 
-```@docs secondary
+```@docs; canonical=false
 ComputerAdaptiveTesting.NextItemRules.NextItemRule
 ```
 
 A sort of null hypothesis next item selection rule is `RandomNextItemRule`, which 
 
-```@docs secondary
+```@docs; canonical=false
 ComputerAdaptiveTesting.NextItemRules.RandomNextItemRule
 ```
 
@@ -84,19 +84,19 @@ items according to how good they are -- with a `NextItemStrategy` using an
 the implicit constructors, `ItemCriterion` can therefore be used directly
 without wrapping in any place an NextItemRule is expected.
 
-```@docs secondary
+```@docs; canonical=false
 ComputerAdaptiveTesting.NextItemRules.ItemStrategyNextItemRule
 ```
 
-```@docs secondary
+```@docs; canonical=false
 ComputerAdaptiveTesting.NextItemRules.ItemCriterion
 ```
 
-```@docs secondary
+```@docs; canonical=false
 ComputerAdaptiveTesting.NextItemRules.NextItemStrategy
 ```
 
-```@docs secondary
+```@docs; canonical=false
 ComputerAdaptiveTesting.NextItemRules.ExhaustiveSearch1Ply
 ```
 
@@ -121,10 +121,10 @@ estimate at that state.
 
 Currently the only `TerminationCondition` is `FixedItemsTerminationCondition`, which ends the test after a fixed number of items.
 
-```@docs secondary
+```@docs; canonical=false
 ComputerAdaptiveTesting.TerminationConditions.TerminationCondition
 ```
 
-```@docs secondary
+```@docs; canonical=false
 ComputerAdaptiveTesting.TerminationConditions.FixedItemsTerminationCondition
 ```
