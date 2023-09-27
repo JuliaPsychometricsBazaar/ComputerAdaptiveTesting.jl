@@ -4,7 +4,7 @@ using Pkg
 using Reexport
 
 export ConfigBase, Responses, Aggregators, NextItemRules, TerminationConditions
-export CatConfig, Sim
+export CatConfig, Sim, preallocate
 
 # Vendored dependencies
 include("./vendor/PushVectors.jl")

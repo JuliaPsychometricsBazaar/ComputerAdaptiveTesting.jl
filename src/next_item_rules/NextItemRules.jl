@@ -28,13 +28,16 @@ using FittedItemBanks: item_params
 using ..Aggregators
 
 using QuadGK, Distributions, Optim, Base.Threads, Base.Order, FLoops, StaticArrays
+using ConstructionBase: constructorof
 import ForwardDiff
 
 export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, init_thread
 export NextItemRule, ItemStrategyNextItemRule
 export UrryItemCriterion, InformationItemCriterion, DRuleItemCriterion, TRuleItemCriterion
 export RandomNextItemRule
+export ExhaustiveSearch1Ply
 export catr_next_item_aliases
+export preallocate
 
 """
 $(TYPEDEF)
@@ -60,27 +63,6 @@ include("./information.jl")
 include("./objective_function.jl")
 
 const default_prior = IntegralCoeffs.Prior(Cauchy(5, 2))
-
-function preallocate(objective::ItemCriterion)::ItemCriterion
-    # TODO: Is it possible to generate this as a generate/specialised function
-    # depending on the particular ItemCriterion?
-    preallocatables = IdDict()
-    walk(objective) do item, lens
-        if isa(item, Integrator)
-            if !haskey(preallocatables, item)
-                preallocatables[item] = []
-            end
-            push!(preallocatables[item], lens)
-        end
-    end
-    for (preallocatable, lenses) in preallocatables
-        preallocated = Integrators.preallocate(preallocatable)
-        for lens in lenses
-            objective = set(objective, lens, preallocated)
-        end
-    end
-    return objective
-end
 
 function choose_item_1ply(
     objective::ItemCriterionT,
@@ -163,8 +145,7 @@ end
 
 function (rule::ItemStrategyNextItemRule{ExhaustiveSearch1Ply, ItemCriterionT})(responses, items) where {ItemCriterionT <: ItemCriterion}
     #, rule.strategy.parallel
-    criterion = preallocate(rule.criterion)
-    choose_item_1ply(criterion, responses, items)[1]
+    choose_item_1ply(rule.criterion, responses, items)[1]
 end
 
 function (item_criterion::ItemCriterion)(::Nothing, tracked_responses, item_idx)
@@ -180,5 +161,6 @@ function (item_criterion::ItemCriterion)(tracked_responses, item_idx)
 end
 
 include("./aliases.jl")
+include("./preallocate.jl")
 
 end

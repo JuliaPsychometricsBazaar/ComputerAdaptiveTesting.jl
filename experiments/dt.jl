@@ -52,7 +52,7 @@ function get_next_item_rule(rule_name)::Tuple{AbilityEstimator, NextItemRule}
     elseif rule_name == "mepv_rect"
         integrator = even_grid(-6.0, 6.0, 39)
         ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_normal), integrator)
-        next_item_rule = catr_next_item_aliases["MEPV"](ability_estimator)
+        next_item_rule = preallocate(catr_next_item_aliases["MEPV"](ability_estimator))
         @info "mepv_rect" integrator ability_estimator next_item_rule
     else
         integrator = FixedGKIntegrator(-6.0, 6.0, 80)
