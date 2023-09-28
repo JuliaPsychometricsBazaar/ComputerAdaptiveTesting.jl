@@ -15,3 +15,5 @@ Manifest.toml
 /docs/src/democards/
 /docs/src/examples/
 /full/Project.toml
+.CondaPkg/
+LocalPreferences.toml
