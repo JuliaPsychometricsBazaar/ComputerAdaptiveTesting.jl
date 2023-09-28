@@ -5,8 +5,6 @@ using ComputerAdaptiveTesting
 Aqua.test_all(
     ComputerAdaptiveTesting;
     ambiguities=false,
-    stale_deps=false,
-    deps_compat=false #tmp
 )
 Aqua.test_all(
     CATPlots;
