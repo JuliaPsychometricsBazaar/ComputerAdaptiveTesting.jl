@@ -1,5 +1,6 @@
 module DecisionTree
 
+using ComputerAdaptiveTesting.ConfigBase: CatConfigBase
 using ComputerAdaptiveTesting.PushVectors
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.Aggregators
@@ -87,21 +88,11 @@ function Base.insert!(dt::MaterializedDecisionTree, responses, ability)
     dt.ability_estimates[idx] = ability
 end
 
-#=
-function precompute!(state::FixedRectDecisionTreeGenerationState)
-    precompute!(state.item_bank)
-end
-
-function iteration_precompute!(state::FixedRectDecisionTreeGenerationState)
-    state.lh_x .= state.likelihood.(state.quadpts)
-end
-=#
-
 Base.@kwdef struct DecisionTreeGenerationConfig{
     NextItemRuleT <: NextItemRule,
     AbilityEstimatorT <: AbilityEstimator,
     AbilityTrackerT <: AbilityTracker
-}
+} <: CatConfigBase
     """
     xx
     """
