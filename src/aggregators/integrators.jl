@@ -1,18 +1,26 @@
+struct FunctionProduct{F, LHF}
+    f::F
+    lh_function::LHF
+end
+
+function (product::FunctionProduct)(x::T) where {T}
+    product.f(x) * product.lh_function(x)
+end
+
 struct FunctionIntegrator{IntegratorT <: Integrator} <: AbilityIntegrator 
     integrator::IntegratorT
 end
 
-function(integrator::FunctionIntegrator)(
+function(integrator::FunctionIntegrator{IntegratorT})(
     f::F,
     ncomp,
     lh_function::LHF
-) where {F, LHF}
-    # XXX: This allocates and/or is type unsafe
+) where {F, LHF, IntegratorT}
+    # This will allocate without the `moneypatch_broadcast` hack
+
     # TODO: Make integration range configurable
     # TODO: Make integration technique configurable
-    integrator.integrator(ncomp) do x
-        f(x) * lh_function(x)
-    end
+    integrator.integrator(FunctionProduct(f, lh_function), ncomp)
 end
 
 """
