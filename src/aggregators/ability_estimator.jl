@@ -32,21 +32,6 @@ function pdf(
     AbilityLikelihood(tracked_responses)
 end
 
-"""
-function maximize(
-    f::F,
-    est_::LikelihoodAbilityEstimator,
-    tracked_responses::TrackedResponses
-) where {F}
-    max_abil_lh_given_resps(
-        f,
-        tracked_responses.responses,
-        tracked_responses.item_bank;
-        lo=0.0, hi=10.0,
-    )
-end
-"""
-
 struct PriorAbilityEstimator{PriorT <: Distribution} <: DistributionAbilityEstimator
     prior::PriorT
 end
@@ -57,21 +42,6 @@ function pdf(
 )
     IntegralCoeffs.PriorApply(IntegralCoeffs.Prior(est.prior), AbilityLikelihood(tracked_responses))
 end
-
-"""
-function maximize(
-    f::F,
-    est::PriorAbilityEstimator,
-    tracked_responses::TrackedResponses
-) where {F}
-    max_abil_lh_given_resps(
-        IntegralCoeffs.PriorApply(est.prior, f),
-        tracked_responses.responses,
-        tracked_responses.item_bank;
-        lo=0.0, hi=10.0,
-    )
-end
-"""
 
 function expectation(
     rett::IntReturnType,
@@ -151,16 +121,6 @@ function variance(
         denom
     )
 end
-
-"""
-function observed_information_generic(ability_lh::AbilityLikelihood)
-    -ForwardDiff.hessian(θ -> log_likelihood(ability_lh, θ))
-end
-
-function fisher_information_generic(integrator, ability_lh::AbilityLikelihood)
-    integrator(θ -> θ * observed_information_generic(ability_lh))
-end
-"""
 
 struct ModeAbilityEstimator{DistEst <: DistributionAbilityEstimator, OptimizerT <: AbilityOptimizer} <: PointAbilityEstimator
     dist_est::DistEst
