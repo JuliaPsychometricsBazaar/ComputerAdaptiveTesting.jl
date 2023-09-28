@@ -41,51 +41,40 @@ const criteria_1d = [
 ]
 
 @resumable function _get_stuffs(needed)
-    @info "begin get_stuffs" needed
     if :est in needed
-        @info "est in needed"
         for (extra_needed, mk_est) in ability_estimators_1d
             for stuff in _get_stuffs(setdiff(needed, Set((:est,))) ∪ extra_needed)
-                @info "mk_stuff" extra_needed stuff
                 x = (; stuff..., est=mk_est(stuff))
-                @info "est" needed x
                 @yield x
             end
         end
         return
     end
     if :integrator in needed
-        @info "integrator in needed"
         for new_integrator in integrators_1d
             for stuff in _get_stuffs(setdiff(needed, Set((:integrator,))))
                 x = (; stuff..., integrator=new_integrator)
-                @info "integrator" needed x
                 @yield x
             end
         end
         return
     end
     if :optimizer in needed
-        @info "optimizer in needed"
         pop!(needed, :optimizer)
         for new_optimizer in optimizers_1d
             for stuff in _get_stuffs(setdiff(needed, Set((:optimizer,))))
                 x = (; stuff..., optimizer=new_optimizer)
-                @info "optimizer" needed x
                 @yield x
             end
         end
         return
     end
-    @info "at end"
     x = NamedTuple()
-    @info "got" x
     @yield x
     return
 end
 
 @resumable function get_stuffs(needed)
-    @info "proper get_stuffs" needed
     add_dummy_est = !(:est in needed)
     for stuff in _get_stuffs(needed)
         if add_dummy_est
