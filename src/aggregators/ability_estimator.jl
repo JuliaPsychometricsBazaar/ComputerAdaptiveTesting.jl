@@ -80,7 +80,7 @@ function mean_1d(
     tracked_responses::TrackedResponses,
     denom=normdenom(integrator, est, tracked_responses)
 )
-    mean = expectation(
+    expectation(
         IntegralCoeffs.id,
         0,
         criterion.integrator,
