@@ -8,6 +8,8 @@ using Reexport
 export ConfigBase, Responses, Aggregators, NextItemRules, TerminationConditions
 export CatConfig, Sim, preallocate
 
+include("./logitembank.jl")
+
 # Vendored dependencies
 include("./vendor/PushVectors.jl")
 
