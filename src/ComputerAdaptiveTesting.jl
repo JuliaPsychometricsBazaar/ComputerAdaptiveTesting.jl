@@ -6,7 +6,7 @@ using Pkg
 using Reexport
 
 export ConfigBase, Responses, Aggregators, NextItemRules, TerminationConditions
-export CatConfig, Sim, preallocate
+export CatConfig, Sim
 
 include("./logitembank.jl")
 
@@ -33,5 +33,6 @@ include("./DecisionTree.jl")
 
 @reexport using .CatConfig: CatLoopConfig, CatRules
 @reexport using .Sim: run_cat
+@reexport using .NextItemRules: preallocate
 
 end
