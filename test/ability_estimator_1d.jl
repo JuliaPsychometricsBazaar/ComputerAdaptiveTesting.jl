@@ -8,7 +8,6 @@ using ComputerAdaptiveTesting.Sim
 using PsychometricsBazaarBase.Integrators
 using PsychometricsBazaarBase.Optimizers
 using Distributions
-using Test
 
 """
 First 4 questions are centered on ability 1.

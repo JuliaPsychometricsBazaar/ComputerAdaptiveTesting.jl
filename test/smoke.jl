@@ -1,20 +1,3 @@
-using ComputerAdaptiveTesting
-using ComputerAdaptiveTesting.Aggregators
-using FittedItemBanks.DummyData: dummy_full, SimpleItemBankSpec, StdModel3PL,
-      VectorContinuousDomain, BooleanResponse, std_normal
-using FittedItemBanks
-using ComputerAdaptiveTesting.Responses
-using ComputerAdaptiveTesting.NextItemRules
-using ComputerAdaptiveTesting.TerminationConditions
-using ComputerAdaptiveTesting.Sim
-using PsychometricsBazaarBase.Integrators
-using PsychometricsBazaarBase.Optimizers
-using Distributions
-using Distributions: ZeroMeanIsoNormal, Zeros, ScalMat
-using Optim
-using Random
-using ResumableFunctions
-
 #(item_bank, abilities, responses) = dummy_full(Random.default_rng(42), SimpleItemBankSpec(StdModel4PL(), VectorContinuousDomain(), BooleanResponse()), 2; num_questions=100, num_testees=3)
 
 
