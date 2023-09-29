@@ -40,3 +40,7 @@ end
 @testset "smoke" begin
     include("./smoke.jl")
 end
+
+@testset "dt" begin
+    include("./dt.jl")
+end

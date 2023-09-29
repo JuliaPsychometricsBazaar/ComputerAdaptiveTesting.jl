@@ -92,11 +92,11 @@ end
 """
 Configuration for a simulatable CAT.
 """
-@with_kw struct CatLoopConfig <: CatConfigBase
+@with_kw struct CatLoopConfig{CatEngineT} <: CatConfigBase
     """
     The CAT configuration.
     """
-    rules::CatRules
+    rules::CatEngineT # e.g. CatRules
     """
     The function (index, label) -> Int8 which obtains the testee's response for
     a given question, e.g. by prompting or simulation from data.

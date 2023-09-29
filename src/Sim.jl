@@ -3,7 +3,7 @@ module Sim
 using StatsBase
 using FittedItemBanks: AbstractItemBank, ResponseType
 using ..Responses
-using ..CatConfig: CatLoopConfig
+using ..CatConfig: CatLoopConfig, CatRules
 using ..Aggregators: TrackedResponses, add_response!, Speculator
 
 export run_cat, prompt_response, auto_responder
@@ -28,10 +28,19 @@ end
 
 abstract type NextItemError <: Exception end
 
+function item_label(ib_labels, next_index)
+    default_next_label(next_index) = "<<item #$next_index>>"
+    if ib_labels === nothing
+        return default_next_label(next_index)
+    else
+        return get(default_next_label, ib_labels, next_index)
+    end
+end
+
 """
 Run a given CatLoopConfig
 """
-function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank; ib_labels=nothing)
+function run_cat(cat_config::CatLoopConfig{RulesT}, item_bank::AbstractItemBank; ib_labels=nothing) where {RulesT <: CatRules}
     (; rules, get_response, new_response_callback) = cat_config
     (; next_item, termination_condition, ability_estimator, ability_tracker) = rules
     responses = TrackedResponses(
@@ -51,12 +60,7 @@ function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank; ib_labe
                 rethrow()
             end
         end
-        default_next_label(next_index) = "<<item #$next_index>>"
-        if ib_labels === nothing
-            next_label = default_next_label(next_index)
-        else
-            next_label = get(default_next_label, ib_labels, next_index)
-        end
+        next_label = item_label(ib_labels, next_index)
         @debug "Querying" next_label
         response = get_response(next_index, next_label)
         @debug "Got response" response
@@ -70,7 +74,7 @@ function run_cat(cat_config::CatLoopConfig, item_bank::AbstractItemBank; ib_labe
             break
         end
     end
-    (responses, ability_estimator(responses))
+    (responses.responses, ability_estimator(responses))
 end
 
 struct CatComparison

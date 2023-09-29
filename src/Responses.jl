@@ -1,20 +1,21 @@
 module Responses
 
 using FittedItemBanks: AbstractItemBank, BooleanResponse, MultinomialResponse, ResponseType, ItemResponse, resp
+using AutoHashEquals
 
 export Response, BareResponses, AbilityLikelihood
 
 concrete_response_type(::BooleanResponse) = Bool
 concrete_response_type(::MultinomialResponse) = Int
 
-struct Response{ResponseTypeT <: ResponseType, ConcreteResponseTypeT}
+@auto_hash_equals struct Response{ResponseTypeT <: ResponseType, ConcreteResponseTypeT}
     index::Int
     value::ConcreteResponseTypeT
 
     Response(rt, index, value) = new{typeof(rt), concrete_response_type(rt)}(index, value)
 end
 
-struct BareResponses{
+@auto_hash_equals struct BareResponses{
     ResponseTypeT <: ResponseType,
     ConcreteResponseTypeT,
     IndicesVecT <: AbstractVector{Int},

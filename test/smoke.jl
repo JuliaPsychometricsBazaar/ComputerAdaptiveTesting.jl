@@ -16,7 +16,7 @@
             bits...
         )
         for testee_idx in axes(true_responses, 2)
-            tracked_responses, ability = run_cat(
+            responses, ability = run_cat(
                 CatLoopConfig(
                     rules=rules,
                     get_response=auto_responder(@view true_responses[:, testee_idx])
@@ -24,7 +24,7 @@
                 item_bank
             )
             # Test CAT has run to termination condition
-            @test length(tracked_responses.responses.indices) == 2 && length(tracked_responses.responses.values) == 2
+            @test length(responses.indices) == 2 && length(responses.values) == 2
             # Test ability within integral/optimization domain
             # TODO: Should mode ability estimator be made to return something in range?
             if !(ability_estimator isa ModeAbilityEstimator) && !(ability_estimator isa Dummy.DummyAbilityEstimator)

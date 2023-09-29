@@ -1,5 +1,7 @@
 module DecisionTree
 
+using Mmap
+
 using ComputerAdaptiveTesting.ConfigBase: CatConfigBase
 using ComputerAdaptiveTesting.PushVectors
 using ComputerAdaptiveTesting.NextItemRules
@@ -11,22 +13,22 @@ using FittedItemBanks.DummyData: std_mv_normal
 # TODO: Remove ability tracking from here?
 Base.@kwdef struct AgendaItem
     depth::UInt32
-    ability::Float32
+    ability::Float64
 end
 
 Base.@kwdef mutable struct TreePosition
     max_depth::UInt
     cur_depth::UInt
     todo::PushVector{AgendaItem, Vector{AgendaItem}}
-    parent_ability::Float32
+    parent_ability::Float64
 end
 
 function TreePosition(max_depth)
     TreePosition(
         max_depth=max_depth,
         cur_depth=0,
-        todo=PushVector{AgendaItem}(max_depth), # depth, ability, 
-        parent_ability=0f0
+        todo=PushVector{AgendaItem}(max_depth),
+        parent_ability=0.0
     )
 end
 
@@ -37,16 +39,17 @@ function next!(state::TreePosition, responses, item_bank, question, ability)
         state.cur_depth += 1
         push!(state.todo, AgendaItem(depth=state.cur_depth, ability=ability))
         add_response!(responses, Response(ResponseType(item_bank), question, false))
-        #@info "next deeper" state.cur_depth state.max_depth lh.questions lh.responses
     else
         # Try to back track
         if !isempty(state.todo)
             todo = pop!(state.todo)
             state.parent_ability = todo.ability
             state.cur_depth = todo.depth
-            while length(responses) >= state.cur_depth
+            while length(responses) > state.cur_depth
                 pop_response!(responses)
             end
+            question = responses.responses.indices[end]
+            pop_response!(responses)
             add_response!(responses, Response(ResponseType(item_bank), question, true))
         else
             # Done: break
@@ -56,20 +59,25 @@ function next!(state::TreePosition, responses, item_bank, question, ability)
     return false
 end
 
-Base.@kwdef struct MaterializedDecisionTree
-    questions::Vector{UInt32}
-    ability_estimates::Vector{Float32}
+Base.@kwdef struct MaterializedDecisionTree{QT <: AbstractVector, AT <: AbstractVector}
+    questions::QT # e.g. Vector{UInt32}
+    ability_estimates::AT # e.g. Vector{Float64}
 end
+
+const DefaultMaterializedDecisionTree = MaterializedDecisionTree{Vector{UInt32}, Vector{Float64}}
 
 function tree_size(max_depth)
     2^(max_depth + 1) - 1
 end
 
+function max_depth(tree_size)
+    floor(Int, log2(tree_size + 1)) - 1
+end
+
 function MaterializedDecisionTree(max_depth)
-    @info "tree size" max_depth tree_size(max_depth) tree_size(max_depth + 1)
     MaterializedDecisionTree(
         questions=Vector{UInt32}(undef, tree_size(max_depth)),
-        ability_estimates=Vector{Float32}(undef, tree_size(max_depth + 1))
+        ability_estimates=Vector{Float64}(undef, tree_size(max_depth + 1))
     )
 end
 
@@ -123,17 +131,17 @@ function generate_dt_cat(config::DecisionTreeGenerationConfig, item_bank)
         track!(responses, config.ability_tracker)
         ability = config.ability_estimator(responses)
         next_item = config.next_item(responses, item_bank)
-        
+
         insert!(decision_tree_result, responses.responses, ability, next_item)
-        #=if state_tree.cur_depth == state_tree.max_depth
+        if state_tree.cur_depth == state_tree.max_depth
+            # Final ability estimates
             for resp in (false, true)
-                resize!(state.likelihood, state_tree.cur_depth)
-                push_question_response!(state.likelihood, item_bank, next_item, resp)
-                state.lh_x .= state.likelihood.(state.quadpts)
-                ability = calc_ability(state)
-                insert!(decision_tree_result, responses(state.likelihood), ability)
+                add_response!(responses, Response(ResponseType(item_bank), next_item, resp))
+                ability = config.ability_estimator(responses)
+                insert!(decision_tree_result, responses.responses, ability)
+                pop_response!(responses)
             end
-        end=#
+        end
 
         if next!(state_tree, responses, item_bank, next_item, ability)
             break
@@ -141,5 +149,23 @@ function generate_dt_cat(config::DecisionTreeGenerationConfig, item_bank)
     end
     decision_tree_result
 end
+
+function next_item(dt::MaterializedDecisionTree, responses::BareResponses)
+    return dt.questions[responses_idx(responses)]
+end
+
+function termination_condition(dt::MaterializedDecisionTree, responses::BareResponses)
+    return length(responses.indices) >= max_depth(length(dt.ability_estimates))
+end
+
+function ability_estimate(dt::MaterializedDecisionTree, responses::BareResponses)
+    return dt.ability_estimates[responses_idx(responses)]
+end
+
+include("./mmap.jl")
+include("./sim.jl")
+
+export generate_dt_cat, MaterializedDecisionTree, DecisionTreeGenerationConfig, next_item, ability_estimate
+export save_mmap, load_mmap
 
 end

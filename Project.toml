@@ -5,6 +5,7 @@ version = "0.1.0"
 
 [deps]
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
+AutoHashEquals = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
 ConstructionBase = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
 Cuba = "8a292aeb-7a57-582c-b821-06e4c11590b1"
 Cubature = "667455a9-e2ce-5579-9412-b964f529a492"
@@ -40,6 +41,7 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
 Accessors = "0.1"
+AutoHashEquals = "2"
 ConstructionBase = "1"
 Cuba = "2"
 Cubature = "1"
