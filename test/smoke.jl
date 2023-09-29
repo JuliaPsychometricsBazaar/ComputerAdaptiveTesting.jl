@@ -44,7 +44,7 @@
 end
 
 #=
-@testset "Smoke test 2d" begin
+@testcase "Smoke test 2d" begin
     Random.seed!(42)
     (item_bank, abilities, responses) = dummy_mirt_4pl(2; num_questions=4, num_testees=2)
 end

@@ -41,28 +41,28 @@ map_2d = ModeAbilityEstimator(pa_est_2d, optimizer_2d)
 mle_mean_2d = MeanAbilityEstimator(lh_est_2d, integrator_2d)
 mle_mode_2d = ModeAbilityEstimator(lh_est_2d, optimizer_2d)
 
-@testset "Estimator: 2 dim MAP" begin
+@testcase "Estimator: 2 dim MAP" begin
     @test map_2d(tracked_responses_2d) ≈ [1.0, 1.0] atol=0.001
 end
 
-@testset "Estimator: 2 dim EAP" begin
+@testcase "Estimator: 2 dim EAP" begin
     @test eap_2d(tracked_responses_2d) ≈ [1.0, 1.0] atol=0.001
 end
 
 # XXX: Why are these failing?
-@testset "Estimator: 2 mle mean" begin
+@testcase "Estimator: 2 mle mean" begin
     @test mle_mean_2d(tracked_responses_2d) ≈ [1.0, 1.0] atol=0.001 broken=true
 end
 
-@testset "Estimator: 2 mle mode" begin
+@testcase "Estimator: 2 mle mode" begin
     @test mle_mode_2d(tracked_responses_2d) ≈ [1.0, 1.0] atol=0.001 broken=true
 end
 
 # TODO
 #=
-@testset "2 dim information higher closer to current estimate" begin
+@testcase "2 dim information higher closer to current estimate" begin
 end
 
-@testset "2 dim variance smaller closer to current estimate" begin
+@testcase "2 dim variance smaller closer to current estimate" begin
 end
 =#
