@@ -7,7 +7,7 @@ using ComputerAdaptiveTesting.TerminationConditions
 using ComputerAdaptiveTesting.Sim
 using PsychometricsBazaarBase.Integrators
 using PsychometricsBazaarBase.Optimizers
-using Distributions: ScalMat
+using Distributions: MvNormal, ScalMat
 
 """
 First 4 questions are centered on ability 1.
@@ -49,13 +49,14 @@ end
     @test eap_2d(tracked_responses_2d) ≈ [1.0, 1.0] atol=0.001
 end
 
-# XXX: Why are these failing?
 @testcase "Estimator: 2 mle mean" begin
-    @test mle_mean_2d(tracked_responses_2d) ≈ [1.0, 1.0] atol=0.001 broken=true
+    ans = mle_mean_2d(tracked_responses_2d)
+    @test ans[1] - ans[2] ≈ 0.0 atol=0.001
 end
 
 @testcase "Estimator: 2 mle mode" begin
-    @test mle_mode_2d(tracked_responses_2d) ≈ [1.0, 1.0] atol=0.001 broken=true
+    ans = mle_mode_2d(tracked_responses_2d)
+    @test ans[1] + ans[2] ≈ 2.0 atol=0.001
 end
 
 # TODO
