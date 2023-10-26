@@ -2,11 +2,10 @@ using ComputerAdaptiveTesting.Aggregators
 using PsychometricsBazaarBase.Integrators
 using FittedItemBanks.DummyData: dummy_full, std_normal, std_mv_normal
 using ComputerAdaptiveTesting.Sim: run_random_comparison
-using ComputerAdaptiveTesting.NextItemRules
 using FittedItemBanks
 using Base.Filesystem
 using ComputerAdaptiveTesting
-using ComputerAdaptiveTesting.DecisionTree: DecisionTreeGenerationConfig, generate_dt_cat
+using ComputerAdaptiveTesting.DecisionTree: DecisionTreeGenerationConfig, generate_dt_cat, save_mmap
 using ComputerAdaptiveTesting.Sim
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.TerminationConditions
@@ -19,29 +18,15 @@ using ItemResponseDatasets.VocabIQ
 using RIrtWrappers.Mirt
 using Random
 using Distributions
+using Profile.Allocs: @profile
+using PProf
+
+
+include("./utils/RandomItemBanks.jl")
+
+using .RandomItemBanks: clumpy_4pl_item_bank
 
 const next_item_aliases = [keys(catr_next_item_aliases)..., "drule"]
-
-pclamp(x) = clamp.(x, 0.0, 1.0)
-abs_rand(rng, dist, dims...) = abs.(rand(rng, dist, dims...))
-clamp_rand(rng, dist, dims...) = pclamp.(rand(rng, dist, dims...))
-
-function clumpy_4pl_item_bank(rng, num_clumps, num_questions)
-    clump_dist_mat = hcat(
-        Normal.(rand(rng, Normal(), num_clumps), 0.1),  # Difficulty
-        Normal.(abs_rand(rng, Normal(1.0, 0.2), num_clumps), 0.1),  # Discrimination
-        Normal.(clamp_rand(rng, Normal(0.1, 0.2), num_clumps), 0.02),  # Guess
-        Normal.(clamp_rand(rng, Normal(0.1, 0.2), num_clumps), 0.02)  # Slip
-    )
-    params_clumps = mapslices(Product, clump_dist_mat; dims=[2])[:, 1]
-    # TODO: Resample the clumps to create a correlated distribution
-    params = Array{Float64, 2}(undef, num_questions, 4)
-    for (question_idx, clump) in enumerate(sample(rng, params_clumps, num_questions; replace=true))
-        (difficulty, discrimination, guess, slip) = rand(rng, clump)
-        params[question_idx, :] = [difficulty, abs(discrimination), pclamp(guess), pclamp(slip)]
-    end
-    ItemBank4PL(params[:, 1], params[:, 2], params[:, 3], params[:, 4])
-end
 
 # copy-pasted
 function get_next_item_rule(rule_name)::Tuple{AbilityEstimator, NextItemRule}
@@ -62,19 +47,27 @@ function get_next_item_rule(rule_name)::Tuple{AbilityEstimator, NextItemRule}
     (ability_estimator, next_item_rule)
 end
 
-function main(rule_name)
+
+function main(rule_name, out_dir)
     rng = Xoshiro(42)
     params = clumpy_4pl_item_bank(rng, 3, 1000)
     ability_estimator, next_item_rule = get_next_item_rule(rule_name)
-    dt = generate_dt_cat(
+    dt = @time generate_dt_cat(
         DecisionTreeGenerationConfig(;
-            max_depth=UInt(1),
+            max_depth=UInt(2),
             next_item=next_item_rule,
             ability_estimator=ability_estimator,
         ), params
     )
+    config = @time DecisionTreeGenerationConfig(;
+        max_depth=UInt(4),
+        next_item=next_item_rule,
+        ability_estimator=ability_estimator,
+    )
+    dt = @time generate_dt_cat(config, params)
+    save_mmap(out_dir, dt)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    main(ARGS[1])
+    main(ARGS[1], ARGS[2])
 end
