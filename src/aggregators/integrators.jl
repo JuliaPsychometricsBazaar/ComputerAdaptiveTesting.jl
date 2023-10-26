@@ -7,6 +7,18 @@ function (product::FunctionProduct)(x::T) where {T}
     product.f(x) * product.lh_function(x)
 end
 
+struct TrackedLikelihoodIntegrator{IntegratorT <: Integrator} <: AbilityIntegrator
+    integrator::IntegratorT
+    tracker::GriddedAbilityTracker
+end
+
+function(integrator::TrackedLikelihoodIntegrator{IntegratorT})(
+    f::F,
+    ncomp
+) where {F, IntegratorT}
+    integrator.integrator((x, y) -> f(x) * y, integrator.tracker.cur_ability, ncomp)
+end
+
 struct FunctionIntegrator{IntegratorT <: Integrator} <: AbilityIntegrator 
     integrator::IntegratorT
 end
@@ -45,7 +57,7 @@ function (integrator::RiemannEnumerationIntegrator)(
     result[]
 end
 
-function (integrator::AbilityIntegrator)(
+function (integrator::Union{RiemannEnumerationIntegrator, FunctionIntegrator})(
     f::F,
     ncomp,
     est,
@@ -53,4 +65,14 @@ function (integrator::AbilityIntegrator)(
     kwargs...
 ) where {F}
     integrator(maybe_apply_prior(f, est), ncomp, AbilityLikelihood(tracked_responses); kwargs...)
+end
+
+function (integrator::TrackedLikelihoodIntegrator)(
+    f::F,
+    ncomp,
+    est,
+    tracked_responses::TrackedResponses;
+    kwargs...
+) where {F}
+    integrator(maybe_apply_prior(f, est), ncomp; kwargs...)
 end

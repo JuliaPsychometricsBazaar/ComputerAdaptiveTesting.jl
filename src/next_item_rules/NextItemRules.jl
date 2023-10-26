@@ -53,9 +53,9 @@ delegates to `ItemStrategyNextItemRule`.
 """
 abstract type NextItemRule <: CatConfigBase end
 
-function NextItemRule(bits...; ability_estimator=nothing, parallel=true)
+function NextItemRule(bits...; ability_estimator=nothing, ability_tracker=nothing, parallel=true)
     @returnsome find1_instance(NextItemRule, bits)
-    @returnsome ItemStrategyNextItemRule(bits..., ability_estimator=ability_estimator, parallel=parallel)
+    @returnsome ItemStrategyNextItemRule(bits..., ability_estimator=ability_estimator, ability_tracker=ability_tracker, parallel=parallel)
 end
 
 include("./random.jl")
@@ -135,9 +135,9 @@ struct ItemStrategyNextItemRule{NextItemStrategyT <: NextItemStrategy, ItemCrite
     criterion::ItemCriterionT
 end
 
-function ItemStrategyNextItemRule(bits...; parallel=true, ability_estimator=nothing)
+function ItemStrategyNextItemRule(bits...; parallel=true, ability_estimator=nothing, ability_tracker=nothing)
     strategy = NextItemStrategy(bits...; parallel=parallel)
-    criterion = ItemCriterion(bits...; ability_estimator=ability_estimator)
+    criterion = ItemCriterion(bits...; ability_estimator=ability_estimator, ability_tracker=ability_tracker)
     if strategy !== nothing && criterion !== nothing
         return ItemStrategyNextItemRule(strategy, criterion)
     end

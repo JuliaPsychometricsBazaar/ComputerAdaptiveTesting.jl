@@ -40,7 +40,7 @@ export variance, variance_given_mean, mean_1d
 # XXX: Does having a common supertype of DistributionAbilityEstimator and PointAbilityEstimator make sense?
 abstract type AbilityEstimator <: CatConfigBase end
 
-function AbilityEstimator(bits...; ability_estimator=nothing)
+function AbilityEstimator(bits...; ability_estimator=nothing, ability_tracker=nothing)
     @returnsome ability_estimator
     @returnsome find1_instance(AbilityEstimator, bits)
     item_bank = find1_type_sloppy(AbstractItemBank, bits)
@@ -73,24 +73,51 @@ end
 
 abstract type AbilityTracker <: CatConfigBase end
 
-function AbilityTracker(bits...; ability_estimator=nothing)
+function AbilityTracker(bits...; integrator=nothing, ability_estimator=nothing)
     @returnsome find1_instance(AbilityTracker, bits)
     ability_tracker = find1_type(AbilityTracker, bits)
     if (ability_tracker !== nothing)
         ability_tracker()
     end
-    NullAbilityTracker()
-    # TODO: find if ability_estimator is GriddedAbilityEstimator and then propagate stuff to GriddedAbilityTracker
+    if ability_estimator !== nothing && integrator !== nothing
+        GriddedAbilityTracker(ability_estimator, integrator)
+    else
+        NullAbilityTracker()
+    end
+end
+
+function compatible_tracker(bits...; integrator, ability_estimator, prefer_tracked)
+    ability_tracker = AbilityTracker(bits...; ability_estimator=ability_estimator)
+    if ability_tracker isa GriddedAbilityTracker && ability_tracker.integrator === integrator
+        return ability_tracker
+    end
+    if prefer_tracked
+        return AbilityTracker(bits...; integrator=integrator, ability_estimator=ability_estimator)
+    end
 end
 
 abstract type AbilityIntegrator <: CatConfigBase end
-function AbilityIntegrator(bits...; ability_estimator=nothing)
+function AbilityIntegrator(bits...; ability_estimator=nothing, prefer_tracked=false)
     @returnsome find1_instance(AbilityIntegrator, bits)
     zero_arg_intergrators = find1_type(RiemannEnumerationIntegrator, bits)
     if (zero_arg_intergrators !== nothing)
         return RiemannEnumerationIntegrator()
     end
-    @returnsome Integrator(bits...) integrator -> FunctionIntegrator(integrator)
+    integrator = Integrator(bits...)
+    if integrator === nothing
+        return nothing
+    end
+    tracker = compatible_tracker(
+        bits...;
+        integrator=integrator,
+        ability_estimator=ability_estimator,
+        prefer_tracked=prefer_tracked
+    )
+    if tracker !== nothing
+        TrackedLikelihoodIntegrator(integrator, tracker)
+    else
+        FunctionIntegrator(integrator)
+    end
 end
 
 abstract type AbilityOptimizer end

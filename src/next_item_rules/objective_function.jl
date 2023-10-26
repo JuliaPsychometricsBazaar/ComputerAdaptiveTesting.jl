@@ -3,10 +3,10 @@ $(TYPEDEF)
 """
 abstract type ItemCriterion <: CatConfigBase end
 
-function ItemCriterion(bits...; ability_estimator=nothing)
+function ItemCriterion(bits...; ability_estimator=nothing, ability_tracker=nothing)
     @returnsome find1_instance(ItemCriterion, bits)
-    @returnsome find1_type(ItemCriterion, bits) typ -> typ(ability_estimator=ability_estimator)
-    @returnsome ExpectationBasedItemCriterion(bits...; ability_estimator=ability_estimator)
+    @returnsome find1_type(ItemCriterion, bits) typ -> typ(ability_estimator=ability_estimator, ability_tracker=ability_tracker)
+    @returnsome ExpectationBasedItemCriterion(bits...; ability_estimator=ability_estimator, ability_tracker=ability_tracker)
 end
 
 """
@@ -14,7 +14,7 @@ $(TYPEDEF)
 """
 abstract type StateCriterion <: CatConfigBase end
 
-function StateCriterion(bits...; ability_estimator=nothing)
+function StateCriterion(bits...; ability_estimator=nothing, ability_tracker=nothing)
     @returnsome find1_instance(StateCriterion, bits)
     @returnsome find1_type(StateCriterion, bits) typ -> typ()
 end
@@ -100,12 +100,12 @@ end
 
 abstract type ExpectationBasedItemCriterion <: ItemCriterion end
 
-function ExpectationBasedItemCriterion(bits...; ability_estimator=nothing)
-    criterion = StateCriterion(bits...; ability_estimator=ability_estimator)
+function ExpectationBasedItemCriterion(bits...; ability_estimator=nothing, ability_tracker=nothing)
+    criterion = StateCriterion(bits...; ability_estimator=ability_estimator, ability_tracker=ability_tracker)
     if criterion === nothing
         return nothing
     end
-    ability_estimator = AbilityEstimator(bits..., ability_estimator=ability_estimator)
+    ability_estimator = AbilityEstimator(bits..., ability_estimator=ability_estimator, ability_tracker=ability_tracker)
     if ability_estimator === nothing
         return nothing
     end

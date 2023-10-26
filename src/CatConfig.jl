@@ -65,6 +65,34 @@ function _find_ability_estimator_and_tracker(bits...)
     (ability_estimator, ability_tracker)
 end
 
+function collect_trackers(_)
+    return NullAbilityTracker()
+end
+
+function collect_trackers(tracker::AbilityTracker)
+    return tracker
+end
+
+function collect_trackers(config::CatConfigBase)
+    acc = NullAbilityTracker()
+    for fieldname in fieldnames(typeof(config))
+        tracker = collect_trackers(getfield(config, fieldname))
+        if !(tracker isa NullAbilityTracker)
+            acc = ConsAbilityTracker(tracker, acc)
+        end
+    end
+    return acc
+end
+
+function collect_trackers(next_item_rule::NextItemRule, ability_tracker::AbilityTracker)
+    rest = collect_trackers(next_item_rule)
+    if !(ability_tracker isa NullAbilityTracker)
+        ConsAbilityTracker(ability_tracker, rest)
+    else
+        rest
+    end
+end
+
 function CatRules(bits...)
     ability_estimator, ability_tracker = _find_ability_estimator_and_tracker(bits...)
     if ability_estimator === nothing
@@ -73,7 +101,7 @@ function CatRules(bits...)
     if ability_tracker === nothing
         error("Could not find an ability tracker in $(bits)")
     end
-    next_item = NextItemRule(bits..., ability_estimator=ability_estimator)
+    next_item = NextItemRule(bits..., ability_estimator=ability_estimator, ability_tracker=ability_tracker)
     if next_item === nothing
         error("Could not find a next item rule in $(bits)")
     end
@@ -85,7 +113,7 @@ function CatRules(bits...)
         next_item=next_item,
         termination_condition=termination_condition,
         ability_estimator=ability_estimator,
-        ability_tracker=ability_tracker
+        ability_tracker=collect_trackers(next_item, ability_tracker)
     )
 end
 

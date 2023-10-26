@@ -59,6 +59,16 @@ struct NullAbilityTracker <: AbilityTracker end
 
 function track!(_, ::NullAbilityTracker) end
 
+struct ConsAbilityTracker{H <: AbilityTracker, T <: AbilityTracker} <: AbilityTracker
+    head::H
+    tail::T
+end
+
+function track!(responses, cons::ConsAbilityTracker)
+    track!(responses, cons.head)
+    track!(responses, cons.tail)
+end
+
 struct VarNormal{T <: Real}
     mean::T
     var::T
