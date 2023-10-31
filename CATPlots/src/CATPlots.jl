@@ -173,11 +173,23 @@ function CatRecorder(xs::AbstractVector{Float64}, responses, integrator, raw_est
 end
 
 function CatRecorder(xs::AbstractMatrix{Float64}, responses, integrator, raw_estimator, ability_estimator, actual_abilities=nothing)
+	dims = size(xs, 1)
 	points = size(xs, 2)
     num_questions = size(responses, 1)
     num_respondents = size(responses, 2)
     num_values = num_questions * num_respondents
-	CatRecorder(xs, points, zeros(size(xs, 1), num_values), num_questions, num_respondents, integrator, raw_estimator, ability_estimator, actual_abilities)
+	CatRecorder(xs, points, zeros(dims, num_values), num_questions, num_respondents, integrator, raw_estimator, ability_estimator, actual_abilities)
+end
+
+function CatRecorder(xs::AbstractVector{Float64}, max_responses::Int, integrator, raw_estimator, ability_estimator, actual_abilities=nothing)
+	points = size(xs, 1)
+	CatRecorder(xs, points, zeros(max_responses), max_responses, 1, integrator, raw_estimator, ability_estimator, actual_abilities)
+end
+
+function CatRecorder(xs::AbstractMatrix{Float64}, max_responses::Int, integrator, raw_estimator, ability_estimator, actual_abilities=nothing)
+	dims = size(xs, 1)
+	points = size(xs, 2)
+	CatRecorder(xs, points, zeros(dims, max_responses), max_responses, 1, integrator, raw_estimator, ability_estimator, actual_abilities)
 end
 
 function push_ability_est!(ability_ests::AbstractMatrix{Float64}, col_idx, ability_est)
@@ -223,7 +235,10 @@ function (recorder::CatRecorder)(tracked_responses, resp_idx, terminating)
     recorder.item_responses[:, recorder.col_idx] = resp.(Ref(ir), item_correct, eachmatcol(recorder.xs))
 
 	# Save item parameters
-    recorder.item_difficulties[recorder.step, resp_idx] = item_params(tracked_responses.item_bank, item_index).difficulty
+	params = item_params(tracked_responses.item_bank, item_index)
+	if hasproperty(params, :difficulty)
+    	recorder.item_difficulties[recorder.step, resp_idx] = params.difficulty
+	end
     recorder.item_correctness[recorder.step, resp_idx] = item_correct
 
     recorder.col_idx += 1
