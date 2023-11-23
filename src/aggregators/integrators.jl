@@ -7,6 +7,14 @@ function (product::FunctionProduct)(x::T) where {T}
     product.f(x) * product.lh_function(x)
 end
 
+struct FunctionArgProduct{F}
+    f::F
+end
+
+function (product::FunctionArgProduct)(x::A, y::B) where {A, B}
+    product.f(x) * y
+end
+
 struct TrackedLikelihoodIntegrator{IntegratorT <: Integrator} <: AbilityIntegrator
     integrator::IntegratorT
     tracker::GriddedAbilityTracker
@@ -16,7 +24,7 @@ function(integrator::TrackedLikelihoodIntegrator{IntegratorT})(
     f::F,
     ncomp
 ) where {F, IntegratorT}
-    integrator.integrator((x, y) -> f(x) * y, integrator.tracker.cur_ability, ncomp)
+    integrator.integrator(FunctionArgProduct(f), integrator.tracker.cur_ability, ncomp)
 end
 
 struct FunctionIntegrator{IntegratorT <: Integrator} <: AbilityIntegrator 
