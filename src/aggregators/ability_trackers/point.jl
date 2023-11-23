@@ -9,5 +9,5 @@ end
 
 function PointAbilityTracker(ability_estimator)
     # TODO: Multiple dimensions
-    PointAbilityEstimator(ability_estimator, NaN)
+    PointAbilityTracker(ability_estimator, NaN)
 end
