@@ -218,6 +218,7 @@ abstract type InformationMatrixCriterion <: ItemCriterion end
 function init_thread(item_criterion::InformationMatrixCriterion, responses::TrackedResponses)
     # TODO: No need to do this one per thread. It just need to be done once per
     # θ update.
+    # TODO: Update this to use track!(...) mechanism
     ability = maybe_tracked_ability_estimate(responses, item_criterion.ability_estimator)
     responses_information(responses.item_bank, responses.responses, ability)
 end

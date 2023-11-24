@@ -75,6 +75,7 @@ function vector_hessian(f, x, n)
 end
 
 # TODO: Unclear whether this should be implemented with ExpectationBasedItemCriterion
+# TODO: This is not implementing DRule but postposterior DRule
 function expected_item_information(ir::ItemResponse, θ::Vector{Float64})
     exp_resp = resp_vec(ir, θ)
     n = domdims(ir.item_bank)
