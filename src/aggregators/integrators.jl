@@ -82,5 +82,6 @@ function (integrator::TrackedLikelihoodIntegrator)(
     tracked_responses::TrackedResponses;
     kwargs...
 ) where {F}
-    integrator(maybe_apply_prior(f, est), ncomp; kwargs...)
+    # No need to apply prior here because it is already applied in the tracker
+    integrator(f, ncomp; kwargs...)
 end
