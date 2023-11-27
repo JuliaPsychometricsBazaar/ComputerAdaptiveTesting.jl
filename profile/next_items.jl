@@ -1,4 +1,5 @@
-using ComputerAdaptiveTesting.DummyData: dummy_3pl, dummy_mirt_4pl, std_normal, std_mv_normal
+using ComputerAdaptiveTesting.DummyData: dummy_3pl,
+    dummy_mirt_4pl, std_normal, std_mv_normal
 using ComputerAdaptiveTesting.Responses
 using ComputerAdaptiveTesting.Aggregators
 using ComputerAdaptiveTesting.Integrators
@@ -23,35 +24,37 @@ function get_ability_estimator(multidim)
 end
 
 function prepare_empty(item_bank, actual_responses, ability_tracker)
-    responses = TrackedResponses(
-        BareResponses([], []),
+    responses = TrackedResponses(BareResponses([], []),
         item_bank,
-        ability_tracker
-    )
+        ability_tracker)
     (item_bank, actual_responses, responses)
 end
 
 function prepare_0(ability_estimator)
-    (item_bank, question_labels_, abilities_, actual_responses) = dummy_3pl(;num_questions=100, num_testees=1)
+    (item_bank, question_labels_, abilities_, actual_responses) = dummy_3pl(;
+        num_questions = 100,
+        num_testees = 1)
     prepare_empty(item_bank, actual_responses, PointAbilityTracker(ability_estimator, NaN))
 end
 
 function prepare_0_mirt(ability_estimator)
-    (item_bank, question_labels_, abilities_, actual_responses) = dummy_mirt_4pl(3; num_questions=100, num_testees=1)
-    prepare_empty(item_bank, actual_responses, PointAbilityTracker(ability_estimator, [NaN, NaN, NaN]))
+    (item_bank, question_labels_, abilities_, actual_responses) = dummy_mirt_4pl(3;
+        num_questions = 100,
+        num_testees = 1)
+    prepare_empty(item_bank,
+        actual_responses,
+        PointAbilityTracker(ability_estimator, [NaN, NaN, NaN]))
 end
 
 function prepare_50(ability_estimator)
-    (item_bank, question_labels_, abilities_, actual_responses) = dummy_3pl(;num_questions=100, num_testees=1)
+    (item_bank, question_labels_, abilities_, actual_responses) = dummy_3pl(;
+        num_questions = 100,
+        num_testees = 1)
     idxs = sample(1:100, 50)
-    responses = TrackedResponses(
-        BareResponses(
-            idxs,
-            actual_responses[idxs, 1]
-        ),
+    responses = TrackedResponses(BareResponses(idxs,
+            actual_responses[idxs, 1]),
         item_bank,
-        PointAbilityTracker(ability_estimator, NaN)
-    )
+        PointAbilityTracker(ability_estimator, NaN))
     (item_bank, actual_responses, responses)
 end
 
@@ -70,7 +73,11 @@ function run_single(dummy_data, objective)
     objective(criterion_state, responses, 1)
 end
 
-function profile_objective(run_profile::RunProfile, pre_bench::PrepBench, run_bench::RunBench, objective::Objective, ability_estimator) where {RunProfile, PrepBench, RunBench, Objective}
+function profile_objective(run_profile::RunProfile,
+        pre_bench::PrepBench,
+        run_bench::RunBench,
+        objective::Objective,
+        ability_estimator) where {RunProfile, PrepBench, RunBench, Objective}
     dummy_data = pre_bench(ability_estimator)
     run() = run_bench(dummy_data, objective)
     @info "init run"
@@ -95,7 +102,9 @@ function get_cmdline()
     elseif Sys.isapple()
         String.(split(strip(read(`/bin/ps -p $(getpid()) -o command=`, String)), " "))
     elseif Sys.isunix()
-        String.(split(read(joinpath("/", "proc", string(getpid()), "cmdline"), String), "\x00"; keepempty=false))
+        String.(split(read(joinpath("/", "proc", string(getpid()), "cmdline"), String),
+            "\x00";
+            keepempty = false))
     else
         j_cmd = String.(split(Base.julia_cmd(), " "))
         args_joined = join(ARGS, " ")
@@ -104,7 +113,7 @@ function get_cmdline()
 end
 
 function run_track_allocs(run_bench::F) where {F}
-    Profile.clear_malloc_data() 
+    Profile.clear_malloc_data()
     run_bench()
 end
 
@@ -127,20 +136,16 @@ function run_statprofilerhtml(run::F) where {F}
     @profilehtml run()
 end
 
-PROFILERS = Dict(
-    "track_allocs" => run_track_allocs,
+PROFILERS = Dict("track_allocs" => run_track_allocs,
     "profile" => run_profile,
     "time" => run_time,
     "btime" => run_btime,
-    "profilehtml" => run_statprofilerhtml
-)
+    "profilehtml" => run_statprofilerhtml)
 
-BENCHES = Dict(
-    "all0" => (prepare_0, run_all),
+BENCHES = Dict("all0" => (prepare_0, run_all),
     "allmirt" => (prepare_0_mirt, run_all),
     "all50" => (prepare_50, run_all),
-    "single50" => (prepare_50, run_single)
-)
+    "single50" => (prepare_50, run_single))
 #=
 if isdefined(Profile, :Allocs)
     PROFILERS["pprof_allocs"] = run_pprof_allocs
@@ -163,14 +168,14 @@ function main()
     settings = ArgParseSettings()
     @add_arg_table settings begin
         "profiling_mode"
-            help = "The profiling mode to use. Can be 'pprof_allocs', 'track_allocs', 'profile', or 'time'."
-            required = true
+        help = "The profiling mode to use. Can be 'pprof_allocs', 'track_allocs', 'profile', or 'time'."
+        required = true
         "next_item_rule"
-            help = "The next item rule to use"
-            required = true
+        help = "The next item rule to use"
+        required = true
         "bench"
-            help = "The benchmark to use"
-            required = true
+        help = "The benchmark to use"
+        required = true
     end
     args = parse_args(settings)
     ability_estimator = get_ability_estimator(args["next_item_rule"] == "drule")
@@ -178,14 +183,20 @@ function main()
     next_item_rule = get_next_item_rule(args["next_item_rule"], point_ability_estimator)
     if args["profiling_mode"] == "track_allocs" && !haskey(ENV, "TRACK_ALLOCS")
         cmdline = get_cmdline()
-        insert!(cmdline, findfirst(x -> endswith(x, ".jl"), cmdline), "--track-allocation=all")
-        cmd = Cmd(Cmd(cmdline), env=("TRACK_ALLOCS" => "TRUE",))
+        insert!(cmdline,
+            findfirst(x -> endswith(x, ".jl"), cmdline),
+            "--track-allocation=all")
+        cmd = Cmd(Cmd(cmdline), env = ("TRACK_ALLOCS" => "TRUE",))
         @info "Running subprocess to track allocs" cmd
         Base.run(cmd)
         return
     end
     (pre_bench, run_bench) = BENCHES[args["bench"]]
-    profile_objective(PROFILERS[args["profiling_mode"]], pre_bench, run_bench, objective(next_item_rule), point_ability_estimator)
+    profile_objective(PROFILERS[args["profiling_mode"]],
+        pre_bench,
+        run_bench,
+        objective(next_item_rule),
+        point_ability_estimator)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

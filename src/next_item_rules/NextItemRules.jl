@@ -53,9 +53,15 @@ delegates to `ItemStrategyNextItemRule`.
 """
 abstract type NextItemRule <: CatConfigBase end
 
-function NextItemRule(bits...; ability_estimator=nothing, ability_tracker=nothing, parallel=true)
+function NextItemRule(bits...;
+        ability_estimator = nothing,
+        ability_tracker = nothing,
+        parallel = true)
     @returnsome find1_instance(NextItemRule, bits)
-    @returnsome ItemStrategyNextItemRule(bits..., ability_estimator=ability_estimator, ability_tracker=ability_tracker, parallel=parallel)
+    @returnsome ItemStrategyNextItemRule(bits...,
+        ability_estimator = ability_estimator,
+        ability_tracker = ability_tracker,
+        parallel = parallel)
 end
 
 include("./random.jl")
@@ -64,11 +70,12 @@ include("./objective_function.jl")
 
 const default_prior = IntegralCoeffs.Prior(Cauchy(5, 2))
 
-function choose_item_1ply(
-    objective::ItemCriterionT,
-    responses::TrackedResponseT,
-    items::AbstractItemBank
-)::Tuple{Int, Float64} where {ItemCriterionT <: ItemCriterion, TrackedResponseT <: TrackedResponses}
+function choose_item_1ply(objective::ItemCriterionT,
+        responses::TrackedResponseT,
+        items::AbstractItemBank)::Tuple{
+        Int,
+        Float64,
+    } where {ItemCriterionT <: ItemCriterion, TrackedResponseT <: TrackedResponses}
     #pre_next_item(expectation_tracker, items)
     objective_state = init_thread(objective, responses)
     min_obj_idx::Int = -1
@@ -99,14 +106,14 @@ $(TYPEDEF)
 """
 abstract type NextItemStrategy <: CatConfigBase end
 
-function NextItemStrategy(; parallel=true)
+function NextItemStrategy(; parallel = true)
     ExhaustiveSearch1Ply(parallel)
 end
 
-function NextItemStrategy(bits...; parallel=true)
+function NextItemStrategy(bits...; parallel = true)
     @returnsome find1_instance(NextItemStrategy, bits)
-    @returnsome find1_type(NextItemStrategy, bits) typ -> typ(; parallel=parallel)
-    @returnsome NextItemStrategy(; parallel=parallel)
+    @returnsome find1_type(NextItemStrategy, bits) typ->typ(; parallel = parallel)
+    @returnsome NextItemStrategy(; parallel = parallel)
 end
 
 """
@@ -130,20 +137,29 @@ adapter by which an `ItemCriterion` can serve as a `NextItemRule`.
 Implicit constructor for $(FUNCTIONNAME). Will default to
 `ExhaustiveSearch1Ply` when no `NextItemStrategy` is given.
 """
-struct ItemStrategyNextItemRule{NextItemStrategyT <: NextItemStrategy, ItemCriterionT <: ItemCriterion} <: NextItemRule
-    strategy::NextItemStrategyT 
+struct ItemStrategyNextItemRule{
+    NextItemStrategyT <: NextItemStrategy,
+    ItemCriterionT <: ItemCriterion,
+} <: NextItemRule
+    strategy::NextItemStrategyT
     criterion::ItemCriterionT
 end
 
-function ItemStrategyNextItemRule(bits...; parallel=true, ability_estimator=nothing, ability_tracker=nothing)
-    strategy = NextItemStrategy(bits...; parallel=parallel)
-    criterion = ItemCriterion(bits...; ability_estimator=ability_estimator, ability_tracker=ability_tracker)
+function ItemStrategyNextItemRule(bits...;
+        parallel = true,
+        ability_estimator = nothing,
+        ability_tracker = nothing)
+    strategy = NextItemStrategy(bits...; parallel = parallel)
+    criterion = ItemCriterion(bits...;
+        ability_estimator = ability_estimator,
+        ability_tracker = ability_tracker)
     if strategy !== nothing && criterion !== nothing
         return ItemStrategyNextItemRule(strategy, criterion)
     end
 end
 
-function (rule::ItemStrategyNextItemRule{ExhaustiveSearch1Ply, ItemCriterionT})(responses, items) where {ItemCriterionT <: ItemCriterion}
+function (rule::ItemStrategyNextItemRule{ExhaustiveSearch1Ply, ItemCriterionT})(responses,
+        items) where {ItemCriterionT <: ItemCriterion}
     #, rule.strategy.parallel
     choose_item_1ply(rule.criterion, responses, items)[1]
 end

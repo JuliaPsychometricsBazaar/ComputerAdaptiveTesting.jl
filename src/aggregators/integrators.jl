@@ -20,22 +20,18 @@ struct TrackedLikelihoodIntegrator{IntegratorT <: Integrator} <: AbilityIntegrat
     tracker::GriddedAbilityTracker
 end
 
-function(integrator::TrackedLikelihoodIntegrator{IntegratorT})(
-    f::F,
-    ncomp
-) where {F, IntegratorT}
+function (integrator::TrackedLikelihoodIntegrator{IntegratorT})(f::F,
+        ncomp) where {F, IntegratorT}
     integrator.integrator(FunctionArgProduct(f), integrator.tracker.cur_ability, ncomp)
 end
 
-struct FunctionIntegrator{IntegratorT <: Integrator} <: AbilityIntegrator 
+struct FunctionIntegrator{IntegratorT <: Integrator} <: AbilityIntegrator
     integrator::IntegratorT
 end
 
-function(integrator::FunctionIntegrator{IntegratorT})(
-    f::F,
-    ncomp,
-    lh_function::LHF
-) where {F, LHF, IntegratorT}
+function (integrator::FunctionIntegrator{IntegratorT})(f::F,
+        ncomp,
+        lh_function::LHF) where {F, LHF, IntegratorT}
     # This will allocate without the `moneypatch_broadcast` hack
 
     # TODO: Make integration range configurable
@@ -50,38 +46,39 @@ coefficient function using a Riemann sum (aka the rectangle rule).
 """
 struct RiemannEnumerationIntegrator <: AbilityIntegrator end
 
-function (integrator::RiemannEnumerationIntegrator)(
-    f::F,
-    ability_likelihood::AbilityLikelihood;
-    lo=-6.0,
-    hi=6.0,
-    irf_states_storage=nothing
-) where {F}
+function (integrator::RiemannEnumerationIntegrator)(f::F,
+        ability_likelihood::AbilityLikelihood;
+        lo = -6.0,
+        hi = 6.0,
+        irf_states_storage = nothing) where {F}
     result::Ref{Float64} = Ref(0.0)
-    cb_abil_given_resps(ability_likelihood.responses, ability_likelihood.items; lo=lo, hi=hi, irf_states_storage=irf_states_storage) do (x, prob)
+    cb_abil_given_resps(ability_likelihood.responses,
+        ability_likelihood.items;
+        lo = lo,
+        hi = hi,
+        irf_states_storage = irf_states_storage) do (x, prob)
         # @inline 
         result[] += f(x) * prob
     end
     result[]
 end
 
-function (integrator::Union{RiemannEnumerationIntegrator, FunctionIntegrator})(
-    f::F,
-    ncomp,
-    est,
-    tracked_responses::TrackedResponses;
-    kwargs...
-) where {F}
-    integrator(maybe_apply_prior(f, est), ncomp, AbilityLikelihood(tracked_responses); kwargs...)
+function (integrator::Union{RiemannEnumerationIntegrator, FunctionIntegrator})(f::F,
+        ncomp,
+        est,
+        tracked_responses::TrackedResponses;
+        kwargs...) where {F}
+    integrator(maybe_apply_prior(f, est),
+        ncomp,
+        AbilityLikelihood(tracked_responses);
+        kwargs...)
 end
 
-function (integrator::TrackedLikelihoodIntegrator)(
-    f::F,
-    ncomp,
-    est,
-    tracked_responses::TrackedResponses;
-    kwargs...
-) where {F}
+function (integrator::TrackedLikelihoodIntegrator)(f::F,
+        ncomp,
+        est,
+        tracked_responses::TrackedResponses;
+        kwargs...) where {F}
     # No need to apply prior here because it is already applied in the tracker
     integrator(f, ncomp; kwargs...)
 end

@@ -43,7 +43,5 @@ function preallocate_impl(obj)
     for fieldname in fieldnames(obj)
         push!(recursives, :($fieldname = preallocate(obj.$fieldname)))
     end
-    return :($(constructorof(obj))(
-        $(recursives...)
-    ))
+    return :($(constructorof(obj))($(recursives...)))
 end

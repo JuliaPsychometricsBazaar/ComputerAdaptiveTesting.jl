@@ -8,7 +8,7 @@ function ClosedFormNormalAbilityTracker(prior_ability_estimator::PriorAbilityEst
     if !(prior isa Normal)
         error("ClosedFormNormalAbilityTracker only works with Normal priors")
     end
-    ClosedFormNormalAbilityTracker(VarNormal(prior.μ, prior.σ ^ 2))
+    ClosedFormNormalAbilityTracker(VarNormal(prior.μ, prior.σ^2))
 end
 
 function ClosedFormNormalAbilityTracker(mean, var)
@@ -18,11 +18,9 @@ end
 function track!(responses, ability_tracker::ClosedFormNormalAbilityTracker)
     resp_idx = responses.responses.indices[end]
     resp_val = responses.responses.values[end]
-    ability_tracker.cur_ability = update_normal_approx(
-        ability_tracker.cur_ability,
+    ability_tracker.cur_ability = update_normal_approx(ability_tracker.cur_ability,
         item_params(responses.item_bank, resp_idx),
-        resp_val
-    )
+        resp_val)
 end
 
 ϕ(x) = Distributions.pdf(std_normal, x)
@@ -49,22 +47,23 @@ function update_normal_approx(ability, new_item, response)
     end
     new_var = var * factor
     =#
-    ξ = (b - mean) / sqrt(a ^ -2 + var)
+    ξ = (b - mean) / sqrt(a^-2 + var)
     if response > 0
         # Liden 1998 has the following but Owen 1975 put the sign the other way
         #ζ = c + (1 - c) * Φ(ξ)
         ζ = c + (1 - c) * Φ(-ξ)
         # This ζ is expanded in both Linden and Owen
-        mean_shift = (1 - c) * var * (a ^ -2 + var) ^ -0.5 * ϕ(ξ) * ζ
-        var_factor = 1 - (1 - c) * (1 + a ^ -2 * var ^ -1) ^ -1 * ϕ(ξ) * ((1 - c) * ϕ(ξ) / ζ - ξ) / ζ
+        mean_shift = (1 - c) * var * (a^-2 + var)^-0.5 * ϕ(ξ) * ζ
+        var_factor = 1 -
+                     (1 - c) * (1 + a^-2 * var^-1)^-1 * ϕ(ξ) * ((1 - c) * ϕ(ξ) / ζ - ξ) / ζ
         @info "U=1" mean_shift var_factor
     else
         # Liden 1998 has the following but Owen 1975 divided instead of multipied
         #mean_shift = -(var * (a ^ -2 + var) ^ -0.5 * ϕ(ξ) * Φ(ξ))
-        mean_shift = -(var * (a ^ -2 + var) ^ -0.5 * ϕ(ξ) / Φ(ξ))
+        mean_shift = -(var * (a^-2 + var)^-0.5 * ϕ(ξ) / Φ(ξ))
         # In Linden 1998 the ϕ(ξ) term is missing versus Owen 1975
         # var_factor = 1 - (1 + a ^ -2 * var ^ -1) ^ -1 * (ϕ(ξ) / Φ(ξ) + ξ) / Φ(ξ)
-        var_factor = 1 - (1 + a ^ -2 * var ^ -1) ^ -1 * ϕ(ξ) * (ϕ(ξ) / Φ(ξ) + ξ) / Φ(ξ)
+        var_factor = 1 - (1 + a^-2 * var^-1)^-1 * ϕ(ξ) * (ϕ(ξ) / Φ(ξ) + ξ) / Φ(ξ)
         @info "U=0" mean_shift var_factor
     end
     new_mean = mean + mean_shift

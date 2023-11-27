@@ -24,12 +24,10 @@ Base.@kwdef mutable struct TreePosition
 end
 
 function TreePosition(max_depth)
-    TreePosition(
-        max_depth=max_depth,
-        cur_depth=0,
-        todo=PushVector{AgendaItem}(max_depth),
-        parent_ability=0.0
-    )
+    TreePosition(max_depth = max_depth,
+        cur_depth = 0,
+        todo = PushVector{AgendaItem}(max_depth),
+        parent_ability = 0.0)
 end
 
 function next!(state::TreePosition, responses, item_bank, question, ability)
@@ -37,7 +35,7 @@ function next!(state::TreePosition, responses, item_bank, question, ability)
     if state.cur_depth < state.max_depth
         state.parent_ability = ability
         state.cur_depth += 1
-        push!(state.todo, AgendaItem(depth=state.cur_depth, ability=ability))
+        push!(state.todo, AgendaItem(depth = state.cur_depth, ability = ability))
         add_response!(responses, Response(ResponseType(item_bank), question, false))
     else
         # Try to back track
@@ -64,7 +62,10 @@ Base.@kwdef struct MaterializedDecisionTree{QT <: AbstractVector, AT <: Abstract
     ability_estimates::AT # e.g. Vector{Float64}
 end
 
-const DefaultMaterializedDecisionTree = MaterializedDecisionTree{Vector{UInt32}, Vector{Float64}}
+const DefaultMaterializedDecisionTree = MaterializedDecisionTree{
+    Vector{UInt32},
+    Vector{Float64},
+}
 
 function tree_size(max_depth)
     2^(max_depth + 1) - 1
@@ -75,14 +76,13 @@ function max_depth(tree_size)
 end
 
 function MaterializedDecisionTree(max_depth)
-    MaterializedDecisionTree(
-        questions=Vector{UInt32}(undef, tree_size(max_depth)),
-        ability_estimates=Vector{Float64}(undef, tree_size(max_depth + 1))
-    )
+    MaterializedDecisionTree(questions = Vector{UInt32}(undef, tree_size(max_depth)),
+        ability_estimates = Vector{Float64}(undef, tree_size(max_depth + 1)))
 end
 
 function responses_idx(responses)
-    (length(responses.indices) > 0 ? evalpoly(2, responses.values) : 0) + 2^length(responses.indices)
+    (length(responses.indices) > 0 ? evalpoly(2, responses.values) : 0) +
+    2^length(responses.indices)
 end
 
 function Base.insert!(dt::MaterializedDecisionTree, responses, ability, next_item)
@@ -99,7 +99,7 @@ end
 Base.@kwdef struct DecisionTreeGenerationConfig{
     NextItemRuleT <: NextItemRule,
     AbilityEstimatorT <: AbilityEstimator,
-    AbilityTrackerT <: AbilityTracker
+    AbilityTrackerT <: AbilityTracker,
 } <: CatConfigBase
     """
     xx
@@ -122,11 +122,9 @@ end
 function generate_dt_cat(config::DecisionTreeGenerationConfig, item_bank)
     state_tree = TreePosition(config.max_depth)
     decision_tree_result = MaterializedDecisionTree(config.max_depth)
-    responses = TrackedResponses(
-        BareResponses(ResponseType(item_bank)),
+    responses = TrackedResponses(BareResponses(ResponseType(item_bank)),
         item_bank,
-        config.ability_tracker
-    )
+        config.ability_tracker)
     while true
         track!(responses, config.ability_tracker)
         ability = config.ability_estimator(responses)
@@ -165,7 +163,8 @@ end
 include("./mmap.jl")
 include("./sim.jl")
 
-export generate_dt_cat, MaterializedDecisionTree, DecisionTreeGenerationConfig, next_item, ability_estimate
+export generate_dt_cat,
+    MaterializedDecisionTree, DecisionTreeGenerationConfig, next_item, ability_estimate
 export save_mmap, load_mmap
 
 end

@@ -27,8 +27,6 @@ function load_mmap(t::Type, path::String, name)
 end
 
 function load_mmap(path::String)
-    MaterializedDecisionTree(
-        questions=load_mmap(Vector{UInt32}, path, "questions"),
-        ability_estimates=load_mmap(Vector{Float64}, path, "ability_estimates")
-    )
+    MaterializedDecisionTree(questions = load_mmap(Vector{UInt32}, path, "questions"),
+        ability_estimates = load_mmap(Vector{Float64}, path, "ability_estimates"))
 end

@@ -1,5 +1,6 @@
-mutable struct PointAbilityTracker{AbilityEstimatorT <: PointAbilityEstimator, AbilityT} <: AbilityTracker
-    ability_estimator::AbilityEstimatorT 
+mutable struct PointAbilityTracker{AbilityEstimatorT <: PointAbilityEstimator, AbilityT} <:
+               AbilityTracker
+    ability_estimator::AbilityEstimatorT
     cur_ability::AbilityT
 end
 

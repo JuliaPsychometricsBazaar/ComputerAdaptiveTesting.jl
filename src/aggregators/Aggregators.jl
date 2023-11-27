@@ -27,7 +27,8 @@ import PsychometricsBazaarBase.IntegralCoeffs
 export AbilityEstimator, TrackedResponses
 export AbilityTracker, NullAbilityTracker, PointAbilityTracker, GriddedAbilityTracker
 export ClosedFormNormalAbilityTracker, MultiAbilityTracker, track!
-export response_expectation, add_response!, pop_response!, expectation, distribution_estimator
+export response_expectation,
+    add_response!, pop_response!, expectation, distribution_estimator
 export PointAbilityEstimator, PriorAbilityEstimator, LikelihoodAbilityEstimator
 export ModeAbilityEstimator, MeanAbilityEstimator
 export Speculator, replace_speculation!, normdenom, maybe_tracked_ability_estimate
@@ -40,7 +41,7 @@ export variance, variance_given_mean, mean_1d
 # XXX: Does having a common supertype of DistributionAbilityEstimator and PointAbilityEstimator make sense?
 abstract type AbilityEstimator <: CatConfigBase end
 
-function AbilityEstimator(bits...; ability_estimator=nothing, ability_tracker=nothing)
+function AbilityEstimator(bits...; ability_estimator = nothing, ability_tracker = nothing)
     @returnsome ability_estimator
     @returnsome find1_instance(AbilityEstimator, bits)
     item_bank = find1_type_sloppy(AbstractItemBank, bits)
@@ -50,7 +51,8 @@ function AbilityEstimator(bits...; ability_estimator=nothing, ability_tracker=no
 end
 AbilityEstimator(::DomainType) = nothing
 function AbilityEstimator(::ContinuousDomain, bits...)
-    @returnsome Integrator(bits...) integrator -> MeanAbilityEstimator(LikelihoodAbilityEstimator(), integrator)
+    @returnsome Integrator(bits...) integrator->MeanAbilityEstimator(LikelihoodAbilityEstimator(),
+        integrator)
 end
 
 abstract type DistributionAbilityEstimator <: AbilityEstimator end
@@ -73,7 +75,7 @@ end
 
 abstract type AbilityTracker <: CatConfigBase end
 
-function AbilityTracker(bits...; integrator=nothing, ability_estimator=nothing)
+function AbilityTracker(bits...; integrator = nothing, ability_estimator = nothing)
     @returnsome find1_instance(AbilityTracker, bits)
     ability_tracker = find1_type(AbilityTracker, bits)
     if (ability_tracker !== nothing)
@@ -87,17 +89,20 @@ function AbilityTracker(bits...; integrator=nothing, ability_estimator=nothing)
 end
 
 function compatible_tracker(bits...; integrator, ability_estimator, prefer_tracked)
-    ability_tracker = AbilityTracker(bits...; ability_estimator=ability_estimator)
-    if ability_tracker isa GriddedAbilityTracker && ability_tracker.integrator === integrator
+    ability_tracker = AbilityTracker(bits...; ability_estimator = ability_estimator)
+    if ability_tracker isa GriddedAbilityTracker &&
+       ability_tracker.integrator === integrator
         return ability_tracker
     end
     if prefer_tracked
-        return AbilityTracker(bits...; integrator=integrator, ability_estimator=ability_estimator)
+        return AbilityTracker(bits...;
+            integrator = integrator,
+            ability_estimator = ability_estimator)
     end
 end
 
 abstract type AbilityIntegrator <: CatConfigBase end
-function AbilityIntegrator(bits...; ability_estimator=nothing, prefer_tracked=false)
+function AbilityIntegrator(bits...; ability_estimator = nothing, prefer_tracked = false)
     @returnsome find1_instance(AbilityIntegrator, bits)
     zero_arg_intergrators = find1_type(RiemannEnumerationIntegrator, bits)
     if (zero_arg_intergrators !== nothing)
@@ -107,12 +112,10 @@ function AbilityIntegrator(bits...; ability_estimator=nothing, prefer_tracked=fa
     if integrator === nothing
         return nothing
     end
-    tracker = compatible_tracker(
-        bits...;
-        integrator=integrator,
-        ability_estimator=ability_estimator,
-        prefer_tracked=prefer_tracked
-    )
+    tracker = compatible_tracker(bits...;
+        integrator = integrator,
+        ability_estimator = ability_estimator,
+        prefer_tracked = prefer_tracked)
     if tracker !== nothing
         TrackedLikelihoodIntegrator(integrator, tracker)
     else
@@ -121,35 +124,40 @@ function AbilityIntegrator(bits...; ability_estimator=nothing, prefer_tracked=fa
 end
 
 abstract type AbilityOptimizer end
-function AbilityOptimizer(bits...; ability_estimator=nothing)
+function AbilityOptimizer(bits...; ability_estimator = nothing)
     @returnsome find1_instance(AbilityOptimizer, bits)
     zero_arg_optimizers = find1_type(EnumerationOptimizer, bits)
     if (zero_arg_optimizers !== nothing)
         return EnumerationOptimizer()
     end
-    @returnsome Optimizer(bits...) optimizer -> FunctionOptimizer(optimizer)
+    @returnsome Optimizer(bits...) optimizer->FunctionOptimizer(optimizer)
 end
 
 @with_kw struct TrackedResponses{
     BareResponsesT <: BareResponses,
     ItemBankT <: AbstractItemBank,
-    AbilityTrackerT <: AbilityTracker
+    AbilityTrackerT <: AbilityTracker,
 }
     responses::BareResponsesT
     item_bank::ItemBankT
     ability_tracker::AbilityTrackerT = NullAbilityTracker()
 end
 
-TrackedResponses(responses, item_bank) = TrackedResponses(responses, item_bank, NullAbilityTracker())
+function TrackedResponses(responses, item_bank)
+    TrackedResponses(responses, item_bank, NullAbilityTracker())
+end
 
-function Responses.AbilityLikelihood(
-    tracked_responses::TrackedResponses{BareResponsesT, ItemBankT, AbilityTrackerT}
-) where {
-    BareResponsesT <: BareResponses,
-    ItemBankT <: AbstractItemBank,
-    AbilityTrackerT <: AbilityTracker
-}
-    Responses.AbilityLikelihood{ItemBankT, BareResponsesT}(tracked_responses.item_bank, tracked_responses.responses)
+function Responses.AbilityLikelihood(tracked_responses::TrackedResponses{
+        BareResponsesT,
+        ItemBankT,
+        AbilityTrackerT,
+    }) where {
+        BareResponsesT <: BareResponses,
+        ItemBankT <: AbstractItemBank,
+        AbilityTrackerT <: AbilityTracker,
+    }
+    Responses.AbilityLikelihood{ItemBankT, BareResponsesT}(tracked_responses.item_bank,
+        tracked_responses.responses)
 end
 
 function Base.length(responses::TrackedResponses)

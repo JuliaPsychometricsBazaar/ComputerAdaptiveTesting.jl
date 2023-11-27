@@ -15,7 +15,7 @@ include("./vendor/PushVectors.jl")
 
 # Config base
 include("./ConfigBase.jl")
-    
+
 # Base
 include("./Responses.jl")
 

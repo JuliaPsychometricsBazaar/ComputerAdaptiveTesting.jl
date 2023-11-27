@@ -29,27 +29,21 @@ function pop_response!(tracked_responses::TrackedResponses)::TrackedResponses
     tracked_responses
 end
 
-function response_expectation(
-    ability_estimator::DistributionAbilityEstimator,
-    integrator::AbilityIntegrator,
-    tracked_responses::TrackedResponses,
-    item_idx
-)
-    exp1 = expectation(
-        ItemResponse(tracked_responses.item_bank, item_idx),
+function response_expectation(ability_estimator::DistributionAbilityEstimator,
+        integrator::AbilityIntegrator,
+        tracked_responses::TrackedResponses,
+        item_idx)
+    exp1 = expectation(ItemResponse(tracked_responses.item_bank, item_idx),
         0,
         integrator,
         ability_estimator,
-        tracked_responses,
-    )
+        tracked_responses)
     SVector(1.0 - exp1, exp1)
 end
 
-function response_expectation(
-    ability_estimator::PointAbilityEstimator,
-    tracked_responses::TrackedResponses,
-    item_idx
-)
+function response_expectation(ability_estimator::PointAbilityEstimator,
+        tracked_responses::TrackedResponses,
+        item_idx)
     # TODO: use existing θ when a compatible θ tracker is used
     θ_estimate = ability_estimator(tracked_responses)
     resp_vec(ItemResponse(tracked_responses.item_bank, item_idx), θ_estimate)
@@ -84,14 +78,10 @@ include("./ability_trackers/multi.jl")
 This method returns a tracked point estimate if it is has the given ability
 estimator, otherwise it computes it using the given ability estimator.
 """
-function maybe_tracked_ability_estimate(
-    tracked_responses::TrackedResponses,
-    ability_estimator
-)
-    if (
-        (tracked_responses.ability_tracker isa PointAbilityTracker) &&
-        (tracked_responses.ability_tracker.ability_estimator === ability_estimator)
-    )
+function maybe_tracked_ability_estimate(tracked_responses::TrackedResponses,
+        ability_estimator)
+    if ((tracked_responses.ability_tracker isa PointAbilityTracker) &&
+        (tracked_responses.ability_tracker.ability_estimator === ability_estimator))
         tracked_responses.ability_tracker.cur_ability
     else
         ability_estimator(tracked_responses)

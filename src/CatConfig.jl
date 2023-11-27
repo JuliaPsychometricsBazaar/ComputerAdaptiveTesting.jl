@@ -11,7 +11,6 @@ using ..NextItemRules: NextItemRule
 using ..TerminationConditions: TerminationCondition
 using ..ConfigBase
 
-
 """
 $(TYPEDEF)
 $(TYPEDFIELDS)
@@ -35,7 +34,7 @@ Implicit constructor for $(FUNCTIONNAME).
     NextItemRuleT <: NextItemRule,
     TerminationConditionT <: TerminationCondition,
     AbilityEstimatorT <: AbilityEstimator,
-    AbilityTrackerT <: AbilityTracker
+    AbilityTrackerT <: AbilityTracker,
 } <: CatConfigBase
     """
     The rule to choose the next item in the CAT given the current state.
@@ -61,7 +60,7 @@ end
 
 function _find_ability_estimator_and_tracker(bits...)
     ability_estimator = AbilityEstimator(bits...)
-    ability_tracker = AbilityTracker(bits...; ability_estimator=ability_estimator)
+    ability_tracker = AbilityTracker(bits...; ability_estimator = ability_estimator)
     (ability_estimator, ability_tracker)
 end
 
@@ -101,7 +100,9 @@ function CatRules(bits...)
     if ability_tracker === nothing
         error("Could not find an ability tracker in $(bits)")
     end
-    next_item = NextItemRule(bits..., ability_estimator=ability_estimator, ability_tracker=ability_tracker)
+    next_item = NextItemRule(bits...,
+        ability_estimator = ability_estimator,
+        ability_tracker = ability_tracker)
     if next_item === nothing
         error("Could not find a next item rule in $(bits)")
     end
@@ -110,11 +111,10 @@ function CatRules(bits...)
         error("Could not find a termination condition in $(bits)")
     end
     CatRules(;
-        next_item=next_item,
-        termination_condition=termination_condition,
-        ability_estimator=ability_estimator,
-        ability_tracker=collect_trackers(next_item, ability_tracker)
-    )
+        next_item = next_item,
+        termination_condition = termination_condition,
+        ability_estimator = ability_estimator,
+        ability_tracker = collect_trackers(next_item, ability_tracker))
 end
 
 """
@@ -129,7 +129,7 @@ Configuration for a simulatable CAT.
     The function (index, label) -> Int8 which obtains the testee's response for
     a given question, e.g. by prompting or simulation from data.
     """
-    get_response
+    get_response::Any
     """
     A callback called each time there is a new responses
     """

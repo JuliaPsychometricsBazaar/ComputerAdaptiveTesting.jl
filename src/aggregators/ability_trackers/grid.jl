@@ -1,10 +1,14 @@
-struct GriddedAbilityTracker{AbilityEstimatorT <: DistributionAbilityEstimator, IntegratorT} <: AbilityTracker
-    ability_estimator::AbilityEstimatorT 
+struct GriddedAbilityTracker{
+    AbilityEstimatorT <: DistributionAbilityEstimator,
+    IntegratorT,
+} <: AbilityTracker
+    ability_estimator::AbilityEstimatorT
     integrator::IntegratorT
     cur_ability::Vector{Float64}
 end
 
-function GriddedAbilityTracker(ability_estimator::DistributionAbilityEstimator, integrator::FixedGridIntegrator)
+function GriddedAbilityTracker(ability_estimator::DistributionAbilityEstimator,
+        integrator::FixedGridIntegrator)
     GriddedAbilityTracker(ability_estimator, integrator, fill(NaN, length(integrator.grid)))
 end
 

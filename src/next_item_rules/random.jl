@@ -7,7 +7,7 @@ picks a random item from the set of items that have not yet been
 administered.
 """
 @with_kw struct RandomNextItemRule{RandomT <: AbstractRNG} <: NextItemRule
-    rng::RandomT=Xoshiro()
+    rng::RandomT = Xoshiro()
 end
 
 #=

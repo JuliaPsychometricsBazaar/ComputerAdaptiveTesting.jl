@@ -22,7 +22,8 @@ using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.Sim: auto_responder
 using ComputerAdaptiveTesting.NextItemRules: DRuleItemCriterion
 using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
-using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEstimator, LikelihoodAbilityEstimator
+using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator,
+    MeanAbilityEstimator, LikelihoodAbilityEstimator
 using FittedItemBanks
 import PsychometricsBazaarBase.IntegralCoeffs
 using PsychometricsBazaarBase.Integrators
@@ -38,45 +39,45 @@ dims = 2
 using FittedItemBanks.DummyData: dummy_full, std_mv_normal, SimpleItemBankSpec, StdModel4PL
 using ComputerAdaptiveTesting.Responses: BooleanResponse
 # TODO: pass in dims
-(item_bank, abilities, responses) = dummy_full(
-    Random.default_rng(42),
+(item_bank, abilities, responses) = dummy_full(Random.default_rng(42),
     SimpleItemBankSpec(StdModel4PL(), VectorContinuousDomain(), BooleanResponse()),
     dims;
-    num_questions=10,
-    num_testees=2
-)
+    num_questions = 10,
+    num_testees = 2)
 
 # Simulate a CAT for each testee and record it using CatRecorder.
 # CatRecorder collects information which can be used to draw different types of plots.
 max_questions = 9
-integrator = CubaIntegrator([-6.0, -6.0], [6.0, 6.0], CubaVegas(); rtol=1e-2)
-ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(dims)), integrator)
-rules = CatRules(
-    ability_estimator,
+integrator = CubaIntegrator([-6.0, -6.0], [6.0, 6.0], CubaVegas(); rtol = 1e-2)
+ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(dims)),
+    integrator)
+rules = CatRules(ability_estimator,
     DRuleItemCriterion(ability_estimator),
-    FixedItemsTerminationCondition(max_questions)
-)
+    FixedItemsTerminationCondition(max_questions))
 
 # XXX: We shouldn't need to specify xs here since the distributions are not used -- rework
 points = 3
-xs = repeat(range(-2.5, 2.5, length=points)', dims, 1)
+xs = repeat(range(-2.5, 2.5, length = points)', dims, 1)
 raw_estimator = LikelihoodAbilityEstimator()
-recorder = CatRecorder(xs, responses, integrator, raw_estimator, ability_estimator, abilities)
+recorder = CatRecorder(xs,
+    responses,
+    integrator,
+    raw_estimator,
+    ability_estimator,
+    abilities)
 for testee_idx in axes(responses, 2)
     @debug "Running for testee" testee_idx
-    tracked_responses, θ = run_cat(
-        CatLoopConfig(
-            rules=rules,
-            get_response=auto_responder(@view responses[:, testee_idx]),
-            new_response_callback=(tracked_responses, terminating) -> recorder(tracked_responses, testee_idx, terminating),
-        ),
-        item_bank
-    )
+    tracked_responses, θ = run_cat(CatLoopConfig(rules = rules,
+            get_response = auto_responder(@view responses[:, testee_idx]),
+            new_response_callback = (tracked_responses, terminating) -> recorder(tracked_responses,
+                testee_idx,
+                terminating)),
+        item_bank)
     true_θ = abilities[:, testee_idx]
     abs_err = sum(abs.(θ .- true_θ))
     @info "convergence" true_θ θ abs_err
 end
 
 # Make a plot showing how the estimated value converges during the CAT.
-conv_lines_fig = ability_convergence_lines(recorder; abilities=abilities)
-conv_lines_fig 
+conv_lines_fig = ability_convergence_lines(recorder; abilities = abilities)
+conv_lines_fig

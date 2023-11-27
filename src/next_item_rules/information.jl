@@ -1,14 +1,12 @@
-using FittedItemBanks: CdfMirtItemBank, GuessItemBank, SlipItemBank, TransferItemBank, AnySlipOrGuessItemBank
+using FittedItemBanks: CdfMirtItemBank,
+    GuessItemBank, SlipItemBank, TransferItemBank, AnySlipOrGuessItemBank
 using FittedItemBanks: inner_item_response, norm_abil, y_offset, irf_size
 using StatsFuns: logaddexp
 
-
 function log_resp_vec(ir::ItemResponse{<:CdfMirtItemBank}, θ)
-    nθ =  norm_abil(ir, θ)
-    SVector(
-        logccdf(ir.item_bank.distribution, nθ),
-        logcdf(ir.item_bank.distribution, nθ)
-    )
+    nθ = norm_abil(ir, θ)
+    SVector(logccdf(ir.item_bank.distribution, nθ),
+        logcdf(ir.item_bank.distribution, nθ))
 end
 
 function log_resp(ir::ItemResponse{<:CdfMirtItemBank}, val, θ)
@@ -80,7 +78,7 @@ function expected_item_information(ir::ItemResponse, θ::Vector{Float64})
     exp_resp = resp_vec(ir, θ)
     n = domdims(ir.item_bank)
     hess = vector_hessian(θ -> log_resp_vec(ir, θ), θ, n)
-    -dropdims(sum((exp_resp .* (@view hess[2, :, :])), dims=1), dims=1)
+    -dropdims(sum((exp_resp .* (@view hess[2, :, :])), dims = 1), dims = 1)
 end
 
 function known_item_information(ir::ItemResponse, resp_value, θ)
@@ -89,12 +87,8 @@ end
 
 function responses_information(item_bank::AbstractItemBank, responses::BareResponses, θ)
     d = domdims(item_bank)
-    reduce(
-        .+,
-        (
-            known_item_information(ItemResponse(item_bank, resp_idx), resp_value > 0, θ)
-            for (resp_idx, resp_value)
-            in zip(responses.indices, responses.values)
-        ); init=zeros(d, d)
-    )
+    reduce(.+,
+        (known_item_information(ItemResponse(item_bank, resp_idx), resp_value > 0, θ)
+         for (resp_idx, resp_value)
+        in zip(responses.indices, responses.values)); init = zeros(d, d))
 end
