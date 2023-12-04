@@ -10,7 +10,7 @@ build_demos = !("SKIP_DEMOS" in keys(ENV))
 
 DocMeta.setdocmeta!(ComputerAdaptiveTesting,
     :DocTestSetup,
-    :(using ComputerAdaptiveTesting; using AdaptiveTestPlots);
+    :(using ComputerAdaptiveTesting);
     recursive = true)
 
 if build_demos
@@ -27,7 +27,7 @@ format = Documenter.HTML(prettyurls = get(ENV, "CI", "false") == "true",
     assets = assets)
 
 makedocs(;
-    modules = [ComputerAdaptiveTesting, AdaptiveTestPlots],
+    modules = [ComputerAdaptiveTesting],
     authors = "Frankie Robertson",
     repo = GitHub("JuliaPsychometricsBazaar", "ComputerAdaptiveTesting.jl"),
     sitename = "ComputerAdaptiveTesting.jl",
