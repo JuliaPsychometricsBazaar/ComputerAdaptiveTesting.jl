@@ -16,7 +16,7 @@ using ItemResponseDatasets.VocabIQ
 using RIrtWrappers.Mirt
 
 function get_item_bank()
-    fit_4pl(get_marked_df_cached(); TOL=1e-2)
+    fit_4pl(get_marked_df_cached(); TOL = 1e-2)
 end
 
 function run_vocab_iq_cat()
@@ -27,11 +27,9 @@ function run_vocab_iq_cat()
     optimizer = AbilityOptimizer(OneDimOptimOptimizer(-6.0, 6.0, NelderMead()))
     ability_estimator = ModeAbilityEstimator(dist_ability_est, optimizer)
     @info &quot;run_cat&quot; ability_estimator
-    rules = CatRules(
-        ability_estimator,
+    rules = CatRules(ability_estimator,
         AbilityVarianceStateCriterion(dist_ability_est, ability_integrator),
-        FixedItemsTerminationCondition(45)
-    )
+        FixedItemsTerminationCondition(45))
     function get_response(response_idx, response_name)
         params = item_params(item_bank, response_idx)
         println(&quot;Parameters for next question: $params&quot;)
@@ -44,16 +42,17 @@ function run_vocab_iq_cat()
             println(&quot;Wrong&quot;)
         end
         ability = ability_estimator(tracked_responses)
-        var = variance_given_mean(ability_integrator, dist_ability_est, tracked_responses, ability)
+        var = variance_given_mean(ability_integrator,
+            dist_ability_est,
+            tracked_responses,
+            ability)
         println(&quot;Got ability estimate: $ability ± $var&quot;)
         println(&quot;&quot;)
     end
-    loop_config = CatLoopConfig(
-        rules=rules,
-        get_response=get_response,
-        new_response_callback=new_response_callback
-    )
+    loop_config = CatLoopConfig(rules = rules,
+        get_response = get_response,
+        new_response_callback = new_response_callback)
     run_cat(loop_config, item_bank)
 end
 
-run_vocab_iq_cat()</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/JuliaDocs/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.0.0 on <span class="colophon-date" title="Friday 24 November 2023 11:58">Friday 24 November 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+run_vocab_iq_cat()</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/JuliaDocs/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.0.0 on <span class="colophon-date" title="Monday 4 December 2023 09:09">Monday 4 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

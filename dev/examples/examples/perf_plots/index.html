@@ -6,122 +6,103 @@ using DataFrames
 using CategoricalArrays: levels
 using IterTools: chain
 using ComputerAdaptiveTesting
-using CATPlots
-using CATPlots: LabelledToggleGrid, MenuGrid
+using AdaptiveTestPlots
+using AdaptiveTestPlots: LabelledToggleGrid, MenuGrid
 
 DOCS_DATA = pkgdir(ComputerAdaptiveTesting) * &quot;/docs/data/&quot;
 
 @automakie()
 
-df = CSV.read(
-	(DOCS_DATA * &quot;integrator_benchmark_results.csv&quot;),
-	DataFrame;
-	types=Dict(
-		&quot;value&quot; =&gt; Float64,
-		&quot;err&quot; =&gt; Float64,
-		&quot;bytes&quot; =&gt; Int64,
-		&quot;response&quot; =&gt; Int32,
-		&quot;item_bank&quot; =&gt; Int32,
-		&quot;dim&quot; =&gt; Int32,
-		&quot;trial&quot; =&gt; Int32,
-		&quot;time&quot; =&gt; Float64,
-		&quot;gctime&quot; =&gt; Float64,
-		&quot;rtol&quot; =&gt; Float64,
-	)
-)
+df = CSV.read((DOCS_DATA * &quot;integrator_benchmark_results.csv&quot;),
+    DataFrame;
+    types = Dict(&quot;value&quot; =&gt; Float64,
+        &quot;err&quot; =&gt; Float64,
+        &quot;bytes&quot; =&gt; Int64,
+        &quot;response&quot; =&gt; Int32,
+        &quot;item_bank&quot; =&gt; Int32,
+        &quot;dim&quot; =&gt; Int32,
+        &quot;trial&quot; =&gt; Int32,
+        &quot;time&quot; =&gt; Float64,
+        &quot;gctime&quot; =&gt; Float64,
+        &quot;rtol&quot; =&gt; Float64))
 
 function plot(df)
-	fig = Figure()
-	ax = Axis(fig[1, 1])
+    fig = Figure()
+    ax = Axis(fig[1, 1])
 
-	groupables = [&quot;item_bank&quot;, &quot;response&quot;, &quot;trial&quot;, &quot;dim&quot;, &quot;integrator&quot;]
-	regressables = [&quot;integrator&quot;, &quot;dim&quot;, &quot;rtol&quot;, &quot;value&quot;, &quot;err&quot;, &quot;bytes&quot;, &quot;gctime&quot;]
+    groupables = [&quot;item_bank&quot;, &quot;response&quot;, &quot;trial&quot;, &quot;dim&quot;, &quot;integrator&quot;]
+    regressables = [&quot;integrator&quot;, &quot;dim&quot;, &quot;rtol&quot;, &quot;value&quot;, &quot;err&quot;, &quot;bytes&quot;, &quot;gctime&quot;]
 
-	Menu(fig, options = [&quot;none&quot;, groupables...], default = &quot;none&quot;)
-	toggles = []
-	sliders = []
-	slider_idxs = []
-	menus = []
-	menu_idxs = []
-	for (idx, groupable) in enumerate(groupables)
-		push!(toggles, (
-			label = groupable,
-		))
-		opts = sort(levels(df[!, groupable]))
-		if eltype(opts) &lt;: AbstractString
-			push!(slider_idxs, idx)
-			push!(menus, (
-				label = groupable,
-				options = opts
-			))
-		else
-			push!(menu_idxs, idx)
-			push!(sliders, (
-				label = groupable,
-				range = opts
-			))
-		end
-	end
-	tgrid = LabelledToggleGrid(
-		fig,
-		toggles...,
-		width = 350,
-		tellheight = false
-	)
-	lsgrid = SliderGrid(
-		fig,
-		sliders...,
-		width = 350,
-		tellheight = false
-	)
-	mgrid = MenuGrid(
-		fig,
-		menus...,
-		width = 350,
-		tellheight = false
-	)
+    Menu(fig, options = [&quot;none&quot;, groupables...], default = &quot;none&quot;)
+    toggles = []
+    sliders = []
+    slider_idxs = []
+    menus = []
+    menu_idxs = []
+    for (idx, groupable) in enumerate(groupables)
+        push!(toggles, (label = groupable,))
+        opts = sort(levels(df[!, groupable]))
+        if eltype(opts) &lt;: AbstractString
+            push!(slider_idxs, idx)
+            push!(menus, (label = groupable,
+                options = opts))
+        else
+            push!(menu_idxs, idx)
+            push!(sliders, (label = groupable,
+                range = opts))
+        end
+    end
+    tgrid = LabelledToggleGrid(fig,
+        toggles...,
+        width = 350,
+        tellheight = false)
+    lsgrid = SliderGrid(fig,
+        sliders...,
+        width = 350,
+        tellheight = false)
+    mgrid = MenuGrid(fig,
+        menus...,
+        width = 350,
+        tellheight = false)
 
-	working_df = Observable(nothing)
-	function update_working_df(_)
-		df_prime = df
-		slider_menu_vals = Vector{Any}(undef, length(sliders) + length(menus))
-		slider_menu_vals[slider_idxs] = [slider.value for slider in lsgrid.sliders]
-		slider_menu_vals[menu_idxs] = [menu.selection for menu in mgrid.menus]
-		for (groupable, toggle, value) in zip(groupables, tgrid.toggles, slider_menu_vals)
-			if !toggle.value
-				continue
-			end
-			df_prime = filter(working_df, groupable =&gt; value)
-		end
-		working_df[] = df_prime
-	end
+    working_df = Observable(nothing)
+    function update_working_df(_)
+        df_prime = df
+        slider_menu_vals = Vector{Any}(undef, length(sliders) + length(menus))
+        slider_menu_vals[slider_idxs] = [slider.value for slider in lsgrid.sliders]
+        slider_menu_vals[menu_idxs] = [menu.selection for menu in mgrid.menus]
+        for (groupable, toggle, value) in zip(groupables, tgrid.toggles, slider_menu_vals)
+            if !toggle.value
+                continue
+            end
+            df_prime = filter(working_df, groupable =&gt; value)
+        end
+        working_df[] = df_prime
+    end
 
-	for observable in chain(
-		(t.active for t in tgrid.toggles),
-		(s.value for s in lsgrid.sliders),
-		(m.selection for m in mgrid.menus)
-	)
-		on(update_working_df, observable)
-	end
+    for observable in chain((t.active for t in tgrid.toggles),
+        (s.value for s in lsgrid.sliders),
+        (m.selection for m in mgrid.menus))
+        on(update_working_df, observable)
+    end
 
-	x_var_menu = Menu(fig, options = regressables)
-	y_var_menu = Menu(fig, options = regressables)
-	coded_menu = Menu(fig, options = regressables)
+    x_var_menu = Menu(fig, options = regressables)
+    y_var_menu = Menu(fig, options = regressables)
+    coded_menu = Menu(fig, options = regressables)
 
-	xs = @lift($working_df !== nothing &amp;&amp; $(x_var_menu.selection) !== nothing ? $working_df[$(x_var_menu.selection)] : nothing)
-	ys = @lift($working_df !== nothing &amp;&amp; $(y_var_menu.selection) !== nothing ? $working_df[$(y_var_menu.selection)] : nothing)
+    xs = @lift($working_df !== nothing &amp;&amp; $(x_var_menu.selection) !== nothing ?
+               $working_df[$(x_var_menu.selection)] : nothing)
+    ys = @lift($working_df !== nothing &amp;&amp; $(y_var_menu.selection) !== nothing ?
+               $working_df[$(y_var_menu.selection)] : nothing)
 
-	scatter = @lift(
-		$xs !== nothing &amp;&amp; $ys !== nothing &amp;&amp; $(coded_menu.selection) !== nothing ?
-			lines!(
-				ax,
-				$xs,
-				$ys;
-				color=$(coded_menu.selection)
-			) : nothing
-	)
+    scatter = @lift($xs !== nothing &amp;&amp; $ys !== nothing &amp;&amp;
+                    $(coded_menu.selection) !== nothing ?
+                    lines!(ax,
+        $xs,
+        $ys;
+        color = $(coded_menu.selection)) : nothing)
 
-	fig
+    fig
 end
 
 plot(df)</code></pre><div data-jscall-id="11"><script data-jscall-id="12" type="text/javascript">
@@ -133,7 +114,7 @@ plot(df)</code></pre><div data-jscall-id="11"><script data-jscall-id="12" type="
             const uuid = event.data[0];
             const width = event.data[1];
             const height = event.data[2];
-            const iframe = document.getElementById('7a23378b-914e-4a1a-b694-28b926060cf6');
+            const iframe = document.getElementById('7acdeac0-0ae5-4d38-a873-b4ba19e34757');
             if (iframe) {
                 iframe.style.width = width + "px";
                 iframe.style.height = height + "px";
@@ -147,5 +128,5 @@ plot(df)</code></pre><div data-jscall-id="11"><script data-jscall-id="12" type="
     }
     register_resize_handler('http://127.0.0.1:9284')
 
-</script><iframe scrolling="no" id="7a23378b-914e-4a1a-b694-28b926060cf6" data-jscall-id="10" src="http://127.0.0.1:9284/7a23378b-914e-4a1a-b694-28b926060cf6" style="position: relative; display: block; width: 100%; height: 100%; padding: 0; overflow: hidden; border: none"></iframe></div>
-<hr/><p><em>This page was generated using <a href="https://github.com/JuliaDocs/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.0.0 on <span class="colophon-date" title="Friday 24 November 2023 11:58">Friday 24 November 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</script><iframe scrolling="no" id="7acdeac0-0ae5-4d38-a873-b4ba19e34757" data-jscall-id="10" src="http://127.0.0.1:9284/7acdeac0-0ae5-4d38-a873-b4ba19e34757" style="position: relative; display: block; width: 100%; height: 100%; padding: 0; overflow: hidden; border: none"></iframe></div>
+<hr/><p><em>This page was generated using <a href="https://github.com/JuliaDocs/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.0.0 on <span class="colophon-date" title="Monday 4 December 2023 09:09">Monday 4 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

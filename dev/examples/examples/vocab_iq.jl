@@ -15,7 +15,7 @@ using ItemResponseDatasets.VocabIQ
 using RIrtWrappers.Mirt
 
 function get_item_bank()
-    fit_4pl(get_marked_df_cached(); TOL=1e-2)
+    fit_4pl(get_marked_df_cached(); TOL = 1e-2)
 end
 
 function run_vocab_iq_cat()
@@ -26,11 +26,9 @@ function run_vocab_iq_cat()
     optimizer = AbilityOptimizer(OneDimOptimOptimizer(-6.0, 6.0, NelderMead()))
     ability_estimator = ModeAbilityEstimator(dist_ability_est, optimizer)
     @info "run_cat" ability_estimator
-    rules = CatRules(
-        ability_estimator,
+    rules = CatRules(ability_estimator,
         AbilityVarianceStateCriterion(dist_ability_est, ability_integrator),
-        FixedItemsTerminationCondition(45)
-    )
+        FixedItemsTerminationCondition(45))
     function get_response(response_idx, response_name)
         params = item_params(item_bank, response_idx)
         println("Parameters for next question: $params")
@@ -43,15 +41,16 @@ function run_vocab_iq_cat()
             println("Wrong")
         end
         ability = ability_estimator(tracked_responses)
-        var = variance_given_mean(ability_integrator, dist_ability_est, tracked_responses, ability)
+        var = variance_given_mean(ability_integrator,
+            dist_ability_est,
+            tracked_responses,
+            ability)
         println("Got ability estimate: $ability ± $var")
         println("")
     end
-    loop_config = CatLoopConfig(
-        rules=rules,
-        get_response=get_response,
-        new_response_callback=new_response_callback
-    )
+    loop_config = CatLoopConfig(rules = rules,
+        get_response = get_response,
+        new_response_callback = new_response_callback)
     run_cat(loop_config, item_bank)
 end
 

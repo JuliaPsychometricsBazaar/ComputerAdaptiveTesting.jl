@@ -8,44 +8,45 @@ using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.Sim: auto_responder
 using ComputerAdaptiveTesting.NextItemRules: DRuleItemCriterion
 using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
-using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator, MeanAbilityEstimator, LikelihoodAbilityEstimator
+using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator,
+    MeanAbilityEstimator, LikelihoodAbilityEstimator
 using FittedItemBanks
 import PsychometricsBazaarBase.IntegralCoeffs
 using PsychometricsBazaarBase.Integrators
 using PsychometricsBazaarBase.ConstDistributions: normal_scaled_logistic
-using CATPlots
+using AdaptiveTestPlots
 
 @automakie()</code></pre><p>Now we are read to generate our synthetic data using the supplied DummyData module. We generate an item bank with 100 items and fake responses for 3 testees.</p><pre><code class="language-julia hljs">dims = 2
 using FittedItemBanks.DummyData: dummy_full, std_mv_normal, SimpleItemBankSpec, StdModel4PL
-using ComputerAdaptiveTesting.Responses: BooleanResponse</code></pre><p>TODO: pass in dims</p><pre><code class="language-julia hljs">(item_bank, abilities, responses) = dummy_full(
-    Random.default_rng(42),
+using ComputerAdaptiveTesting.Responses: BooleanResponse</code></pre><p>TODO: pass in dims</p><pre><code class="language-julia hljs">(item_bank, abilities, responses) = dummy_full(Random.default_rng(42),
     SimpleItemBankSpec(StdModel4PL(), VectorContinuousDomain(), BooleanResponse()),
     dims;
-    num_questions=10,
-    num_testees=2
-)</code></pre><p>Simulate a CAT for each testee and record it using CatRecorder. CatRecorder collects information which can be used to draw different types of plots.</p><pre><code class="language-julia hljs">max_questions = 9
-integrator = CubaIntegrator([-6.0, -6.0], [6.0, 6.0], CubaVegas(); rtol=1e-2)
-ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(dims)), integrator)
-rules = CatRules(
-    ability_estimator,
+    num_questions = 10,
+    num_testees = 2)</code></pre><p>Simulate a CAT for each testee and record it using CatRecorder. CatRecorder collects information which can be used to draw different types of plots.</p><pre><code class="language-julia hljs">max_questions = 9
+integrator = CubaIntegrator([-6.0, -6.0], [6.0, 6.0], CubaVegas(); rtol = 1e-2)
+ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(dims)),
+    integrator)
+rules = CatRules(ability_estimator,
     DRuleItemCriterion(ability_estimator),
-    FixedItemsTerminationCondition(max_questions)
-)</code></pre><p>XXX: We shouldn&#39;t need to specify xs here since the distributions are not used – rework</p><pre><code class="language-julia hljs">points = 3
-xs = repeat(range(-2.5, 2.5, length=points)&#39;, dims, 1)
+    FixedItemsTerminationCondition(max_questions))</code></pre><p>XXX: We shouldn&#39;t need to specify xs here since the distributions are not used – rework</p><pre><code class="language-julia hljs">points = 3
+xs = repeat(range(-2.5, 2.5, length = points)&#39;, dims, 1)
 raw_estimator = LikelihoodAbilityEstimator()
-recorder = CatRecorder(xs, responses, integrator, raw_estimator, ability_estimator, abilities)
+recorder = CatRecorder(xs,
+    responses,
+    integrator,
+    raw_estimator,
+    ability_estimator,
+    abilities)
 for testee_idx in axes(responses, 2)
     @debug &quot;Running for testee&quot; testee_idx
-    tracked_responses, θ = run_cat(
-        CatLoopConfig(
-            rules=rules,
-            get_response=auto_responder(@view responses[:, testee_idx]),
-            new_response_callback=(tracked_responses, terminating) -&gt; recorder(tracked_responses, testee_idx, terminating),
-        ),
-        item_bank
-    )
+    tracked_responses, θ = run_cat(CatLoopConfig(rules = rules,
+            get_response = auto_responder(@view responses[:, testee_idx]),
+            new_response_callback = (tracked_responses, terminating) -&gt; recorder(tracked_responses,
+                testee_idx,
+                terminating)),
+        item_bank)
     true_θ = abilities[:, testee_idx]
     abs_err = sum(abs.(θ .- true_θ))
     @info &quot;convergence&quot; true_θ θ abs_err
-end</code></pre><p>Make a plot showing how the estimated value converges during the CAT.</p><pre><code class="language-julia hljs">conv_lines_fig = ability_convergence_lines(recorder; abilities=abilities)
-conv_lines_fig</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/JuliaDocs/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.0.0 on <span class="colophon-date" title="Friday 24 November 2023 11:58">Friday 24 November 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+end</code></pre><p>Make a plot showing how the estimated value converges during the CAT.</p><pre><code class="language-julia hljs">conv_lines_fig = ability_convergence_lines(recorder; abilities = abilities)
+conv_lines_fig</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/JuliaDocs/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.0.0 on <span class="colophon-date" title="Monday 4 December 2023 09:09">Monday 4 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
