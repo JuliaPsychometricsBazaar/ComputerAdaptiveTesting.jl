@@ -7,8 +7,8 @@ using DataFrames
 using CategoricalArrays: levels
 using IterTools: chain
 using ComputerAdaptiveTesting
-using CATPlots
-using CATPlots: LabelledToggleGrid, MenuGrid
+using AdaptiveTestPlots
+using AdaptiveTestPlots: LabelledToggleGrid, MenuGrid
 
 DOCS_DATA = pkgdir(ComputerAdaptiveTesting) * "/docs/data/"
 

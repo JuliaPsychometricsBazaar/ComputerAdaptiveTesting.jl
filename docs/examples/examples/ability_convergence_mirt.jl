@@ -28,7 +28,7 @@ using FittedItemBanks
 import PsychometricsBazaarBase.IntegralCoeffs
 using PsychometricsBazaarBase.Integrators
 using PsychometricsBazaarBase.ConstDistributions: normal_scaled_logistic
-using CATPlots
+using AdaptiveTestPlots
 
 @automakie()
 

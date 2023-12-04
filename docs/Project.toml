@@ -1,6 +1,6 @@
 [deps]
+AdaptiveTestPlots = "d194c7c1-4081-4169-ba52-101f65b44e42"
 AlgebraOfGraphics = "cbdf2221-f076-402e-a563-3d30da359d67"
-CATPlots = "d194c7c1-4081-4169-ba52-101f65b44e42"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"

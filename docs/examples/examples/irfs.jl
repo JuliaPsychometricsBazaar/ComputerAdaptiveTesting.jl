@@ -4,7 +4,7 @@ using Makie
 import Pkg
 using Distributions: Normal, cdf
 using PsychometricsBazaarBase.ConstDistributions: normal_scaled_logistic
-using CATPlots
+using AdaptiveTestPlots
 
 @automakie()
 
