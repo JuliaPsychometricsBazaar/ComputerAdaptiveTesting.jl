@@ -36,7 +36,6 @@ jobs:
         run: |
           julia --project=test/ -e 'using Pkg;
                                     Pkg.develop(path=".");
-                                    Pkg.develop(path="CATPlots");
                                     Pkg.resolve();
                                     Pkg.instantiate()'
         env:
