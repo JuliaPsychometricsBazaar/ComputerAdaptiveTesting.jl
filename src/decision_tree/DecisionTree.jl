@@ -102,7 +102,7 @@ Base.@kwdef struct DecisionTreeGenerationConfig{
     AbilityTrackerT <: AbilityTracker,
 } <: CatConfigBase
     """
-    xx
+    The maximum depth of the decision tree
     """
     max_depth::UInt
     """
