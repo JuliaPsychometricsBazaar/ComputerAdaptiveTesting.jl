@@ -1,10 +1,11 @@
 module Responses
 
 using FittedItemBanks: AbstractItemBank,
-    BooleanResponse, MultinomialResponse, ResponseType, ItemResponse, resp
+    BooleanResponse, MultinomialResponse, ResponseType, ItemResponse, resp,
+    DichotomousPointsItemBank, item_xs, item_ys
 using AutoHashEquals
 
-export Response, BareResponses, AbilityLikelihood
+export Response, BareResponses, AbilityLikelihood, function_xs, function_ys
 
 concrete_response_type(::BooleanResponse) = Bool
 concrete_response_type(::MultinomialResponse) = Int
@@ -54,12 +55,39 @@ struct AbilityLikelihood{ItemBankT <: AbstractItemBank, BareResponsesT <: BareRe
 end
 
 function (ability_lh::AbilityLikelihood)(θ)
-    prod(resp(ItemResponse(ability_lh.item_bank,
-                ability_lh.responses.indices[resp_idx]),
+    return prod(
+        resp(
+            ItemResponse(
+                ability_lh.item_bank,
+                ability_lh.responses.indices[resp_idx]
+            ),
             ability_lh.responses.values[resp_idx],
-            θ)
-         for resp_idx in axes(ability_lh.responses.indices, 1);
-        init = 1.0)
+            θ
+        )
+        for resp_idx in axes(ability_lh.responses.indices, 1);
+        init = 1.0
+    )
+end
+
+function function_xs(ability_lh::AbilityLikelihood{DichotomousPointsItemBank})
+    return ability_lh.item_bank.xs
+end
+
+function function_ys(ability_lh::AbilityLikelihood{DichotomousPointsItemBank})
+    return reduce(
+        .*,
+        (
+            item_ys(
+                ItemResponse(
+                    ability_lh.item_bank,
+                    ability_lh.responses.indices[resp_idx]
+                ),
+                ability_lh.responses.values[resp_idx]
+            )
+            for resp_idx in axes(ability_lh.responses.indices, 1)
+        );
+        init = ones(length(ability_lh.item_bank.xs))
+    )
 end
 
 end
