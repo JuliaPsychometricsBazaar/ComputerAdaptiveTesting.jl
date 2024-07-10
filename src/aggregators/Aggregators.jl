@@ -13,7 +13,7 @@ using Base.Threads
 
 using FittedItemBanks
 using ..Responses
-using ..Responses: concrete_response_type
+using ..Responses: concrete_response_type, function_xs, function_ys
 using ..ConfigBase
 using PsychometricsBazaarBase.ConfigTools
 using PsychometricsBazaarBase.Integrators
@@ -164,14 +164,30 @@ function Base.length(responses::TrackedResponses)
     length(responses.responses.indices)
 end
 
+
+struct FunctionIntegrator{IntegratorT <: Integrator} <: AbilityIntegrator
+    integrator::IntegratorT
+end
+
+function (integrator::FunctionIntegrator{IntegratorT})(f::F,
+        ncomp,
+        lh_function::LHF) where {F, LHF, IntegratorT}
+    # This will allocate without the `moneypatch_broadcast` hack
+
+    # TODO: Make integration range configurable
+    # TODO: Make integration technique configurable
+    integrator.integrator(FunctionProduct(f, lh_function), ncomp)
+end
+
 # Defaults
 const optim_tol = 1e-12
 const int_tol = 1e-8
 
 # Includes
+include("./riemann.jl")
 include("./ability_estimator.jl")
 include("./ability_tracker.jl")
-include("./integrators.jl")
+include("./tracked.jl")
 include("./optimizers.jl")
 include("./speculators.jl")
 
