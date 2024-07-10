@@ -6,7 +6,7 @@ using DocStringExtensions
 
 using PsychometricsBazaarBase.Parameters
 
-using ..Aggregators: AbilityEstimator, AbilityTracker, NullAbilityTracker
+using ..Aggregators: AbilityEstimator, AbilityTracker, ConsAbilityTracker, NullAbilityTracker
 using ..NextItemRules: NextItemRule
 using ..TerminationConditions: TerminationCondition
 using ..ConfigBase
