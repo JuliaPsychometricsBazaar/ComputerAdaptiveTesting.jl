@@ -89,12 +89,12 @@ function choose_item_1ply(objective::ItemCriterionT,
 
         obj_val = objective(objective_state, responses, item_idx)
 
-        if obj_val < min_obj_val
+        if obj_val <= min_obj_val
             min_obj_val = obj_val
             min_obj_idx = item_idx
         end
     end
-    (min_obj_idx, min_obj_val)
+    return (min_obj_idx, min_obj_val)
 end
 
 function init_thread(::ItemCriterion, ::TrackedResponses)
