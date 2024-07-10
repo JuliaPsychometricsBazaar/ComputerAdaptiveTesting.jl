@@ -30,6 +30,7 @@ include("./TerminationConditions.jl")
 include("./CatConfig.jl")
 include("./Sim.jl")
 include("./decision_tree/DecisionTree.jl")
+include("./Comparison.jl")
 
 @reexport using .CatConfig: CatLoopConfig, CatRules
 @reexport using .Sim: run_cat
