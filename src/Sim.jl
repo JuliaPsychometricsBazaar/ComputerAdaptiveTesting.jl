@@ -4,7 +4,8 @@ using StatsBase
 using FittedItemBanks: AbstractItemBank, ResponseType
 using ..Responses
 using ..CatConfig: CatLoopConfig, CatRules
-using ..Aggregators: TrackedResponses, add_response!, Speculator
+using ..Aggregators: TrackedResponses, add_response!, Speculator, Aggregators
+using ..NextItemRules: compute_criteria
 
 export run_cat, prompt_response, auto_responder
 
@@ -50,6 +51,10 @@ function run_cat(cat_config::CatLoopConfig{RulesT},
         ability_tracker)
     while true
         local next_index
+        @debug begin
+            criteria = compute_criteria(next_item, responses, item_bank)
+            "Best items"
+        end criteria
         try
             next_index = next_item(responses, item_bank)
         catch exc
