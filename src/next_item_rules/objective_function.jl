@@ -70,7 +70,7 @@ function (criterion::AbilityVarianceStateCriterion)(tracked_responses::TrackedRe
     criterion(DomainType(tracked_responses.item_bank), tracked_responses, denom)
 end
 
-function (criterion::AbilityVarianceStateCriterion)(::OneDimContinuousDomain,
+function (criterion::AbilityVarianceStateCriterion)(::Union{OneDimContinuousDomain, DiscreteDomain},
         tracked_responses::TrackedResponses,
         denom)::Float64
     mean = expectation(IntegralCoeffs.id,
