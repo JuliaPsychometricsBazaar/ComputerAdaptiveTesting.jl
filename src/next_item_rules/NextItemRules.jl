@@ -38,6 +38,7 @@ export RandomNextItemRule
 export ExhaustiveSearch1Ply
 export catr_next_item_aliases
 export preallocate
+export compute_criteria
 
 """
 $(TYPEDEF)
@@ -175,6 +176,24 @@ function (item_criterion::ItemCriterion)(tracked_responses, item_idx)
     end
     item_criterion(criterion_state, tracked_responses, item_idx)
 end
+
+function compute_criteria(
+    criterion::ItemCriterionT,
+    responses::TrackedResponseT,
+    items::AbstractItemBank
+) where {ItemCriterionT <: ItemCriterion, TrackedResponseT <: TrackedResponses}
+    objective_state = init_thread(criterion, responses)
+    return [criterion(objective_state, responses, item_idx) for item_idx in eachindex(items)]
+end
+
+function compute_criteria(
+    rule::ItemStrategyNextItemRule{StrategyT, ItemCriterionT},
+    responses,
+    items
+) where {StrategyT, ItemCriterionT <: ItemCriterion}
+    compute_criteria(rule.criterion, responses, items)
+end
+
 
 include("./aliases.jl")
 include("./preallocate.jl")
