@@ -11,7 +11,8 @@ struct Speculator{TrackedResponsesT <: TrackedResponses}
         values = Array{concrete_response_type(response_type)}(undef, spec_len)
         indices[1:orig_len] = responses.responses.indices
         values[1:orig_len] = responses.responses.values
-        new{TrackedResponsesT}(TrackedResponses(BareResponses(response_type,
+        new{TrackedResponsesT}(
+            TrackedResponses(BareResponses(response_type,
                     indices,
                     values),
                 responses.item_bank,

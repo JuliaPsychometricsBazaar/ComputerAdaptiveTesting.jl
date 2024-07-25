@@ -75,8 +75,8 @@ function choose_item_1ply(objective::ItemCriterionT,
         responses::TrackedResponseT,
         items::AbstractItemBank)::Tuple{
         Int,
-        Float64,
-    } where {ItemCriterionT <: ItemCriterion, TrackedResponseT <: TrackedResponses}
+        Float64
+} where {ItemCriterionT <: ItemCriterion, TrackedResponseT <: TrackedResponses}
     #pre_next_item(expectation_tracker, items)
     objective_state = init_thread(objective, responses)
     min_obj_idx::Int = -1
@@ -140,7 +140,7 @@ Implicit constructor for $(FUNCTIONNAME). Will default to
 """
 struct ItemStrategyNextItemRule{
     NextItemStrategyT <: NextItemStrategy,
-    ItemCriterionT <: ItemCriterion,
+    ItemCriterionT <: ItemCriterion
 } <: NextItemRule
     strategy::NextItemStrategyT
     criterion::ItemCriterionT
@@ -178,22 +178,22 @@ function (item_criterion::ItemCriterion)(tracked_responses, item_idx)
 end
 
 function compute_criteria(
-    criterion::ItemCriterionT,
-    responses::TrackedResponseT,
-    items::AbstractItemBank
+        criterion::ItemCriterionT,
+        responses::TrackedResponseT,
+        items::AbstractItemBank
 ) where {ItemCriterionT <: ItemCriterion, TrackedResponseT <: TrackedResponses}
     objective_state = init_thread(criterion, responses)
-    return [criterion(objective_state, responses, item_idx) for item_idx in eachindex(items)]
+    return [criterion(objective_state, responses, item_idx)
+            for item_idx in eachindex(items)]
 end
 
 function compute_criteria(
-    rule::ItemStrategyNextItemRule{StrategyT, ItemCriterionT},
-    responses,
-    items
+        rule::ItemStrategyNextItemRule{StrategyT, ItemCriterionT},
+        responses,
+        items
 ) where {StrategyT, ItemCriterionT <: ItemCriterion}
     compute_criteria(rule.criterion, responses, items)
 end
-
 
 include("./aliases.jl")
 include("./preallocate.jl")

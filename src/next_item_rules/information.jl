@@ -1,5 +1,5 @@
 using FittedItemBanks: CdfMirtItemBank,
-    GuessItemBank, SlipItemBank, TransferItemBank, AnySlipOrGuessItemBank
+                       GuessItemBank, SlipItemBank, TransferItemBank, AnySlipOrGuessItemBank
 using FittedItemBanks: inner_item_response, norm_abil, y_offset, irf_size
 using StatsFuns: logaddexp
 
@@ -89,6 +89,6 @@ function responses_information(item_bank::AbstractItemBank, responses::BareRespo
     d = domdims(item_bank)
     reduce(.+,
         (known_item_information(ItemResponse(item_bank, resp_idx), resp_value > 0, θ)
-         for (resp_idx, resp_value)
+        for (resp_idx, resp_value)
         in zip(responses.indices, responses.values)); init = zeros(d, d))
 end

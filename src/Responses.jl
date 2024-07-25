@@ -1,8 +1,9 @@
 module Responses
 
 using FittedItemBanks: AbstractItemBank,
-    BooleanResponse, MultinomialResponse, ResponseType, ItemResponse, resp,
-    DichotomousPointsItemBank, item_xs, item_ys
+                       BooleanResponse, MultinomialResponse, ResponseType, ItemResponse,
+                       resp,
+                       DichotomousPointsItemBank, item_xs, item_ys
 using AutoHashEquals
 
 export Response, BareResponses, AbilityLikelihood, function_xs, function_ys
@@ -21,7 +22,7 @@ end
     ResponseTypeT <: ResponseType,
     ConcreteResponseTypeT,
     IndicesVecT <: AbstractVector{Int},
-    ValuesVecT <: AbstractVector{ConcreteResponseTypeT},
+    ValuesVecT <: AbstractVector{ConcreteResponseTypeT}
 }
     rt::ResponseTypeT
     indices::IndicesVecT
@@ -32,15 +33,15 @@ end
             values::ValuesVecT) where {
             ResponseTypeT,
             IndicesVecT,
-            ValuesVecT,
-        }
+            ValuesVecT
+    }
         concrete_rt = concrete_response_type(rt)
         @assert concrete_rt<:eltype(values) "values must be a container of $(concrete_rt) for $(rt)"
         new{
             ResponseTypeT,
             concrete_rt,
             IndicesVecT,
-            ValuesVecT,
+            ValuesVecT
         }(rt,
             indices,
             values)
@@ -84,7 +85,7 @@ function function_ys(ability_lh::AbilityLikelihood{DichotomousPointsItemBank})
                 ),
                 ability_lh.responses.values[resp_idx]
             )
-            for resp_idx in axes(ability_lh.responses.indices, 1)
+        for resp_idx in axes(ability_lh.responses.indices, 1)
         );
         init = ones(length(ability_lh.item_bank.xs))
     )

@@ -5,7 +5,8 @@ abstract type ItemCriterion <: CatConfigBase end
 
 function ItemCriterion(bits...; ability_estimator = nothing, ability_tracker = nothing)
     @returnsome find1_instance(ItemCriterion, bits)
-    @returnsome find1_type(ItemCriterion, bits) typ->typ(ability_estimator = ability_estimator,
+    @returnsome find1_type(ItemCriterion, bits) typ->typ(
+        ability_estimator = ability_estimator,
         ability_tracker = ability_tracker)
     @returnsome ExpectationBasedItemCriterion(bits...;
         ability_estimator = ability_estimator,
@@ -31,7 +32,7 @@ of responses.
 """
 struct AbilityVarianceStateCriterion{
     DistEst <: DistributionAbilityEstimator,
-    IntegratorT <: AbilityIntegrator,
+    IntegratorT <: AbilityIntegrator
 } <: StateCriterion
     dist_est::DistEst
     integrator::IntegratorT
@@ -70,7 +71,8 @@ function (criterion::AbilityVarianceStateCriterion)(tracked_responses::TrackedRe
     criterion(DomainType(tracked_responses.item_bank), tracked_responses, denom)
 end
 
-function (criterion::AbilityVarianceStateCriterion)(::Union{OneDimContinuousDomain, DiscreteDomain},
+function (criterion::AbilityVarianceStateCriterion)(
+        ::Union{OneDimContinuousDomain, DiscreteDomain},
         tracked_responses::TrackedResponses,
         denom)::Float64
     mean = expectation(IntegralCoeffs.id,
@@ -136,7 +138,8 @@ end
 function ExpectationBasedItemCriterion(ability_estimator::DistributionAbilityEstimator,
         criterion::StateCriterion,
         bits...)
-    @returnsome Integrator(bits...) integrator->DistributionBasedItemCriterion(ability_estimator,
+    @returnsome Integrator(bits...) integrator->DistributionBasedItemCriterion(
+        ability_estimator,
         integrator,
         criterion)
 end
@@ -150,7 +153,7 @@ particular item 1-ply ahead based on a point ability estimate.
 """
 struct PointExpectationBasedItemCriterion{
     PointAbilityEstimatorT <: PointAbilityEstimator,
-    StateCriterionT <: StateCriterion,
+    StateCriterionT <: StateCriterion
 } <: ExpectationBasedItemCriterion
     ability_estimator::PointAbilityEstimatorT
     state_criterion::StateCriterionT
@@ -166,7 +169,7 @@ particular item 1-ply ahead by integrating over an ability curve.
 struct DistributionExpectationBasedItemCriterion{
     DistributionAbilityEstimatorT <: DistributionAbilityEstimator,
     AbilityIntegratorT <: AbilityIntegrator,
-    StateCriterionT <: StateCriterion,
+    StateCriterionT <: StateCriterion
 } <: ExpectationBasedItemCriterion
     ability_estimator::DistributionAbilityEstimatorT
     integrator::AbilityIntegratorT
@@ -177,7 +180,8 @@ function init_thread(::ExpectationBasedItemCriterion, responses::TrackedResponse
     Speculator(responses, 1)
 end
 
-function Aggregators.response_expectation(item_criterion::PointExpectationBasedItemCriterion,
+function Aggregators.response_expectation(
+        item_criterion::PointExpectationBasedItemCriterion,
         tracked_responses,
         item_idx)
     response_expectation(item_criterion.ability_estimator,
@@ -185,7 +189,8 @@ function Aggregators.response_expectation(item_criterion::PointExpectationBasedI
         item_idx)
 end
 
-function Aggregators.response_expectation(item_criterion::DistributionExpectationBasedItemCriterion,
+function Aggregators.response_expectation(
+        item_criterion::DistributionExpectationBasedItemCriterion,
         tracked_responses,
         item_idx)
     response_expectation(item_criterion.ability_estimator,

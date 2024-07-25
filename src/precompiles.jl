@@ -5,10 +5,10 @@
         (OneDimContinuousDomain(), BooleanResponse()) => [],
         (OneDimContinuousDomain(), MultinomialResponse()) => [],
         (VectorContinuousDomain(), BooleanResponse()) => [],
-        (VectorContinuousDomain(), MultinomialResponse()) => [],
+        (VectorContinuousDomain(), MultinomialResponse()) => []
     )
 
-    struct BareResponses{ResponseTypeT <: ResponseType, ConcreteResponseTypeT, IndicesVecT <: AbstractVector}
+    #struct BareResponses{ResponseTypeT <: ResponseType, ConcreteResponseTypeT, IndicesVecT <: AbstractVector}
     @precompile_all_calls begin
         for response_type in response_types
             concrete_type = concrete_response_type(response)

@@ -28,7 +28,7 @@ export AbilityEstimator, TrackedResponses
 export AbilityTracker, NullAbilityTracker, PointAbilityTracker, GriddedAbilityTracker
 export ClosedFormNormalAbilityTracker, MultiAbilityTracker, track!
 export response_expectation,
-    add_response!, pop_response!, expectation, distribution_estimator
+       add_response!, pop_response!, expectation, distribution_estimator
 export PointAbilityEstimator, PriorAbilityEstimator, LikelihoodAbilityEstimator
 export ModeAbilityEstimator, MeanAbilityEstimator
 export Speculator, replace_speculation!, normdenom, maybe_tracked_ability_estimate
@@ -52,7 +52,8 @@ function AbilityEstimator(bits...; ability_estimator = nothing, ability_tracker 
 end
 AbilityEstimator(::DomainType) = nothing
 function AbilityEstimator(::ContinuousDomain, bits...)
-    @returnsome Integrator(bits...) integrator->MeanAbilityEstimator(LikelihoodAbilityEstimator(),
+    @returnsome Integrator(bits...) integrator->MeanAbilityEstimator(
+        LikelihoodAbilityEstimator(),
         integrator)
 end
 
@@ -137,7 +138,7 @@ end
 @with_kw struct TrackedResponses{
     BareResponsesT <: BareResponses,
     ItemBankT <: AbstractItemBank,
-    AbilityTrackerT <: AbilityTracker,
+    AbilityTrackerT <: AbilityTracker
 }
     responses::BareResponsesT
     item_bank::ItemBankT
@@ -151,12 +152,12 @@ end
 function Responses.AbilityLikelihood(tracked_responses::TrackedResponses{
         BareResponsesT,
         ItemBankT,
-        AbilityTrackerT,
-    }) where {
+        AbilityTrackerT
+}) where {
         BareResponsesT <: BareResponses,
         ItemBankT <: AbstractItemBank,
-        AbilityTrackerT <: AbilityTracker,
-    }
+        AbilityTrackerT <: AbilityTracker
+}
     Responses.AbilityLikelihood{ItemBankT, BareResponsesT}(tracked_responses.item_bank,
         tracked_responses.responses)
 end
@@ -164,7 +165,6 @@ end
 function Base.length(responses::TrackedResponses)
     length(responses.responses.indices)
 end
-
 
 struct FunctionIntegrator{IntegratorT <: Integrator} <: AbilityIntegrator
     integrator::IntegratorT

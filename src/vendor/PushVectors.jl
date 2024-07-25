@@ -22,7 +22,7 @@ end
 
 @inline Base.length(v::PushVector) = v.len
 
-@inline Base.size(v::PushVector) = (v.len, )
+@inline Base.size(v::PushVector) = (v.len,)
 
 function Base.sizehint!(v::PushVector, n)
     if length(v.parent) < n || n ≥ v.len

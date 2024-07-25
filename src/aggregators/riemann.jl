@@ -7,15 +7,16 @@ struct RiemannEnumerationIntegrator <: AbilityIntegrator end
 
 function (integrator::RiemannEnumerationIntegrator)(f::F,
         ncomp,
-        ability_likelihood::AbilityLikelihood{<: DichotomousSmoothedItemBank}) where {F}
-    inner_ability_likelihood = AbilityLikelihood(ability_likelihood.item_bank.inner_bank, ability_likelihood.responses)
+        ability_likelihood::AbilityLikelihood{<:DichotomousSmoothedItemBank}) where {F}
+    inner_ability_likelihood = AbilityLikelihood(
+        ability_likelihood.item_bank.inner_bank, ability_likelihood.responses)
     return integrator(f, ncomp, inner_ability_likelihood)
 end
 
 function (integrator::RiemannEnumerationIntegrator)(f::F,
         ncomp,
-        ability_likelihood::AbilityLikelihood{<: PointsItemBank}) where {F}
-    @assert ncomp == 0 "RiemannEnumerationIntegrator only supports ncomp = 0"
+        ability_likelihood::AbilityLikelihood{<:PointsItemBank}) where {F}
+    @assert ncomp==0 "RiemannEnumerationIntegrator only supports ncomp = 0"
     result = 0.0
     xs = function_xs(ability_likelihood)
     ys = function_ys(ability_likelihood)

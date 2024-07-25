@@ -1,6 +1,6 @@
 struct GriddedAbilityTracker{
     AbilityEstimatorT <: DistributionAbilityEstimator,
-    IntegratorT,
+    IntegratorT
 } <: AbilityTracker
     ability_estimator::AbilityEstimatorT
     integrator::IntegratorT

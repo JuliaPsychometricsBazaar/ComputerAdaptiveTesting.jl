@@ -16,7 +16,7 @@ The next ones are used to sanity check information/variance.
 function mk_dummy_1d_data()
     item_bank = ItemBank2PL(
         [0.8, 0.9, 1.1, 1.2, 0.99, 0.0, 0.99, 0.99],
-        [1.0, 1.0, 1.0, 1.0, 1.0,  1.0, 2.0,  0.5]
+        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 0.5]
     )
     responses = BareResponses(
         ResponseType(item_bank),
@@ -39,19 +39,19 @@ mle_mean_1d = MeanAbilityEstimator(lh_est_1d, integrator_1d)
 mle_mode_1d = ModeAbilityEstimator(lh_est_1d, optimizer_1d)
 
 @testcase "Estimator: single dim MAP" begin
-    @test map_1d(tracked_responses_1d) ≈ 1.0 atol=0.001
+    @test map_1d(tracked_responses_1d)≈1.0 atol=0.001
 end
 
 @testcase "Estimator: single dim EAP" begin
-    @test eap_1d(tracked_responses_1d) ≈ 1.0 atol=0.001
+    @test eap_1d(tracked_responses_1d)≈1.0 atol=0.001
 end
 
 @testcase "Estimator: single mle mean" begin
-    @test mle_mean_1d(tracked_responses_1d) ≈ 1.0 atol=0.001
+    @test mle_mean_1d(tracked_responses_1d)≈1.0 atol=0.001
 end
 
 @testcase "Estimator: single mle mode" begin
-    @test mle_mode_1d(tracked_responses_1d) ≈ 1.0 atol=0.001
+    @test mle_mode_1d(tracked_responses_1d)≈1.0 atol=0.001
 end
 
 information_item_criterion = InformationItemCriterion(mle_mean_1d)
@@ -86,7 +86,7 @@ end
 
 @testcase "postposterior 1 dim variance smaller with higher discrimination" begin
     @test (
-        ability_variance_item_criterion(tracked_responses_1d, 7) < 
+        ability_variance_item_criterion(tracked_responses_1d, 7) <
         ability_variance_item_criterion(tracked_responses_1d, 5) <
         ability_variance_item_criterion(tracked_responses_1d, 8)
     )

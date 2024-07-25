@@ -3,7 +3,7 @@ using ComputerAdaptiveTesting
 
 Aqua.test_all(
     ComputerAdaptiveTesting;
-    ambiguities=false,
+    ambiguities = false
 )
 # Ambiguities are not tested in default configuration as a workaround for
 # https://github.com/JuliaTesting/Aqua.jl/issues/77

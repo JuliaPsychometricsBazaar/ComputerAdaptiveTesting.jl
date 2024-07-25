@@ -8,7 +8,7 @@ using PsychometricsBazaarBase.ConfigTools
 using FittedItemBanks
 
 export TerminationCondition,
-    FixedItemsTerminationCondition, SimpleFunctionTerminationCondition
+       FixedItemsTerminationCondition, SimpleFunctionTerminationCondition
 
 """
 $(TYPEDEF)

@@ -5,7 +5,9 @@ import ComputerAdaptiveTesting.Responses
 
 export LogItemBank, DichotomousPointsWithLogsItemBank
 
-using FittedItemBanks: AbstractItemBank, ItemResponse, PointsItemBank, DichotomousPointsItemBank, NearestNeighborSmoother, DichotomousSmoothedItemBank
+using FittedItemBanks: AbstractItemBank, ItemResponse, PointsItemBank,
+                       DichotomousPointsItemBank, NearestNeighborSmoother,
+                       DichotomousSmoothedItemBank
 using LogarithmicNumbers: ULogarithmic
 import FittedItemBanks
 using Lazy: @forward
@@ -45,11 +47,13 @@ end
 
 function DichotomousPointsWithLogsItemBank(inner_bank::DichotomousPointsItemBank)
     ys = inner_bank.ys
-    log_ys = @views stack((log.(ys), log.(ones(eltype(ys)) .- ys)), dims=1)
+    log_ys = @views stack((log.(ys), log.(ones(eltype(ys)) .- ys)), dims = 1)
     return DichotomousPointsWithLogsItemBank(inner_bank, log_ys)
 end
 
-inner_ir(ir::ItemResponse{<: DichotomousPointsWithLogsItemBank}) = ItemResponse(ir.item_bank.inner_bank, ir.index)
+function inner_ir(ir::ItemResponse{<:DichotomousPointsWithLogsItemBank})
+    ItemResponse(ir.item_bank.inner_bank, ir.index)
+end
 
 @forward DichotomousPointsWithLogsItemBank.inner_bank Base.length,
 FittedItemBanks.domdims,
@@ -57,9 +61,15 @@ FittedItemBanks.item_bank_xs,
 FittedItemBanks.ResponseType,
 FittedItemBanks.DomainType
 
-FittedItemBanks.item_domain(ir::ItemResponse{<:DichotomousPointsWithLogsItemBank}) = FittedItemBanks.item_domain(inner_ir(ir))
-FittedItemBanks.item_xs(ir::ItemResponse{<:DichotomousPointsWithLogsItemBank}) = FittedItemBanks.item_xs(inner_ir(ir))
-FittedItemBanks.item_ys(ir::ItemResponse{<:DichotomousPointsWithLogsItemBank}) = FittedItemBanks.item_ys(inner_ir(ir))
+function FittedItemBanks.item_domain(ir::ItemResponse{<:DichotomousPointsWithLogsItemBank})
+    FittedItemBanks.item_domain(inner_ir(ir))
+end
+function FittedItemBanks.item_xs(ir::ItemResponse{<:DichotomousPointsWithLogsItemBank})
+    FittedItemBanks.item_xs(inner_ir(ir))
+end
+function FittedItemBanks.item_ys(ir::ItemResponse{<:DichotomousPointsWithLogsItemBank})
+    FittedItemBanks.item_ys(inner_ir(ir))
+end
 
 function item_log_ys(ir::ItemResponse{<:DichotomousPointsWithLogsItemBank})
     return @view ir.item_bank.log_ys[:, :, ir.index]
@@ -86,14 +96,15 @@ function Responses.function_ys(ability_lh::AbilityLikelihood{<:DichotomousPoints
                 ),
                 ability_lh.responses.values[resp_idx]
             )
-            for resp_idx in axes(ability_lh.responses.indices, 1)
+        for resp_idx in axes(ability_lh.responses.indices, 1)
         );
         init = zeros(num_integration_points)
     ))
 end
 
 function FittedItemBanks.resp_vec(ir::ItemResponse{<:DichotomousPointsWithLogsItemBank}, θ)
-    item_bank = DichotomousSmoothedItemBank(ir.item_bank.inner_bank, NearestNeighborSmoother())
+    item_bank = DichotomousSmoothedItemBank(
+        ir.item_bank.inner_bank, NearestNeighborSmoother())
     FittedItemBanks.resp_vec(ItemResponse(item_bank, ir.index), θ)
 end
 

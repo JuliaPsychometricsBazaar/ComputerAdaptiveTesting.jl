@@ -6,7 +6,8 @@ using DocStringExtensions
 
 using PsychometricsBazaarBase.Parameters
 
-using ..Aggregators: AbilityEstimator, AbilityTracker, ConsAbilityTracker, NullAbilityTracker
+using ..Aggregators: AbilityEstimator, AbilityTracker, ConsAbilityTracker,
+                     NullAbilityTracker
 using ..NextItemRules: NextItemRule
 using ..TerminationConditions: TerminationCondition
 using ..ConfigBase
@@ -34,7 +35,7 @@ Implicit constructor for $(FUNCTIONNAME).
     NextItemRuleT <: NextItemRule,
     TerminationConditionT <: TerminationCondition,
     AbilityEstimatorT <: AbilityEstimator,
-    AbilityTrackerT <: AbilityTracker,
+    AbilityTrackerT <: AbilityTracker
 } <: CatConfigBase
     """
     The rule to choose the next item in the CAT given the current state.

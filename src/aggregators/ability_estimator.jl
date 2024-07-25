@@ -97,7 +97,7 @@ end
 
 struct ModeAbilityEstimator{
     DistEst <: DistributionAbilityEstimator,
-    OptimizerT <: AbilityOptimizer,
+    OptimizerT <: AbilityOptimizer
 } <: PointAbilityEstimator
     dist_est::DistEst
     optim::OptimizerT
@@ -112,7 +112,7 @@ end
 
 struct MeanAbilityEstimator{
     DistEst <: DistributionAbilityEstimator,
-    IntegratorT <: AbilityIntegrator,
+    IntegratorT <: AbilityIntegrator
 } <: PointAbilityEstimator
     dist_est::DistEst
     integrator::IntegratorT
@@ -131,8 +131,8 @@ end
 
 function distribution_estimator(point_est::Union{
         ModeAbilityEstimator,
-        MeanAbilityEstimator,
-    })::DistributionAbilityEstimator
+        MeanAbilityEstimator
+})::DistributionAbilityEstimator
     point_est.dist_est
 end
 
@@ -166,7 +166,8 @@ function (est::MeanAbilityEstimator)(::VectorContinuousDomain,
         tracked_responses)
 end
 
-function (est::MeanAbilityEstimator{AbilityEstimatorT, RiemannEnumerationIntegrator})(::DiscreteIndexableDomain,
+function (est::MeanAbilityEstimator{AbilityEstimatorT, RiemannEnumerationIntegrator})(
+        ::DiscreteIndexableDomain,
         rett::IntReturnType,
         tracked_responses::TrackedResponses) where {AbilityEstimatorT}
     expectation(rett,

@@ -2,7 +2,7 @@ using Base.Filesystem: mktempdir
 using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.Aggregators
 using FittedItemBanks.DummyData: dummy_full, SimpleItemBankSpec, StdModel3PL,
-      VectorContinuousDomain, BooleanResponse, std_normal
+                                 VectorContinuousDomain, BooleanResponse, std_normal
 using FittedItemBanks
 using ComputerAdaptiveTesting.CatConfig
 using ComputerAdaptiveTesting.Responses
@@ -18,12 +18,10 @@ using Optim
 using Random
 using ResumableFunctions
 
-
 using XUnit
 
 include("./dummy.jl")
 using .Dummy
-
 
 @testset "aqua" begin
     include("./aqua.jl")

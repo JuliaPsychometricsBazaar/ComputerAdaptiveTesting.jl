@@ -64,7 +64,7 @@ end
 
 const DefaultMaterializedDecisionTree = MaterializedDecisionTree{
     Vector{UInt32},
-    Vector{Float64},
+    Vector{Float64}
 }
 
 function tree_size(max_depth)
@@ -99,7 +99,7 @@ end
 Base.@kwdef struct DecisionTreeGenerationConfig{
     NextItemRuleT <: NextItemRule,
     AbilityEstimatorT <: AbilityEstimator,
-    AbilityTrackerT <: AbilityTracker,
+    AbilityTrackerT <: AbilityTracker
 } <: CatConfigBase
     """
     The maximum depth of the decision tree
@@ -164,7 +164,7 @@ include("./mmap.jl")
 include("./sim.jl")
 
 export generate_dt_cat,
-    MaterializedDecisionTree, DecisionTreeGenerationConfig, next_item, ability_estimate
+       MaterializedDecisionTree, DecisionTreeGenerationConfig, next_item, ability_estimate
 export save_mmap, load_mmap
 
 end

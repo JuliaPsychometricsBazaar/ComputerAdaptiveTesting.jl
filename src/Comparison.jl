@@ -128,7 +128,8 @@ function run_comparison(strategy::IncreaseItemBankSizeExecutionStrategy, config)
         measure_all(config, :before_next_item, before_next_item; responses = responses)
         timed_next_item = @time config.next_item(responses, item_bank)
         next_item = timed_next_item.value
-        measure_all(config, :after_next_item, after_next_item; responses = responses, next_item = next_item)
+        measure_all(config, :after_next_item, after_next_item;
+            responses = responses, next_item = next_item)
     end
 end
 
@@ -176,7 +177,7 @@ end
 function iter_tracked_responses(mtr)
     return (
         TrackedResponses(mtr.responses, mtr.item_bank, ability_tracker)
-        for ability_tracker in mtr.ability_trackers
+    for ability_tracker in mtr.ability_trackers
     )
 end
 
@@ -188,20 +189,25 @@ function run_comparison(strategy::DecisionTreeExecutionStrategy, configs)
         [config.ability_tracker for config in configs]
     )
     while true
-        for (responses, config) in zip(iter_tracked_responses(multi_tracked_reponses), configs)
+        for (responses, config) in zip(
+            iter_tracked_responses(multi_tracked_reponses), configs)
             track!(responses, config.ability_tracker)
             measure_all(config, :before_next_item, before_next_item; responses = responses)
             timed_next_item = @time config.next_item(responses, item_bank)
             next_item = timed_next_item.value
-            measure_all(config, :after_next_item, after_next_item; responses = responses, next_item = next_item)
+            measure_all(config, :after_next_item, after_next_item;
+                responses = responses, next_item = next_item)
         end
 
         if state_tree.cur_depth == state_tree.max_depth
             # Final ability estimates
             for resp in (false, true)
-                for (responses, config) in zip(iter_tracked_responses(multi_tracked_reponses), configs)
-                    add_response!(responses, Response(ResponseType(item_bank), next_item, resp))
-                    measure_all(config, :final_ability, final_ability; responses = responses)
+                for (responses, config) in zip(
+                    iter_tracked_responses(multi_tracked_reponses), configs)
+                    add_response!(
+                        responses, Response(ResponseType(item_bank), next_item, resp))
+                    measure_all(
+                        config, :final_ability, final_ability; responses = responses)
                     pop_response!(responses)
                 end
             end
@@ -238,7 +244,7 @@ end
 const tests = [
     UnequalVarianceTTest,
     ExactSignedRankTest,
-    SignTest,
+    SignTest
 ]
 
 name(typ) = string(Base.typename(typ).wrapper)

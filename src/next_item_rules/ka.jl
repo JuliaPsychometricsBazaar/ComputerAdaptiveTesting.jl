@@ -16,7 +16,6 @@ struct KernelAbstractionsExhaustiveSearchConfig{ArgsT} <: NextItemStrategy
     end
 end
 
-
 """
 $(TYPEDEF)
 $(TYPEDFIELDS)
@@ -33,9 +32,11 @@ function expected_response(ability, xs, ys)
     start = xs.start
     stop = xs.stop
     lendiv = xs.lendiv
-    ability_index = (ability - start)  * (lendiv / (stop - start))
+    ability_index = (ability - start) * (lendiv / (stop - start))
     if isnan(ability_index)
-        KernelAbstractions.@print("ability ", ability, "\tstart ", start, "\tstop ", stop, "\tlendiv ", lendiv, "\tability_index", ability_index, "\n")
+        KernelAbstractions.@print("ability ",
+            ability, "\tstart ", start, "\tstop ", stop, "\tlendiv ",
+            lendiv, "\tability_index", ability_index, "\n")
     end
     index_floor = floor(Int, ability_index)
     index_ceil = index_floor + 1
@@ -45,7 +46,8 @@ function expected_response(ability, xs, ys)
         return ys[end]
     else
         # Linear interpolation
-        return ys[index_floor] + (ys[index_ceil] - ys[index_floor]) * (ability_index - index_floor)
+        return ys[index_floor] +
+               (ys[index_ceil] - ys[index_floor]) * (ability_index - index_floor)
     end
 end
 
@@ -75,16 +77,16 @@ end
 # This kernel is parallel across items
 # It is not tiled
 @kernel inbounds=true function gridded_point_expected_posterior_variance_kernel_simple(
-    # The xs from the item bank as a LinRange
-    @Const(in_gridded_item_bank_xs),
-    # All ys from the item bank
-    @Const(in_gridded_item_bank_ys),
-    # The evaluated likelihood at the integration points
-    @Const(in_likelihood_points),
-    # The current point estimate of the ability
-    @Const(ability_estimate),
-    # The resulting expected posterior variance array
-    out_epv
+        # The xs from the item bank as a LinRange
+        @Const(in_gridded_item_bank_xs),
+        # All ys from the item bank
+        @Const(in_gridded_item_bank_ys),
+        # The evaluated likelihood at the integration points
+        @Const(in_likelihood_points),
+        # The current point estimate of the ability
+        @Const(ability_estimate),
+        # The resulting expected posterior variance array
+        out_epv
 )
     lh_eltype = eltype(in_likelihood_points)
     grid_size = length(in_gridded_item_bank_xs)
@@ -94,13 +96,15 @@ end
     item_ys = @view in_gridded_item_bank_ys[:, item_index]
     # Step 1: Compute the expected response for the current item
     #KernelAbstractions.@print("ability_estimate", ability_estimate, "\tin_gridded_item_bank_xs ", in_gridded_item_bank_xs, "item_ys", item_ys, "\n")
-    response_expectation = expected_response(ability_estimate, in_gridded_item_bank_xs, item_ys)
+    response_expectation = expected_response(
+        ability_estimate, in_gridded_item_bank_xs, item_ys)
     # Step 2: Get the variance in the positive response case
     lh_buf .= in_likelihood_points .* item_ys
     #KernelAbstractions.@print("First lh buf")
     #KernelAbstractions.@print("in_gridded_item_bank_xs ", size(in_gridded_item_bank_xs), "\tlh_buf ", size(lh_buf), "\n")
     #KernelAbstractions.@print("\n\n\n")
-    KernelAbstractions.@print("in_gridded_item_bank_xs ", in_gridded_item_bank_xs, "\tlh_buf ", lh_buf, "\n")
+    KernelAbstractions.@print("in_gridded_item_bank_xs ",
+        in_gridded_item_bank_xs, "\tlh_buf ", lh_buf, "\n")
     pos_exp_var = @inline var(in_gridded_item_bank_xs, lh_buf)
     # Step 3: Get the variance in the negative response case
     lh_buf .= in_likelihood_points .* (one(eltype(item_ys)) .- item_ys)
@@ -113,18 +117,21 @@ end
     if isinf(pos_exp_var) || isinf(neg_exp_var)
         out_epv[item_index] = typemax(eltype(response_expectation))
     else
-        negative_response_expectation = one(eltype(response_expectation)) - response_expectation
-        out_epv[item_index] = negative_response_expectation * neg_exp_var + response_expectation * pos_exp_var
+        negative_response_expectation = one(eltype(response_expectation)) -
+                                        response_expectation
+        out_epv[item_index] = negative_response_expectation * neg_exp_var +
+                              response_expectation * pos_exp_var
     end
 end
 
 function (
-    rule_config::RuleConfigT where {
+        rule_config::RuleConfigT where {
         RuleConfigT <: ItemStrategyNextItemRule{
-            <: KernelAbstractionsExhaustiveSearchConfig,
-            <: PointExpectationBasedItemCriterion{<: PointAbilityEstimator, <: AbilityVarianceStateCriterion}
-        }
-    }
+        <:KernelAbstractionsExhaustiveSearchConfig,
+        <:PointExpectationBasedItemCriterion{
+            <:PointAbilityEstimator, <:AbilityVarianceStateCriterion}
+}
+}
 )(responses, items::DichotomousPointsWithLogsItemBank)
     return preallocate(rule_config)(responses, items)
 end
@@ -140,13 +147,14 @@ function linrange_to_float32(input)
     return LinRange(Float32(input.start), Float32(input.stop), input.len)
 end
 
-function(
-    rule::RuleT where {
+function (
+        rule::RuleT where {
         RuleT <: ItemStrategyNextItemRule{
-            <: KernelAbstractionsExhaustiveSearch,
-            <: PointExpectationBasedItemCriterion{<: PointAbilityEstimator, <: AbilityVarianceStateCriterion}
-        }
-    }
+        <:KernelAbstractionsExhaustiveSearch,
+        <:PointExpectationBasedItemCriterion{
+            <:PointAbilityEstimator, <:AbilityVarianceStateCriterion}
+}
+}
 )(tracked_responses, items::DichotomousPointsWithLogsItemBank{})
     backend = rule.strategy.kernel.backend
     responses = tracked_responses.responses
@@ -158,7 +166,7 @@ function(
 
     @info "responses" responses.indices responses.values
     #for item_index in responses.indices
-        #@info "ys" items.inner_bank.ys[:, item_index]
+    #@info "ys" items.inner_bank.ys[:, item_index]
     #end
     ability_estimate = rule.criterion.ability_estimator(tracked_responses)
     @info "ability_estimate" rule.criterion.ability_estimator ability_estimate
@@ -170,8 +178,8 @@ function(
     log_likelihood_points = reduce(.+,
         (
             @view in_gridded_item_bank_log_ys[Int(resp_value) + 1, :, resp_idx]
-            for (resp_idx, resp_value)
-            in zip(responses.indices, responses.values)
+        for (resp_idx, resp_value)
+        in zip(responses.indices, responses.values)
         );
         init = zeros(eltype(in_gridded_item_bank_log_ys), num_quadrature_points)
     )
