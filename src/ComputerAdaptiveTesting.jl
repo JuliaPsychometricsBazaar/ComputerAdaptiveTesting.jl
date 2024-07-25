@@ -8,8 +8,6 @@ using Reexport
 export ConfigBase, Responses, Aggregators, NextItemRules, TerminationConditions
 export CatConfig, Sim
 
-include("./logitembank.jl")
-
 # Vendored dependencies
 include("./vendor/PushVectors.jl")
 
@@ -21,6 +19,9 @@ include("./Responses.jl")
 
 # Near base
 include("./aggregators/Aggregators.jl")
+
+# Extra item banks
+include("./logitembank.jl")
 
 # Stages
 include("./next_item_rules/NextItemRules.jl")
