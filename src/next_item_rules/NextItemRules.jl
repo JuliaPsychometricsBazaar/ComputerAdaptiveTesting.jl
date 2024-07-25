@@ -198,4 +198,6 @@ end
 include("./aliases.jl")
 include("./preallocate.jl")
 
+include("./ka.jl")
+
 end
