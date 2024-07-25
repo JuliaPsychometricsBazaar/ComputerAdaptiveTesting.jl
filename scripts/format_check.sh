@@ -6,7 +6,8 @@ if [[ $(git diff) ]]; then
   exit 1
 fi
 
-./format.sh
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+julia $SCRIPT_DIR/format.jl
 if [[ $(git diff) ]]; then
     echo "Julia format found differences:"
     git diff
