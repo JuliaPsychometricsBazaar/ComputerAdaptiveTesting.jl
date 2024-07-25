@@ -166,6 +166,17 @@ function (est::MeanAbilityEstimator)(::VectorContinuousDomain,
         tracked_responses)
 end
 
+function (est::MeanAbilityEstimator{AbilityEstimatorT, RiemannEnumerationIntegrator})(::DiscreteIndexableDomain,
+        rett::IntReturnType,
+        tracked_responses::TrackedResponses) where {AbilityEstimatorT}
+    expectation(rett,
+        IntegralCoeffs.id,
+        domdims(tracked_responses.item_bank),
+        est.integrator,
+        est.dist_est,
+        tracked_responses)
+end
+
 function maybe_apply_prior(f::F, est::PriorAbilityEstimator) where {F}
     IntegralCoeffs.PriorApply(IntegralCoeffs.Prior(est.prior), f)
 end
