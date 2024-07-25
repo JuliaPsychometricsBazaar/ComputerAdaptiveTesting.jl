@@ -35,9 +35,11 @@ struct AbilityVarianceStateCriterion{
 } <: StateCriterion
     dist_est::DistEst
     integrator::IntegratorT
+    skip_zero::Bool
 end
 
 function AbilityVarianceStateCriterion(bits...)
+    skip_zero = false
     # XXX: Weakness in this initialisation system is showing now
     # This needs ot be explicitly passed dist_est and integrator, but this may
     # be burried within a MeanAbilityEstimator
@@ -45,13 +47,16 @@ function AbilityVarianceStateCriterion(bits...)
     dist_est = DistributionAbilityEstimator(bits...)
     integrator = AbilityIntegrator(bits...)
     if dist_est !== nothing && integrator !== nothing
-        return AbilityVarianceStateCriterion(dist_est, integrator)
+        return AbilityVarianceStateCriterion(dist_est, integrator, skip_zero)
     end
     # So let's just handle this case individually for now
     # (Is this going to cause a problem with this being picked over something more appropriate?)
     @requiresome mean_ability_est = MeanAbilityEstimator(bits...)
-    return AbilityVarianceStateCriterion(mean_ability_est.dist_est,
-        mean_ability_est.integrator)
+    return AbilityVarianceStateCriterion(
+        mean_ability_est.dist_est,
+        mean_ability_est.integrator,
+        skip_zero
+    )
 end
 
 function (criterion::AbilityVarianceStateCriterion)(tracked_responses::TrackedResponses)::Float64
@@ -59,6 +64,9 @@ function (criterion::AbilityVarianceStateCriterion)(tracked_responses::TrackedRe
     denom = normdenom(criterion.integrator,
         criterion.dist_est,
         tracked_responses)
+    if denom == 0.0 && criterion.skip_zero
+        return Inf
+    end
     criterion(DomainType(tracked_responses.item_bank), tracked_responses, denom)
 end
 
