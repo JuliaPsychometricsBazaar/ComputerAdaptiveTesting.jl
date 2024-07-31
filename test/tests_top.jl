@@ -27,6 +27,10 @@ using .Dummy
     include("./aqua.jl")
 end
 
+@testset "jet" begin
+    include("./jet.jl")
+end
+
 @testset "abilest_1d" begin
     include("./ability_estimator_1d.jl")
 end
@@ -41,4 +45,8 @@ end
 
 @testset "dt" begin
     include("./dt.jl")
+end
+
+@testset "format" begin
+    include("./format.jl")
 end
