@@ -4,12 +4,13 @@ using StatsBase
 using FittedItemBanks: AbstractItemBank, ResponseType
 using ..Responses
 using ..CatConfig: CatLoopConfig, CatRules
-using ..Aggregators: TrackedResponses, add_response!, Speculator, Aggregators
+using ..Aggregators: TrackedResponses, add_response!, Speculator, Aggregators, track!, pop_response!
 using ..DecisionTree: TreePosition
 
 using HypothesisTests
 using EffectSizes
 
+#=
 export run_random_comparison, run_comparison
 export CatComparisonExecutionStrategy, IncreaseItemBankSizeExecutionStrategy
 export FollowOneExecutionStrategy, RunIndependentlyExecutionStrategy
@@ -272,5 +273,6 @@ function compare(comparison::RandomCatComparison)
     end
     DataFrame(cols)
 end
+=#
 
 end
