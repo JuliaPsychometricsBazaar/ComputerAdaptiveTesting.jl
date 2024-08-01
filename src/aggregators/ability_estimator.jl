@@ -65,8 +65,8 @@ function mean_1d(integrator::AbilityIntegrator,
         denom = normdenom(integrator, est, tracked_responses))
     expectation(IntegralCoeffs.id,
         0,
-        criterion.integrator,
-        criterion.dist_est,
+        integrator,
+        est,
         tracked_responses,
         denom)
 end
