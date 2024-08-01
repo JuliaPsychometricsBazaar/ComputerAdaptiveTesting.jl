@@ -10,6 +10,7 @@ using StaticArrays: SVector
 using Distributions: Distribution, Normal, Distributions
 using HCubature
 using Base.Threads
+using ForwardDiff: ForwardDiff
 
 using FittedItemBanks
 using ..Responses
