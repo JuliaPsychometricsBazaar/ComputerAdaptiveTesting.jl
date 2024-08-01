@@ -138,7 +138,7 @@ end
 function ExpectationBasedItemCriterion(ability_estimator::DistributionAbilityEstimator,
         criterion::StateCriterion,
         bits...)
-    @returnsome Integrator(bits...) integrator->DistributionBasedItemCriterion(
+    @returnsome Integrator(bits...) integrator->DistributionExpectationBasedItemCriterion(
         ability_estimator,
         integrator,
         criterion)
