@@ -34,10 +34,11 @@ export PointAbilityEstimator, PriorAbilityEstimator, LikelihoodAbilityEstimator
 export ModeAbilityEstimator, MeanAbilityEstimator
 export Speculator, replace_speculation!, normdenom, maybe_tracked_ability_estimate
 export AbilityIntegrator, AbilityOptimizer
-export FunctionOptimizer, EnumerationOptimizer, FunctionIntegrator
+export FunctionOptimizer, FunctionIntegrator
 export DistributionAbilityEstimator
 export variance, variance_given_mean, mean_1d
 export RiemannEnumerationIntegrator
+# export EnumerationOptimizer
 
 # Basic types
 # XXX: Does having a common supertype of DistributionAbilityEstimator and PointAbilityEstimator make sense?
@@ -129,10 +130,10 @@ end
 abstract type AbilityOptimizer end
 function AbilityOptimizer(bits...; ability_estimator = nothing)
     @returnsome find1_instance(AbilityOptimizer, bits)
-    zero_arg_optimizers = find1_type(EnumerationOptimizer, bits)
+    #=zero_arg_optimizers = find1_type(EnumerationOptimizer, bits)
     if (zero_arg_optimizers !== nothing)
         return EnumerationOptimizer()
-    end
+    end=#
     @returnsome Optimizer(bits...) optimizer->FunctionOptimizer(optimizer)
 end
 

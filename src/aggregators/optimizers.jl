@@ -10,6 +10,7 @@ function (optim::FunctionOptimizer)(f::F,
     optim.optim(comp_f)
 end
 
+#=
 """
 Argmax + max over the ability likihood given a set of responses with a given
 coefficient using exhaustive search.
@@ -40,6 +41,7 @@ function (optim::EnumerationOptimizer)(f::F,
     end
     (cur_argmax[], cur_max[])
 end
+=#
 
 function (optim::AbilityOptimizer)(f::F,
         est,
