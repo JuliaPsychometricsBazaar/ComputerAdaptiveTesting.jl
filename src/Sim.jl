@@ -61,7 +61,7 @@ function run_cat(cat_config::CatLoopConfig{RulesT},
             if isa(exc, NextItemError)
                 @warn "Terminating early due to error getting next item" err=sprint(
                     showerror,
-                    e)
+                    exc)
                 break
             else
                 rethrow()
