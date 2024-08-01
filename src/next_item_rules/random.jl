@@ -22,7 +22,7 @@ function RandomNextItemRule(bits...)
 end
 =#
 
-function (rule::RandomNextItemRule)(responses, items)
+function (rule::RandomNextItemRule)(responses::TrackedResponses, items)
     # TODO: This is not efficient
     item_idxes = Set(1:length(items))
     available = setdiff(item_idxes, Set(responses.responses.indices))
