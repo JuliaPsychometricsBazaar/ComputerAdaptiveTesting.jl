@@ -27,7 +27,7 @@ using FittedItemBanks
 using FittedItemBanks: item_params
 using ..Aggregators
 
-using QuadGK, Distributions, Optim, Base.Threads, Base.Order, FLoops, StaticArrays
+using QuadGK, Distributions, Optim, Base.Threads, Base.Order, StaticArrays
 using ConstructionBase: constructorof
 import ForwardDiff
 
