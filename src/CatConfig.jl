@@ -55,10 +55,6 @@ Implicit constructor for $(FUNCTIONNAME).
     ability_tracker::AbilityTrackerT = NullAbilityTracker()
 end
 
-function item_bank_type(bits...)
-    find1_instance(bits...)
-end
-
 function _find_ability_estimator_and_tracker(bits...)
     ability_estimator = AbilityEstimator(bits...)
     ability_tracker = AbilityTracker(bits...; ability_estimator = ability_estimator)
