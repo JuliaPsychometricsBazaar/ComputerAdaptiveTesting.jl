@@ -1,6 +1,8 @@
 using JuliaFormatter
+using ComputerAdaptiveTesting
 
 @testcase "format" begin
-    @test format("src"; overwrite = false)
-    @test format("test"; overwrite = false)
+    dir = pkgdir(ComputerAdaptiveTesting)
+    @test format(dir * "/src"; overwrite = false)
+    @test format(dir * "/test"; overwrite = false)
 end
