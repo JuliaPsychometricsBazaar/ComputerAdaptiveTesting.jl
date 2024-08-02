@@ -1,7 +1,7 @@
 name = "ComputerAdaptiveTesting"
 uuid = "5a0d4f34-1f62-4a66-80fe-87aba0485488"
 authors = ["Frankie Robertson"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
