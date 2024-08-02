@@ -4,7 +4,8 @@ using StatsBase
 using FittedItemBanks: AbstractItemBank, ResponseType
 using ..Responses
 using ..CatConfig: CatLoopConfig, CatRules
-using ..Aggregators: TrackedResponses, add_response!, Speculator, Aggregators, track!, pop_response!
+using ..Aggregators: TrackedResponses, add_response!, Speculator, Aggregators, track!,
+                     pop_response!
 using ..DecisionTree: TreePosition
 
 using HypothesisTests
