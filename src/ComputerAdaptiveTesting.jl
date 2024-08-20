@@ -31,6 +31,9 @@ include("./TerminationConditions.jl")
 include("./CatConfig.jl")
 include("./Sim.jl")
 include("./decision_tree/DecisionTree.jl")
+
+# Stateful layer and comparison
+include("./Stateful.jl")
 include("./Comparison.jl")
 
 @reexport using .CatConfig: CatLoopConfig, CatRules
