@@ -50,6 +50,25 @@ end
 
 BareResponses(rt::ResponseType) = BareResponses(rt, Int[], concrete_response_type(rt)[])
 
+function _iter_helper(gen, result)
+    if result === nothing
+        return nothing
+    end
+    (item, gen_state) = result
+    return (item, (gen, gen_state))
+end
+
+function Base.iterate(responses::BareResponses)
+    gen = (Response(responses.rt, index, value) for (index, value) in zip(
+        responses.indices, responses.values))
+    return _iter_helper(gen, iterate(gen))
+end
+
+function Base.iterate(::BareResponses, gen_gen_state)
+    (gen, gen_state) = gen_gen_state
+    return _iter_helper(gen, iterate(gen, gen_state))
+end
+
 struct AbilityLikelihood{ItemBankT <: AbstractItemBank, BareResponsesT <: BareResponses}
     item_bank::ItemBankT
     responses::BareResponsesT
