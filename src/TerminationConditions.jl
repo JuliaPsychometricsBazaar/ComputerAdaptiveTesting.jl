@@ -9,6 +9,7 @@ using FittedItemBanks
 
 export TerminationCondition,
        FixedItemsTerminationCondition, SimpleFunctionTerminationCondition
+export RunForeverTerminationCondition
 
 """
 $(TYPEDEF)
@@ -37,6 +38,12 @@ end
 function (condition::SimpleFunctionTerminationCondition)(responses::TrackedResponses,
         items::AbstractItemBank)
     condition.func(responses, items)
+end
+
+struct RunForeverTerminationCondition <: TerminationCondition end
+function (condition::RunForeverTerminationCondition)(responses::TrackedResponses,
+        items::AbstractItemBank)
+    return false
 end
 
 end
