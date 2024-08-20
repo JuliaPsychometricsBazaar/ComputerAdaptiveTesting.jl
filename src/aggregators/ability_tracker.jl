@@ -29,6 +29,11 @@ function pop_response!(tracked_responses::TrackedResponses)::TrackedResponses
     tracked_responses
 end
 
+function Base.empty!(tracked_responses::TrackedResponses)
+    Base.empty!(tracked_responses.responses.indices)
+    Base.empty!(tracked_responses.responses.values)
+end
+
 function response_expectation(ability_estimator::DistributionAbilityEstimator,
         integrator::AbilityIntegrator,
         tracked_responses::TrackedResponses,
