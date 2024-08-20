@@ -28,6 +28,8 @@ struct PriorAbilityEstimator{PriorT <: Distribution} <: DistributionAbilityEstim
     prior::PriorT
 end
 
+PriorAbilityEstimator() = PriorAbilityEstimator(std_normal)
+
 function pdf(est::PriorAbilityEstimator,
         tracked_responses::TrackedResponses)
     IntegralCoeffs.PriorApply(IntegralCoeffs.Prior(est.prior),
