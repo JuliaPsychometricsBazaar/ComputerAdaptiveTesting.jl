@@ -1,21 +1,28 @@
 module Comparison
 
+# TODO: We are overlapping a bit with CatRecorder here
+# Should be kept in mind and kept distinct or code reuse
+
 using StatsBase
 using FittedItemBanks: AbstractItemBank, ResponseType
 using ..Responses
 using ..CatConfig: CatLoopConfig, CatRules
 using ..Aggregators: TrackedResponses, add_response!, Speculator, Aggregators, track!,
                      pop_response!
-using ..DecisionTree: TreePosition
+using ..DecisionTree: TreePosition, next!
+using Base: Iterators
 
 using HypothesisTests
 using EffectSizes
+using DataFrames
+using ComputerAdaptiveTesting: Stateful
 
-#=
 export run_random_comparison, run_comparison
-export CatComparisonExecutionStrategy, IncreaseItemBankSizeExecutionStrategy
-export FollowOneExecutionStrategy, RunIndependentlyExecutionStrategy
-export DecisionTreeExecutionStrategy
+export CatComparisonExecutionStrategy#, IncreaseItemBankSizeExecutionStrategy
+#export FollowOneExecutionStrategy, RunIndependentlyExecutionStrategy
+#export DecisionTreeExecutionStrategy
+export ReplayResponsesExecutionStrategy
+export CatComparisonConfig
 
 struct RandomCatComparison
     true_abilities::Array{Float64}
@@ -74,6 +81,33 @@ function run_random_comparison(next_item,
     RandomCatComparison(true_abilities, rand_abilities, cat_abilities, cat_idxs)
 end
 
+abstract type CatComparisonExecutionStrategy end
+
+Base.@kwdef struct CatComparisonConfig{StrategyT <: CatComparisonExecutionStrategy}
+    """
+    A named tuple with the (named) CatRules (or compatable) to be compared
+    """
+    rules::NamedTuple
+    """
+    The comparison and execution strategy to use
+    """
+    strategy::StrategyT
+    #=
+    """
+    The measurements applied at given phases
+    """
+    measurements::Vector{}
+    =#
+    """
+    Which phases to run and/or call the callback on
+    """
+    phases::Set{Symbol} = Set((:before_next_item, :after_next_item))
+    """
+    The callback which should take a named tuple with information at different phases
+    """
+    callback::Any
+end
+
 # Comparison scenarios:
 #  * Want to benchmark:
 #    * Perf: runtime/memory usage
@@ -93,55 +127,192 @@ end
 #        * Following what: which rule gets to be ground truth
 #  * Random vs. One
 
-function measure_all(config, phase, phase_func; kwargs...)
-    measurement_results = []
-    responses = TrackedResponses(
-        BareResponses(ResponseType(strategy.item_bank)),
-        strategy.item_bank,
-        config.ability_tracker
-    )
-    for measurement in config.measurements
-        result = phase_func(measurement; kwargs...)
-        if result === nothing
-            continue
-        end
+#phase_func=nothing;
+function measure_all(comparison, system, cat, phase; kwargs...)
+    if !(phase in comparison.phases)
+        return
+    end
+    strategy = comparison.strategy
+    #=measurement_results = []
+    for measurement in comparison.measurements
+        #if phase_func === nothing
+            #continue
+        #end
+        #result = phase_func(measurement; kwargs...)
+        result = measurement
+        #if result === nothing
+            #continue
+        #end
         push!(measurement_results, result)
-    end
-    if !isempty(measurement_results)
-        config.callback(phase, measurement_results)
-    end
+    end=#
+    comparison.callback((;
+        phase,
+        system,
+        cat,
+        #measurement_results,
+        kwargs...
+    ))
 end
-
-abstract type CatComparisonExecutionStrategy end
 
 struct IncreaseItemBankSizeExecutionStrategy <: CatComparisonExecutionStrategy
     item_bank::AbstractItemBank
     sizes::AbstractVector{Int}
+    starting_responses::Int
+end
+
+function IncreaseItemBankSizeExecutionStrategy(item_bank, sizes)
+    return IncreaseItemBankSizeExecutionStrategy(item_bank, sizes, 0)
 end
 
 function run_comparison(strategy::IncreaseItemBankSizeExecutionStrategy, config)
-    for size in sizes
-        subsetted_item_bank = subset(item_bank, size)
+    for size in strategy.sizes
+        subsetted_item_bank = subset(strategy.item_bank, size)
         responses = TrackedResponses(
             BareResponses(ResponseType(strategy.item_bank)),
             subsetted_item_bank,
             config.ability_tracker
         )
+        for _ in 1:(strategy.starting_responses)
+            next_item = config.next_item(responses, subsetted_item_bank)
+            add_response!(responses,
+                Response(ResponseType(subsetted_item_bank), next_item, rand(Bool)))
+        end
         measure_all(config, :before_next_item, before_next_item; responses = responses)
-        timed_next_item = @time config.next_item(responses, item_bank)
+        timed_next_item = @timed config.next_item(responses, item_bank)
         next_item = timed_next_item.value
         measure_all(config, :after_next_item, after_next_item;
             responses = responses, next_item = next_item)
     end
 end
 
+# Which questions to ask
+#   * Random
+#   * Specified
+#   * Follow one CAT
+#   * Follow multiple CATs indepdently
+#   * Follow multiple CATs and combine them resampling style
+# Which answer to use
+#   * Random
+#   * Random from a specified ability
+#   * From response memory
+#   * All (generate decision tree)
+
+struct ReplayResponsesExecutionStrategy <: CatComparisonExecutionStrategy
+    responses::BareResponses
+end
+
+# Which questions to ask: Specified
+# Which answer to use: From response memory
+function run_comparison(comparison::CatComparisonConfig{ReplayResponsesExecutionStrategy})
+    strategy = comparison.strategy
+    for (items_answered, response) in zip(
+        Iterators.countfrom(0), Iterators.flatten((strategy.responses, [nothing])))
+        for (name, cat) in pairs(comparison.rules)
+            if :before_item_criteria in comparison.phases
+                timed_item_criteria = @timed Stateful.item_criteria(cat)
+                measure_all(
+                    comparison,
+                    name,
+                    cat,
+                    :before_item_criteria,
+                    items_answered = items_answered,
+                    item_criteria = timed_item_criteria.value,
+                    timing = timed_item_criteria
+                )
+            end
+            if :before_ranked_items in comparison.phases
+                timed_ranked_items = @timed Stateful.ranked_items(cat)
+                measure_all(
+                    comparison,
+                    name,
+                    cat,
+                    :before_ranked_items,
+                    items_answered = items_answered,
+                    ranked_items = timed_ranked_items.value,
+                    timing = timed_ranked_items
+                )
+            end
+            if :before_ability in comparison.phases
+                timed_get_ability = @timed Stateful.get_ability(cat)
+                measure_all(
+                    comparison,
+                    name,
+                    cat,
+                    :before_ability,
+                    items_answered = items_answered,
+                    ability = timed_get_ability.value,
+                    timing = timed_get_ability
+                )
+            end
+            measure_all(
+                comparison,
+                name,
+                cat,
+                :before_next_item,
+                items_answered = items_answered
+            )
+            timed_next_item = @timed Stateful.next_item(cat)
+            next_item = timed_next_item.value
+            measure_all(
+                comparison,
+                name,
+                cat,
+                :after_next_item,
+                next_item = next_item,
+                timing = timed_next_item,
+                items_answered = items_answered
+            )
+            if :after_item_criteria in comparison.phases
+                timed_item_criteria = @timed Stateful.item_criteria(cat)
+                measure_all(
+                    comparison,
+                    name,
+                    cat,
+                    :after_item_criteria,
+                    items_answered = items_answered,
+                    item_criteria = timed_item_criteria.value,
+                    timing = timed_item_criteria
+                )
+            end
+            if :after_ranked_items in comparison.phases
+                timed_ranked_items = @timed Stateful.ranked_items(cat)
+                measure_all(
+                    comparison,
+                    name,
+                    cat,
+                    :after_ranked_items,
+                    items_answered = items_answered,
+                    ranked_items = timed_ranked_items.value,
+                    timing = timed_ranked_items
+                )
+            end
+            if :after_ability in comparison.phases
+                timed_get_ability = @timed Stateful.get_ability(cat)
+                measure_all(
+                    comparison,
+                    name,
+                    cat,
+                    :after_ability,
+                    items_answered = items_answered,
+                    ability = timed_get_ability.value,
+                    timing = timed_get_ability
+                )
+            end
+            if response !== nothing
+                Stateful.add_response!(cat, response.index, response.value)
+            end
+        end
+    end
+end
+
+#=
 struct FollowOneExecutionStrategy <: CatComparisonExecutionStrategy
     item_bank::AbstractItemBank
     gold::Symbol
 end
 
-function run_comparison(strategy::FollowOneExecutionStrategy, config)
-    error("Not implemented")
+function run_comparison(strategy::FollowOneExecutionStrategy, configs)
+    configs[strategy.gold]
 end
 
 struct RunIndependentlyExecutionStrategy <: CatComparisonExecutionStrategy
@@ -152,9 +323,20 @@ function run_comparison(strategy::RunIndependentlyExecutionStrategy, config)
     error("Not implemented")
 end
 
-struct DecisionTreeExecutionStrategy <: CatComparisonExecutionStrategy
+struct DecisionTreeExecutionStrategy{F, G} <: CatComparisonExecutionStrategy
     item_bank::AbstractItemBank
     max_depth::UInt
+    before_next_item::F
+    after_next_item::G
+end
+
+function DecisionTreeExecutionStrategy(
+    item_bank,
+    max_depth,
+    before_next_item=(measurement; kwargs...) -> nothing,
+    after_next_item=(measurement; kwargs...) -> nothing
+)
+    return DecisionTreeExecutionStrategy(item_bank, max_depth, before_next_item, after_next_item)
 end
 
 @kwdef struct MultiTrackedResponses{
@@ -169,7 +351,9 @@ end
 
 function Aggregators.add_response!(tracked_responses::MultiTrackedResponses, response)
     add_response!(tracked_responses.responses, response)
-    track!(tracked_responses)
+    for ability_tracker in tracked_responses.ability_trackers
+        track!(tracked_responses, ability_tracker)
+    end
 end
 
 function Aggregators.pop_response!(tracked_responses::MultiTrackedResponses)
@@ -191,13 +375,16 @@ function run_comparison(strategy::DecisionTreeExecutionStrategy, configs)
         [config.ability_tracker for config in configs]
     )
     while true
+        next_item = nothing
         for (responses, config) in zip(
             iter_tracked_responses(multi_tracked_reponses), configs)
-            track!(responses, config.ability_tracker)
-            measure_all(config, :before_next_item, before_next_item; responses = responses)
-            timed_next_item = @time config.next_item(responses, item_bank)
+            if hasfield(config, :ability_tracker)
+                track!(responses, config.ability_tracker)
+            end
+            measure_all(config, :before_next_item, strategy.before_next_item; responses = responses)
+            timed_next_item = @timed config.next_item(responses, strategy.item_bank)
             next_item = timed_next_item.value
-            measure_all(config, :after_next_item, after_next_item;
+            measure_all(config, :after_next_item, strategy.after_next_item;
                 responses = responses, next_item = next_item)
         end
 
@@ -207,40 +394,22 @@ function run_comparison(strategy::DecisionTreeExecutionStrategy, configs)
                 for (responses, config) in zip(
                     iter_tracked_responses(multi_tracked_reponses), configs)
                     add_response!(
-                        responses, Response(ResponseType(item_bank), next_item, resp))
-                    measure_all(
-                        config, :final_ability, final_ability; responses = responses)
+                        responses, Response(ResponseType(strategy.item_bank), next_item, resp))
+                    # TODO: figure out what we're doing here
+                    #=measure_all(
+                        config, :final_ability, final_ability; responses = responses)=#
                     pop_response!(responses)
                 end
             end
         end
 
-        if next!(state_tree, multi_tracked_reponses, item_bank, next_item, ability)
+        ability = 0 # TODO...
+        if next!(state_tree, multi_tracked_reponses, strategy.item_bank, next_item, ability)
             break
         end
     end
 end
 
-#=
-Base.@kwdef struct CatComparisonConfig
-    """
-    A named tuple with the (named) CatRules (or compatable) to be compared
-    """
-    rules
-    """
-    """
-    execution_strategy::CatComparisonExecutionStrategy
-    """
-    """
-    measurements::Vector{}
-    """
-    """
-    callback
-end
-
-function run_comparison(cat_comparison::CatComparisonConfig)
-    run_comparison(cat_comparison.execution_strategy)
-end
 =#
 
 const tests = [
@@ -274,6 +443,5 @@ function compare(comparison::RandomCatComparison)
     end
     DataFrame(cols)
 end
-=#
 
 end
