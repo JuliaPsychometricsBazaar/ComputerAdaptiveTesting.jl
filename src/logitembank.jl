@@ -32,7 +32,7 @@ function FittedItemBanks.resp(ir::ItemResponse{<:LogItemBank}, response, θ)
 end
 
 function FittedItemBanks.resp_vec(ir::ItemResponse{<:LogItemBank}, θ)
-    exp(ULogarithmic{Float64}, FittedItemBanks.log_resp_vec(inner_ir(ir), θ))
+    exp.(ULogarithmic{Float64}, FittedItemBanks.log_resp_vec(inner_ir(ir), θ))
 end
 
 @forward LogItemBank.inner Base.length,
