@@ -13,6 +13,8 @@ function next_item end
 
 function ranked_items end
 
+function item_criteria end
+
 function add_response! end
 
 #function add_responses! end
@@ -75,6 +77,11 @@ function next_item(config::StatefulCatConfig)
 end
 
 function ranked_items(config::StatefulCatConfig)
+    return sortperm(compute_criteria(
+        config.rules.next_item, config.tracked_responses, config.item_bank))
+end
+
+function item_criteria(config::StatefulCatConfig)
     return compute_criteria(
         config.rules.next_item, config.tracked_responses, config.item_bank)
 end
