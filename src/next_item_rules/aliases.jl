@@ -12,10 +12,7 @@ const catr_next_item_aliases = Dict(
     "MEPV" => (ability_estimator; parallel = true) -> ItemStrategyNextItemRule(
         ExhaustiveSearch1Ply(parallel),
         ExpectationBasedItemCriterion(ability_estimator,
-            AbilityVarianceStateCriterion(ability_estimator)))
-    #"MLWI",
-    #"MPWI",
-    #"MEI",
+            AbilityVarianceStateCriterion(ability_estimator)))    #"MLWI",    #"MPWI",    #"MEI",
 )
 
 #"thOpt",
@@ -27,22 +24,31 @@ const catr_next_item_aliases = Dict(
 #"GDIP",
 #"random"
 
+function _mirtcat_helper(item_criterion_callback)
+    function _helper(bits...; ability_estimator = nothing)
+        ability_estimator = AbilityEstimator(bits...; ability_estimator = ability_estimator)
+        item_criterion = item_criterion_callback(
+            [bits..., ability_estimator], ability_estimator)
+        return ItemStrategyNextItemRule(ExhaustiveSearch1Ply(), item_criterion)
+    end
+    return _helper
+end
+
 const mirtcat_next_item_aliases = Dict(
     # "MI' for the maximum information
-    "MI" => (ability_estimator) -> ItemStrategyNextItemRule(
-        ExhaustiveSearch1Ply(false),
-        InformationItemCriterion(ability_estimator)),
+    "MI" => _mirtcat_helper((bits, ability_estimator) -> InformationItemCriterion(ability_estimator)),
     # 'MEPV' for minimum expected posterior variance
-    "MEPV" => (ability_estimator) -> ItemStrategyNextItemRule(
-        ExhaustiveSearch1Ply(false),
-        ExpectationBasedItemCriterion(ability_estimator,
-            AbilityVarianceStateCriterion(ability_estimator))),
-    # 'MLWI' for maximum likelihood weighted information
-    #"MLWI" =>
-    # 'MPWI' for maximum posterior weighted information
-    # 'MEI' for maximum expected information
-    # 'IKLP' as well as 'IKL' for the integration based Kullback-Leibler criteria with and without the prior density weight,
-    # respectively, and their root-n items administered weighted counter-parts, 'IKLn' and 'IKLPn'.
+    "MEPV" => _mirtcat_helper((bits, ability_estimator) -> ExpectationBasedItemCriterion(
+        ability_estimator,
+        AbilityVarianceStateCriterion(bits...)))
+)
+
+# 'MLWI' for maximum likelihood weighted information
+#"MLWI" => _mirtcat_helper((bits, ability_estimator) -> InformationItemCriterion(ability_estimator))
+# 'MPWI' for maximum posterior weighted information
+# 'MEI' for maximum expected information
+# 'IKLP' as well as 'IKL' for the integration based Kullback-Leibler criteria with and without the prior density weight,
+# respectively, and their root-n items administered weighted counter-parts, 'IKLn' and 'IKLPn'.
 #=
 Possible inputs for multidimensional adaptive tests include: 'Drule' for the
 maximum determinant of the information matrix, 'Trule' for the maximum
@@ -57,21 +63,21 @@ design object
 Non-adaptive methods applicable even when no mo object is passed are: 'random'
 to randomly select items, and 'seq' for selecting items sequentially
 =#
-)
 
 const mirtcat_ability_estimator_aliases = Dict(
+# "MAP" for the maximum a-posteriori (i.e, Bayes modal)
+# "ML" for maximum likelihood
+# "WLE" for weighted likelihood estimation
+# "EAPsum" for the expected a-posteriori for each sum score
+# "EAP" for the expected a-posteriori (default).
+)
+
 #=
-• "MAP" for the maximum a-posteriori (i.e, Bayes modal)
-• "ML" for maximum likelihood
-• "WLE" for weighted likelihood estimation
-• "EAPsum" for the expected a-posteriori for each sum score
 • "plausible" for a single plausible value imputation for each case. This is
 equivalent to setting plausible.draws = 1
 • "classify" for the posteriori classification probabilities (only applicable
 when the input model was of class MixtureClass)
 =#
-    # "EAP" for the expected a-posteriori (default).
-)
 
 function mirtcat_quadpts(nfact)
     if nfact == 1
