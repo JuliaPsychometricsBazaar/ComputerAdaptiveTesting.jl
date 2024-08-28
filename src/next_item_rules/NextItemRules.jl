@@ -123,7 +123,7 @@ $(TYPEDFIELDS)
 
 """
 @with_kw struct ExhaustiveSearch1Ply <: NextItemStrategy
-    parallel::Bool
+    parallel::Bool = false
 end
 
 """
