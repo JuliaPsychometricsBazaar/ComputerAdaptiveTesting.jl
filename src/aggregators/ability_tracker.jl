@@ -38,7 +38,10 @@ function response_expectation(ability_estimator::DistributionAbilityEstimator,
         integrator::AbilityIntegrator,
         tracked_responses::TrackedResponses,
         item_idx)
-    exp1 = expectation(ItemResponse(tracked_responses.item_bank, item_idx),
+    # TODO: Remove lambdas
+    # TODO: Support nominal responses
+    exp1 = expectation(
+        x -> resp(ItemResponse(tracked_responses.item_bank, item_idx), x),
         0,
         integrator,
         ability_estimator,
