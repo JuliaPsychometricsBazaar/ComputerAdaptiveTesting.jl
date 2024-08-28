@@ -237,6 +237,7 @@ function (item_criterion::UrryItemCriterion)(tracked_responses::TrackedResponses
     abs(ability - diff)
 end
 
+# TODO: Should have Variants for point ability versus distribution ability
 struct InformationItemCriterion{AbilityEstimatorT <: PointAbilityEstimator} <: ItemCriterion
     ability_estimator::AbilityEstimatorT
 end
