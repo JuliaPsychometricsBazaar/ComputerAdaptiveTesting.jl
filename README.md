@@ -84,6 +84,3 @@ also contains a number of examples.
  * `/docs/examples`, Example code
  * `/docs`, Documentation source code, build with Documenter.jl
  * `/src`, Source code for the main ComputerAdaptiveTesting.jl package
- * `/experiments`, Some experiments, benchmarks and example code. All of these
-   are more computationally heavy than `/docs/examples` and may need HPC and/or
-   patience.
