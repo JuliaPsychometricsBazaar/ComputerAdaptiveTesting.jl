@@ -1,7 +1,7 @@
 using BenchmarkTools
 using AirspeedVelocity
 using ComputerAdaptiveTesting
-using Random: Xoshiro, sample
+using Random: Xoshiro
 using StatsBase: sample
 using FittedItemBanks
 using FittedItemBanks.DummyData: dummy_full, SimpleItemBankSpec, StdModel4PL
@@ -48,7 +48,7 @@ function prepare_4pls(group)
         tracked_responses = TrackedResponses(BareResponses(ResponseType(item_bank)),
             item_bank,
             NullAbilityTracker())
-        group["$(est_nick)_point_mepv_bare"] = @benchmark ($next_item_rule)(
+        group["$(est_nick)_point_mepv_bare"] = @benchmarkable ($next_item_rule)(
             $tracked_responses, $item_bank)
         bare_responses = BareResponses(
             ResponseType(item_bank),
@@ -60,7 +60,7 @@ function prepare_4pls(group)
             bare_responses,
             item_bank,
             NullAbilityTracker())
-        group["$(est_nick)_point_mepv_10"] = @benchmark ($next_item_rule)(
+        group["$(est_nick)_point_mepv_10"] = @benchmarkable ($next_item_rule)(
             $tracked_responses, $item_bank)
     end
     return group
