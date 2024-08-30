@@ -21,7 +21,7 @@ SUITE["next_item_rules"] = BenchmarkGroup()
 #prepare_0(ability_estimator)
 function prepare_4pls(group)
     rng = Xoshiro(42)
-    (; item_bank, abilities, responses) = dummy_full(
+    (item_bank, abilities, responses) = dummy_full(
         rng,
         SimpleItemBankSpec(StdModel4PL(), OneDimContinuousDomain(), BooleanResponse());
         num_questions = 20,
