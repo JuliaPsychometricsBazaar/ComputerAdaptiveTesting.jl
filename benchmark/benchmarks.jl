@@ -9,8 +9,8 @@ using ComputerAdaptiveTesting.Aggregators
 using PsychometricsBazaarBase.Optimizers
 using PsychometricsBazaarBase.Integrators: even_grid
 using ComputerAdaptiveTesting.NextItemRules: mirtcat_quadpts
-using ComputerAdaptiveTesting.NextItemRules: DistributionExpectationBasedItemCriterion,
-                                             PointExpectationBasedItemCriterion
+using ComputerAdaptiveTesting.NextItemRules: ExpectationBasedItemCriterion,
+                                             PointResponseExpectation
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.Responses
 
@@ -40,7 +40,7 @@ function prepare_4pls(group)
     for (est_nick, ability_estimator) in ability_estimators
         next_item_rule = ItemStrategyNextItemRule(
             ExhaustiveSearch1Ply(),
-            PointExpectationBasedItemCriterion(ability_estimator,
+            ExpectationBasedItemCriterion(PointResponseExpectation(ability_estimator),
                 AbilityVarianceStateCriterion(
                     integrator, distribution_estimator(ability_estimator)))
         )
