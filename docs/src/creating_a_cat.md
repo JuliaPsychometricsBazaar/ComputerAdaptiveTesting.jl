@@ -108,12 +108,12 @@ they are as a candidate for the next item. A typical example is
 and the item response function ```irf``` to calculate each item's information
 ``\frac{irf_θ'^2}{irf_θ * (1 - irf_θ)}``.
 
-Within this, there are two types of `ExpectationBasedItemCriterion` which act
-as adapters: `PointExpectationBasedItemCriterion` and
-`DistributionExpectationBasedItemCriterion`. These take a `StateCriterion`,
-which evaluates how good a particular state is in terms getting a good estimate
-of the test takers ability. They look one ply ahead to get the expected value
-of the ``StateCriterion`` after selecting the given item. The
+Within this, you can use `ExpectationBasedItemCriterion` as an adapter. It
+takes a `ResponseExpectation`: either `PointResponseExpectation` or
+`DistributionResponseExpectation` and a a `StateCriterion`, which evaluates how
+good a particular state is in terms getting a good estimate of the test takers
+ability. They look one ply ahead to get the expected value of the
+``StateCriterion`` after selecting the given item. The
 `AbilityVarianceStateCriterion` looks at the variance of the ability ``\theta``
 estimate at that state.
 

@@ -128,8 +128,8 @@ function (
         rule_config::RuleConfigT where {
         RuleConfigT <: ItemStrategyNextItemRule{
         <:KernelAbstractionsExhaustiveSearchConfig,
-        <:PointExpectationBasedItemCriterion{
-            <:PointAbilityEstimator, <:AbilityVarianceStateCriterion}
+        <:ExpectationBasedItemCriterion{
+            <:PointResponseExpectation, <:AbilityVarianceStateCriterion}
 }
 }
 )(responses, items::DichotomousPointsWithLogsItemBank)
@@ -151,8 +151,8 @@ function (
         rule::RuleT where {
         RuleT <: ItemStrategyNextItemRule{
         <:KernelAbstractionsExhaustiveSearch,
-        <:PointExpectationBasedItemCriterion{
-            <:PointAbilityEstimator, <:AbilityVarianceStateCriterion}
+        <:ExpectationBasedItemCriterion{
+            <:PointResponseExpectation, <:AbilityVarianceStateCriterion}
 }
 }
 )(tracked_responses, items::DichotomousPointsWithLogsItemBank{})

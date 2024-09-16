@@ -39,6 +39,7 @@ export ExhaustiveSearch1Ply
 export catr_next_item_aliases
 export preallocate
 export compute_criteria
+export PointResponseExpectation, DistributionResponseExpectation
 
 """
 $(TYPEDEF)
@@ -68,6 +69,7 @@ end
 include("./random.jl")
 include("./information.jl")
 include("./objective_function.jl")
+include("./expectation.jl")
 
 const default_prior = IntegralCoeffs.Prior(Cauchy(5, 2))
 
