@@ -26,6 +26,7 @@ import PsychometricsBazaarBase.IntegralCoeffs
 using FittedItemBanks
 using FittedItemBanks: item_params
 using ..Aggregators
+using ..Aggregators: covariance_matrix
 
 using QuadGK, Distributions, Optim, Base.Threads, Base.Order, StaticArrays
 using ConstructionBase: constructorof
@@ -40,6 +41,9 @@ export catr_next_item_aliases
 export preallocate
 export compute_criteria
 export PointResponseExpectation, DistributionResponseExpectation
+export MatrixScalarizer, DeterminantScalarizer, TraceScalarizer
+export AbilityCovarianceStateCriteria, StateCriteria, ItemCriteria
+export ScalarizedStateCriteron
 
 """
 $(TYPEDEF)
@@ -197,6 +201,7 @@ function compute_criteria(
     compute_criteria(rule.criterion, responses, items)
 end
 
+include("./mirt.jl")
 include("./aliases.jl")
 include("./preallocate.jl")
 

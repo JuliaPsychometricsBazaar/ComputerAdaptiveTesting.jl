@@ -39,8 +39,7 @@ struct AbilityVarianceStateCriterion{
     skip_zero::Bool
 end
 
-function AbilityVarianceStateCriterion(bits...)
-    skip_zero = false
+function _get_dist_est_and_integrator(bits...)
     # XXX: Weakness in this initialisation system is showing now
     # This needs ot be explicitly passed dist_est and integrator, but this may
     # be burried within a MeanAbilityEstimator
@@ -48,16 +47,18 @@ function AbilityVarianceStateCriterion(bits...)
     dist_est = DistributionAbilityEstimator(bits...)
     integrator = AbilityIntegrator(bits...)
     if dist_est !== nothing && integrator !== nothing
-        return AbilityVarianceStateCriterion(dist_est, integrator, skip_zero)
+        return (dist_est, integrator)
     end
     # So let's just handle this case individually for now
     # (Is this going to cause a problem with this being picked over something more appropriate?)
     @requiresome mean_ability_est = MeanAbilityEstimator(bits...)
-    return AbilityVarianceStateCriterion(
-        mean_ability_est.dist_est,
-        mean_ability_est.integrator,
-        skip_zero
-    )
+    return (dist_est, integrator)
+end
+
+function AbilityVarianceStateCriterion(bits...)
+    skip_zero = false
+    @requiresome (dist_est, integrator) = _get_dist_est_and_integrator(bits...)
+    return AbilityVarianceStateCriterion(dist_est, integrator, skip_zero)
 end
 
 function (criterion::AbilityVarianceStateCriterion)(tracked_responses::TrackedResponses)::Float64
@@ -75,20 +76,12 @@ function (criterion::AbilityVarianceStateCriterion)(
         ::Union{OneDimContinuousDomain, DiscreteDomain},
         tracked_responses::TrackedResponses,
         denom)::Float64
-    mean = expectation(IntegralCoeffs.id,
-        0,
+    return variance(
         criterion.integrator,
         criterion.dist_est,
         tracked_responses,
-        denom)
-    # XXX: This is not type stable and seems to possibly allocate. We need to
-    # show that mean is the same as our tracked responses.
-    return expectation(IntegralCoeffs.SqDev(mean),
-        0,
-        criterion.integrator,
-        criterion.dist_est,
-        tracked_responses,
-        denom)
+        denom
+    )
 end
 
 function (criterion::AbilityVarianceStateCriterion)(::Vector,
