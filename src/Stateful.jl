@@ -104,7 +104,7 @@ function get_responses(config::StatefulCatConfig)
 end
 
 function get_ability(config::StatefulCatConfig)
-    return config.rules.ability_estimator(config.tracked_responses)
+    return (config.rules.ability_estimator(config.tracked_responses), nothing)
 end
 
 ## TODO: Implementation for MaterializedDecisionTree
