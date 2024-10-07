@@ -28,7 +28,7 @@ struct PriorAbilityEstimator{PriorT <: Distribution} <: DistributionAbilityEstim
     prior::PriorT
 end
 
-function PriorAbilityEstimator(; ncomp=0)
+function PriorAbilityEstimator(; ncomp = 0)
     if ncomp == 0
         return PriorAbilityEstimator(std_normal)
     else
@@ -80,10 +80,10 @@ function mean_1d(integrator::AbilityIntegrator,
 end
 
 function mean(
-    integrator::AbilityIntegrator,
-    est::DistributionAbilityEstimator,
-    tracked_responses::TrackedResponses,
-    denom = normdenom(integrator, est, tracked_responses)
+        integrator::AbilityIntegrator,
+        est::DistributionAbilityEstimator,
+        tracked_responses::TrackedResponses,
+        denom = normdenom(integrator, est, tracked_responses)
 )
     n = domdims(tracked_responses.item_bank)
     expectation(IntegralCoeffs.id,
@@ -119,11 +119,11 @@ function variance(integrator::AbilityIntegrator,
 end
 
 function covariance_matrix_given_mean(
-    integrator::AbilityIntegrator,
-    est::DistributionAbilityEstimator,
-    tracked_responses::TrackedResponses,
-    mean,
-    denom = normdenom(integrator, est, tracked_responses)
+        integrator::AbilityIntegrator,
+        est::DistributionAbilityEstimator,
+        tracked_responses::TrackedResponses,
+        mean,
+        denom = normdenom(integrator, est, tracked_responses)
 )
     n = domdims(tracked_responses.item_bank)
     expectation(IntegralCoeffs.OuterProdDev(mean),
