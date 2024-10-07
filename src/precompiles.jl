@@ -16,10 +16,5 @@
             bare_responses = BareResponses(response_type, [1], [zero(concrete_type)])
         end
         Response{ResponseTypeT <: ResponseType, ConcreteResponseTypeT}
-        # all calls in this block will be precompiled, regardless of whether
-        # they belong to your package or not (on Julia 1.8 and higher)
-        d = Dict(MyType(1) => list)
-        x = get(d, MyType(2), nothing)
-        last(d[MyType(1)])
     end
 end
