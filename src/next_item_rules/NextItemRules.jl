@@ -34,7 +34,7 @@ import ForwardDiff
 
 export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, init_thread
 export NextItemRule, ItemStrategyNextItemRule
-export UrryItemCriterion, InformationItemCriterion, DRuleItemCriterion, TRuleItemCriterion
+export UrryItemCriterion, InformationItemCriterion
 export RandomNextItemRule
 export ExhaustiveSearch1Ply
 export catr_next_item_aliases
@@ -43,7 +43,8 @@ export compute_criteria
 export PointResponseExpectation, DistributionResponseExpectation
 export MatrixScalarizer, DeterminantScalarizer, TraceScalarizer
 export AbilityCovarianceStateCriteria, StateCriteria, ItemCriteria
-export ScalarizedStateCriteron
+export InformationMatrixCriteria
+export ScalarizedStateCriteron, ScalarizedItemCriteron
 
 """
 $(TYPEDEF)
@@ -72,6 +73,7 @@ end
 
 include("./random.jl")
 include("./information.jl")
+include("./information_special.jl")
 include("./objective_function.jl")
 include("./expectation.jl")
 

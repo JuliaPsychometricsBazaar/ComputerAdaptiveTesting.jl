@@ -59,6 +59,19 @@ end
 end
 
 @testcase "2 dim information higher closer to current estimate" begin
+    information_matrix_criteria = InformationMatrixCriteria(mle_mean_2d)
+    information_criterion = ScalarizedItemCriteron(
+        information_matrix_criteria, DeterminantScalarizer())
+
+    # Item closer to the current estimate (1, 1)
+    close_item = 5
+    # Item further from the current estimate
+    far_item = 6
+
+    close_info = information_criterion(tracked_responses_2d, close_item)
+    far_info = information_criterion(tracked_responses_2d, far_item)
+
+    @test close_info > far_info
 end
 
 @testcase "2 dim variance smaller closer to current estimate" begin

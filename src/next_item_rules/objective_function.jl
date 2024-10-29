@@ -126,8 +126,13 @@ function (item_criterion::UrryItemCriterion)(tracked_responses::TrackedResponses
 end
 
 # TODO: Should have Variants for point ability versus distribution ability
-struct InformationItemCriterion{AbilityEstimatorT <: PointAbilityEstimator} <: ItemCriterion
+struct InformationItemCriterion{AbilityEstimatorT <: PointAbilityEstimator, F} <: ItemCriterion
     ability_estimator::AbilityEstimatorT
+    expected_item_information::F
+end
+
+function InformationItemCriterion(ability_estimator)
+    InformationItemCriterion(ability_estimator, expected_item_information)
 end
 
 function (item_criterion::InformationItemCriterion)(tracked_responses::TrackedResponses,
@@ -135,70 +140,5 @@ function (item_criterion::InformationItemCriterion)(tracked_responses::TrackedRe
     ability = maybe_tracked_ability_estimate(tracked_responses,
         item_criterion.ability_estimator)
     ir = ItemResponse(tracked_responses.item_bank, item_idx)
-    return -item_information(ir, ability)
-end
-
-abstract type InformationMatrixCriterion <: ItemCriterion end
-
-function init_thread(item_criterion::InformationMatrixCriterion,
-        responses::TrackedResponses)
-    # TODO: No need to do this one per thread. It just need to be done once per
-    # θ update.
-    # TODO: Update this to use track!(...) mechanism
-    ability = maybe_tracked_ability_estimate(responses, item_criterion.ability_estimator)
-    responses_information(responses.item_bank, responses.responses, ability)
-end
-
-function information_matrix(ability_estimator,
-        acc_info,
-        tracked_responses::TrackedResponses,
-        item_idx)
-    # TODO: Add in information from the prior
-    ability = maybe_tracked_ability_estimate(tracked_responses, ability_estimator)
-    acc_info .+
-    expected_item_information(ItemResponse(tracked_responses.item_bank, item_idx), ability)
-end
-
-struct DRuleItemCriterion{AbilityEstimatorT <: PointAbilityEstimator} <:
-       InformationMatrixCriterion
-    ability_estimator::AbilityEstimatorT
-end
-
-function (item_criterion::DRuleItemCriterion)(acc_info::Matrix{Float64},
-        tracked_responses::TrackedResponses,
-        item_idx)
-    -det(information_matrix(item_criterion.ability_estimator,
-        acc_info,
-        tracked_responses,
-        item_idx))
-end
-
-# TODO: Weighted version
-struct TRuleItemCriterion{AbilityEstimatorT <: PointAbilityEstimator} <:
-       InformationMatrixCriterion
-    ability_estimator::AbilityEstimatorT
-end
-
-function (item_criterion::TRuleItemCriterion)(acc_info::Matrix{Float64},
-        tracked_responses,
-        item_idx)
-    # XXX: Should not strictly need to calculate whole information matrix to get this.
-    # Should just be able to calculate Laplacians as we go, but ForwardDiff doesn't support this (yet?).
-    -tr(information_matrix(item_criterion.ability_estimator,
-        acc_info,
-        tracked_responses,
-        item_idx))
-end
-
-struct ARuleItemCriterion{AbilityEstimatorT <: PointAbilityEstimator} <: ItemCriterion
-    ability_estimator::AbilityEstimatorT
-end
-
-function (item_criterion::ARuleItemCriterion)(acc_info::Nothing,
-        tracked_responses,
-        item_idx)
-    # TODO
-    # Step 1. Get covariance of ability estimate
-    # Basically the same idea as AbilityVarianceStateCriterion
-    # Step 2. Get the (weighted) trace
+    return -item_criterion.expected_item_information(ir, ability)
 end
