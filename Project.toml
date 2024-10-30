@@ -38,7 +38,7 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 [compat]
 Accessors = "^0.1.12"
 AutoHashEquals = "2"
-ConstructionBase = "1"
+ConstructionBase = "^1.2"
 DataFrames = "1.6.1"
 Distributions = "^0.25.88"
 DocStringExtensions = " ^0.9"
