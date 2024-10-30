@@ -36,7 +36,7 @@ export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, init_thread
 export NextItemRule, ItemStrategyNextItemRule
 export UrryItemCriterion, InformationItemCriterion
 export RandomNextItemRule
-export ExhaustiveSearch1Ply
+export ExhaustiveSearch
 export catr_next_item_aliases
 export preallocate
 export compute_criteria
@@ -116,7 +116,7 @@ $(TYPEDEF)
 abstract type NextItemStrategy <: CatConfigBase end
 
 function NextItemStrategy(; parallel = true)
-    ExhaustiveSearch1Ply(parallel)
+    ExhaustiveSearch(parallel)
 end
 
 function NextItemStrategy(bits...; parallel = true)
@@ -130,7 +130,7 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 
 """
-@with_kw struct ExhaustiveSearch1Ply <: NextItemStrategy
+@with_kw struct ExhaustiveSearch <: NextItemStrategy
     parallel::Bool = false
 end
 
@@ -144,7 +144,7 @@ adapter by which an `ItemCriterion` can serve as a `NextItemRule`.
     $(FUNCTIONNAME)(bits...; ability_estimator=nothing, parallel=true)
 
 Implicit constructor for $(FUNCTIONNAME). Will default to
-`ExhaustiveSearch1Ply` when no `NextItemStrategy` is given.
+`ExhaustiveSearch` when no `NextItemStrategy` is given.
 """
 struct ItemStrategyNextItemRule{
     NextItemStrategyT <: NextItemStrategy,
@@ -167,7 +167,7 @@ function ItemStrategyNextItemRule(bits...;
     end
 end
 
-function (rule::ItemStrategyNextItemRule{ExhaustiveSearch1Ply, ItemCriterionT})(responses,
+function (rule::ItemStrategyNextItemRule{ExhaustiveSearch, ItemCriterionT})(responses,
         items) where {ItemCriterionT <: ItemCriterion}
     #, rule.strategy.parallel
     choose_item_1ply(rule.criterion, responses, items)[1]

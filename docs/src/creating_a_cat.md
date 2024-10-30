@@ -80,7 +80,7 @@ ComputerAdaptiveTesting.NextItemRules.RandomNextItemRule
 Other rules are created by combining a `ItemCriterion` -- which somehow rates
 items according to how good they are -- with a `NextItemStrategy` using an
 `ItemStrategyNextItemRule`, which acts as an adapter. The default
-`NextItemStrategy` (and currently only) is `ExhaustiveSearch1Ply`. When using
+`NextItemStrategy` (and currently only) is `ExhaustiveSearch`. When using
 the implicit constructors, `ItemCriterion` can therefore be used directly
 without wrapping in any place an NextItemRule is expected.
 
@@ -97,7 +97,7 @@ ComputerAdaptiveTesting.NextItemRules.NextItemStrategy
 ```
 
 ```@docs; canonical=false
-ComputerAdaptiveTesting.NextItemRules.ExhaustiveSearch1Ply
+ComputerAdaptiveTesting.NextItemRules.ExhaustiveSearch
 ```
 
 ### Evaluating item and state merit with `ItemCriterion` and `StateCriterion`

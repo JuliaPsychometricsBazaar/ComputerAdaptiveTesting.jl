@@ -4,13 +4,13 @@ available through in the `catR` R package. TODO compability with `mirtcat`
 """
 const catr_next_item_aliases = Dict(
     "MFI" => (ability_estimator; parallel = true) -> ItemStrategyNextItemRule(
-        ExhaustiveSearch1Ply(parallel),
+        ExhaustiveSearch(parallel),
         InformationItemCriterion(ability_estimator)),
     "bOpt" => (ability_estimator; parallel = true) -> ItemStrategyNextItemRule(
-        ExhaustiveSearch1Ply(parallel),
+        ExhaustiveSearch(parallel),
         UrryItemCriterion(ability_estimator)),
     "MEPV" => (ability_estimator; parallel = true) -> ItemStrategyNextItemRule(
-        ExhaustiveSearch1Ply(parallel),
+        ExhaustiveSearch(parallel),
         ExpectationBasedItemCriterion(ability_estimator,
             AbilityVarianceStateCriterion(ability_estimator)))    #"MLWI",    #"MPWI",    #"MEI",
 )
@@ -29,7 +29,7 @@ function _mirtcat_helper(item_criterion_callback)
         ability_estimator = AbilityEstimator(bits...; ability_estimator = ability_estimator)
         item_criterion = item_criterion_callback(
             [bits..., ability_estimator], ability_estimator)
-        return ItemStrategyNextItemRule(ExhaustiveSearch1Ply(), item_criterion)
+        return ItemStrategyNextItemRule(ExhaustiveSearch(), item_criterion)
     end
     return _helper
 end
