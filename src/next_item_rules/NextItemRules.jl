@@ -28,7 +28,7 @@ using FittedItemBanks: item_params
 using ..Aggregators
 using ..Aggregators: covariance_matrix
 
-using QuadGK, Distributions, Optim, Base.Threads, Base.Order, StaticArrays
+using Distributions, Base.Threads, Base.Order, StaticArrays
 using ConstructionBase: constructorof
 import ForwardDiff
 
