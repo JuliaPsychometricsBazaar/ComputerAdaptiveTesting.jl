@@ -126,7 +126,8 @@ function (item_criterion::UrryItemCriterion)(tracked_responses::TrackedResponses
 end
 
 # TODO: Should have Variants for point ability versus distribution ability
-struct InformationItemCriterion{AbilityEstimatorT <: PointAbilityEstimator, F} <: ItemCriterion
+struct InformationItemCriterion{AbilityEstimatorT <: PointAbilityEstimator, F} <:
+       ItemCriterion
     ability_estimator::AbilityEstimatorT
     expected_item_information::F
 end
