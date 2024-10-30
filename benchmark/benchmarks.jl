@@ -39,7 +39,7 @@ function prepare_4pls(group)
 
     for (est_nick, ability_estimator) in ability_estimators
         next_item_rule = ItemStrategyNextItemRule(
-            ExhaustiveSearch1Ply(),
+            ExhaustiveSearch(),
             ExpectationBasedItemCriterion(PointResponseExpectation(ability_estimator),
                 AbilityVarianceStateCriterion(
                     integrator, distribution_estimator(ability_estimator)))
