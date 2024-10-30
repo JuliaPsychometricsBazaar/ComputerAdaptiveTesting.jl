@@ -40,7 +40,13 @@ const mirtcat_next_item_aliases = Dict(
     # 'MEPV' for minimum expected posterior variance
     "MEPV" => _mirtcat_helper((bits, ability_estimator) -> ExpectationBasedItemCriterion(
         ability_estimator,
-        AbilityVarianceStateCriterion(bits...)))
+        AbilityVarianceStateCriterion(bits...))),
+    "Drule" => _mirtcat_helper((bits, ability_estimator) -> ScalarizedItemCriteron(
+        InformationMatrixCriteria(ability_estimator),
+        DeterminantScalarizer())),
+    "Trule" => _mirtcat_helper((bits, ability_estimator) -> ScalarizedItemCriteron(
+        InformationMatrixCriteria(ability_estimator),
+        TraceScalarizer()))
 )
 
 # 'MLWI' for maximum likelihood weighted information

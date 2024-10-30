@@ -3,6 +3,18 @@ using FittedItemBanks: CdfMirtItemBank,
 using FittedItemBanks: inner_item_response, norm_abil, y_offset, irf_size
 using StatsFuns: logaddexp
 
+function log_resp_vec(ir::ItemResponse{<:TransferItemBank}, θ)
+    nθ = norm_abil(ir, θ)
+    return SVector(
+        logccdf(ir.item_bank.distribution, nθ),
+        logcdf(ir.item_bank.distribution, nθ)
+    )
+end
+
+function log_resp(ir::ItemResponse{<:TransferItemBank}, resp, θ)
+    logcdf(ir.item_bank.distribution, norm_abil(ir, θ))
+end
+
 function log_resp_vec(ir::ItemResponse{<:CdfMirtItemBank}, θ)
     nθ = norm_abil(ir, θ)
     SVector(logccdf(ir.item_bank.distribution, nθ),
@@ -52,24 +64,19 @@ function log_resp(ir::ItemResponse{<:AnySlipOrGuessItemBank}, val, θ)
     log_transform_irf_y(ir, val, log_resp(inner_item_response(ir), val, θ))
 end
 
-# How does this compare with expected_item_information. Speeds/accuracies?
-# TODO: Which response models is this valid for?
-# TODO: Citation/source for this equation
-# TODO: Do it in log space?
-function item_information(ir::ItemResponse, θ)
-    # irθ_prime = ForwardDiff.derivative(ir, θ)
-    irθ_prime = ForwardDiff.derivative(x -> resp(ir, x), θ)
-    irθ = resp(ir, θ)
-    if irθ_prime == 0.0
-        return 0.0
-    else
-        return (irθ_prime * irθ_prime) / (irθ * (1 - irθ))
-    end
-end
-
 function vector_hessian(f, x, n)
     out = ForwardDiff.jacobian(x -> ForwardDiff.jacobian(f, x), x)
     return reshape(out, n, n, n)
+end
+
+function double_derivative(f, x)
+    ForwardDiff.derivative(x -> ForwardDiff.derivative(f, x), x)
+end
+
+function expected_item_information(ir::ItemResponse, θ::Float64)
+    exp_resp = resp_vec(ir, θ)
+    d² = double_derivative((θ -> log_resp_vec(ir, θ)), θ)
+    -sum(exp_resp .* d²)
 end
 
 # TODO: Unclear whether this should be implemented with ExpectationBasedItemCriterion

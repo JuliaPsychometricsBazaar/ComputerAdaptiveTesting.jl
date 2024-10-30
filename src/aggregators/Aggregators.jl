@@ -19,7 +19,7 @@ using PsychometricsBazaarBase.ConfigTools
 using PsychometricsBazaarBase.Integrators
 using PsychometricsBazaarBase: Integrators
 using PsychometricsBazaarBase.Optimizers
-using PsychometricsBazaarBase.ConstDistributions: std_normal
+using PsychometricsBazaarBase.ConstDistributions: std_normal, std_mv_normal
 
 import FittedItemBanks
 import PsychometricsBazaarBase.IntegralCoeffs

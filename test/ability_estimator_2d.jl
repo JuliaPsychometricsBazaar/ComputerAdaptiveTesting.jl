@@ -58,11 +58,52 @@ end
     @test ans[1] + ans[2]≈2.0 atol=0.001
 end
 
-# TODO
-#=
 @testcase "2 dim information higher closer to current estimate" begin
+    information_matrix_criteria = InformationMatrixCriteria(mle_mean_2d)
+    information_criterion = ScalarizedItemCriteron(
+        information_matrix_criteria, DeterminantScalarizer())
+
+    # Item closer to the current estimate (1, 1)
+    close_item = 5
+    # Item further from the current estimate
+    far_item = 6
+
+    close_info = information_criterion(tracked_responses_2d, close_item)
+    far_info = information_criterion(tracked_responses_2d, far_item)
+
+    @test close_info > far_info
 end
 
 @testcase "2 dim variance smaller closer to current estimate" begin
+    covariance_state_criterion = AbilityCovarianceStateCriteria(lh_est_2d, integrator_2d)
+    variance_criterion = ScalarizedStateCriteron(
+        covariance_state_criterion, DeterminantScalarizer())
+    variance_item_criterion = ExpectationBasedItemCriterion(mle_mean_2d, variance_criterion)
+
+    # Item closer to the current estimate (1, 1)
+    close_item = 5
+    # Item further from the current estimate
+    far_item = 6
+
+    close_var = variance_item_criterion(tracked_responses_2d, close_item)
+    far_var = variance_item_criterion(tracked_responses_2d, far_item)
+
+    @test close_var < far_var
 end
-=#
+
+@testcase "2 dim variance is whack with trace scalarizer" begin
+    covariance_state_criterion = AbilityCovarianceStateCriteria(lh_est_2d, integrator_2d)
+    variance_criterion = ScalarizedStateCriteron(
+        covariance_state_criterion, TraceScalarizer())
+    variance_item_criterion = ExpectationBasedItemCriterion(mle_mean_2d, variance_criterion)
+
+    # Item closer to the current estimate (1, 1)
+    close_item = 5
+    # Item further from the current estimate
+    far_item = 6
+
+    close_var = variance_item_criterion(tracked_responses_2d, close_item)
+    far_var = variance_item_criterion(tracked_responses_2d, far_item)
+
+    @test far_var < close_var
+end

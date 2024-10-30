@@ -26,6 +26,7 @@ import PsychometricsBazaarBase.IntegralCoeffs
 using FittedItemBanks
 using FittedItemBanks: item_params
 using ..Aggregators
+using ..Aggregators: covariance_matrix
 
 using Distributions, Base.Threads, Base.Order, StaticArrays
 using ConstructionBase: constructorof
@@ -33,13 +34,17 @@ import ForwardDiff
 
 export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, init_thread
 export NextItemRule, ItemStrategyNextItemRule
-export UrryItemCriterion, InformationItemCriterion, DRuleItemCriterion, TRuleItemCriterion
+export UrryItemCriterion, InformationItemCriterion
 export RandomNextItemRule
 export ExhaustiveSearch1Ply
 export catr_next_item_aliases
 export preallocate
 export compute_criteria
 export PointResponseExpectation, DistributionResponseExpectation
+export MatrixScalarizer, DeterminantScalarizer, TraceScalarizer
+export AbilityCovarianceStateCriteria, StateCriteria, ItemCriteria
+export InformationMatrixCriteria
+export ScalarizedStateCriteron, ScalarizedItemCriteron
 
 """
 $(TYPEDEF)
@@ -68,6 +73,7 @@ end
 
 include("./random.jl")
 include("./information.jl")
+include("./information_special.jl")
 include("./objective_function.jl")
 include("./expectation.jl")
 
@@ -197,6 +203,7 @@ function compute_criteria(
     compute_criteria(rule.criterion, responses, items)
 end
 
+include("./mirt.jl")
 include("./aliases.jl")
 include("./preallocate.jl")
 

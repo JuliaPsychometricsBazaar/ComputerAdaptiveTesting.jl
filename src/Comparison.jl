@@ -263,6 +263,7 @@ function run_comparison(comparison::CatComparisonConfig{ReplayResponsesExecution
                 items_answered = items_answered
             )
             if :after_item_criteria in comparison.phases
+                # TOOD: Combine with next_item if possible and requested?
                 timed_item_criteria = @timed Stateful.item_criteria(cat)
                 measure_all(
                     comparison,

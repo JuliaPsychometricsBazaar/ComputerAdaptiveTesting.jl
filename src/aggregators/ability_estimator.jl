@@ -28,7 +28,13 @@ struct PriorAbilityEstimator{PriorT <: Distribution} <: DistributionAbilityEstim
     prior::PriorT
 end
 
-PriorAbilityEstimator() = PriorAbilityEstimator(std_normal)
+function PriorAbilityEstimator(; ncomp = 0)
+    if ncomp == 0
+        return PriorAbilityEstimator(std_normal)
+    else
+        return PriorAbilityEstimator(std_mv_normal(ncomp))
+    end
+end
 
 function pdf(est::PriorAbilityEstimator,
         tracked_responses::TrackedResponses)
@@ -73,6 +79,21 @@ function mean_1d(integrator::AbilityIntegrator,
         denom)
 end
 
+function mean(
+        integrator::AbilityIntegrator,
+        est::DistributionAbilityEstimator,
+        tracked_responses::TrackedResponses,
+        denom = normdenom(integrator, est, tracked_responses)
+)
+    n = domdims(tracked_responses.item_bank)
+    expectation(IntegralCoeffs.id,
+        n,
+        integrator,
+        est,
+        tracked_responses,
+        denom)
+end
+
 function variance_given_mean(integrator::AbilityIntegrator,
         est::DistributionAbilityEstimator,
         tracked_responses::TrackedResponses,
@@ -95,6 +116,36 @@ function variance(integrator::AbilityIntegrator,
         tracked_responses,
         mean_1d(integrator, est, tracked_responses, denom),
         denom)
+end
+
+function covariance_matrix_given_mean(
+        integrator::AbilityIntegrator,
+        est::DistributionAbilityEstimator,
+        tracked_responses::TrackedResponses,
+        mean,
+        denom = normdenom(integrator, est, tracked_responses)
+)
+    n = domdims(tracked_responses.item_bank)
+    expectation(IntegralCoeffs.OuterProdDev(mean),
+        n,
+        integrator,
+        est,
+        tracked_responses,
+        denom)
+end
+
+function covariance_matrix(
+        integrator::AbilityIntegrator,
+        est::DistributionAbilityEstimator,
+        tracked_responses::TrackedResponses,
+        denom = normdenom(integrator, est, tracked_responses))
+    covariance_matrix_given_mean(
+        integrator,
+        est,
+        tracked_responses,
+        mean(integrator, est, tracked_responses, denom),
+        denom
+    )
 end
 
 struct ModeAbilityEstimator{
