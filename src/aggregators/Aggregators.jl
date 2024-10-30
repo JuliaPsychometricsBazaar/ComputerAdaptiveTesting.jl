@@ -8,7 +8,6 @@ module Aggregators
 using PsychometricsBazaarBase.Parameters
 using StaticArrays: SVector
 using Distributions: Distribution, Normal, Distributions
-using HCubature
 using Base.Threads
 using ForwardDiff: ForwardDiff
 
