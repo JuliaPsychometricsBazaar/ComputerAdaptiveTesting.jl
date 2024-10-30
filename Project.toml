@@ -36,7 +36,7 @@ StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
-Accessors = "0.1"
+Accessors = "^0.1.12"
 AutoHashEquals = "2"
 ConstructionBase = "1"
 DataFrames = "1.6.1"
