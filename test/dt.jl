@@ -4,7 +4,7 @@
     num_questions = 20,
     num_testees = 1
 )
-integrator = FunctionIntegrator(even_grid(-6, 6, 61))
+integrator = FunctionIntegrator(Integrators.even_grid(-6, 6, 61))
 ability_estimator = MeanAbilityEstimator(LikelihoodAbilityEstimator(), integrator)
 get_response = auto_responder(@view true_responses[:, 1])
 
