@@ -1,30 +1,5 @@
 """
 $(TYPEDEF)
-"""
-abstract type ItemCriterion <: CatConfigBase end
-
-function ItemCriterion(bits...; ability_estimator = nothing, ability_tracker = nothing)
-    @returnsome find1_instance(ItemCriterion, bits)
-    @returnsome find1_type(ItemCriterion, bits) typ->typ(
-        ability_estimator = ability_estimator,
-        ability_tracker = ability_tracker)
-    @returnsome ExpectationBasedItemCriterion(bits...;
-        ability_estimator = ability_estimator,
-        ability_tracker = ability_tracker)
-end
-
-"""
-$(TYPEDEF)
-"""
-abstract type StateCriterion <: CatConfigBase end
-
-function StateCriterion(bits...; ability_estimator = nothing, ability_tracker = nothing)
-    @returnsome find1_instance(StateCriterion, bits)
-    @returnsome find1_type(StateCriterion, bits) typ->typ()
-end
-
-"""
-$(TYPEDEF)
 $(TYPEDFIELDS)
 
 This `StateCriterion` returns the variance of the ability estimate given a set
@@ -102,44 +77,37 @@ function (criterion::AbilityVarianceStateCriterion)(::Vector,
         denom)
 end
 
-"""
-$(TYPEDEF)
-$(TYPEDFIELDS)
-
-This item criterion just picks the item with the raw difficulty closest to the
-current ability estimate.
-"""
-struct UrryItemCriterion{AbilityEstimatorT <: PointAbilityEstimator} <: ItemCriterion
-    ability_estimator::AbilityEstimatorT
+struct AbilityCovarianceStateCriteria{
+    DistEstT <: DistributionAbilityEstimator,
+    IntegratorT <: AbilityIntegrator
+} <: StateCriteria
+    dist_est::DistEstT
+    integrator::IntegratorT
+    skip_zero::Bool
 end
 
-# TODO: Slow + poor error handling
-function raw_difficulty(item_bank, item_idx)
-    item_params(item_bank, item_idx).difficulty
+function AbilityCovarianceStateCriteria(bits...)
+    skip_zero = false
+    @requiresome (dist_est, integrator) = _get_dist_est_and_integrator(bits...)
+    return AbilityCovarianceStateCriteria(dist_est, integrator, skip_zero)
 end
 
-function (item_criterion::UrryItemCriterion)(tracked_responses::TrackedResponses, item_idx)
-    ability = maybe_tracked_ability_estimate(tracked_responses,
-        item_criterion.ability_estimator)
-    diff = raw_difficulty(tracked_responses.item_bank, item_idx)
-    abs(ability - diff)
-end
+# XXX: Should be at type level
+should_minimize(::AbilityCovarianceStateCriteria) = true
 
-# TODO: Should have Variants for point ability versus distribution ability
-struct InformationItemCriterion{AbilityEstimatorT <: PointAbilityEstimator, F} <:
-       ItemCriterion
-    ability_estimator::AbilityEstimatorT
-    expected_item_information::F
-end
-
-function InformationItemCriterion(ability_estimator)
-    InformationItemCriterion(ability_estimator, expected_item_information)
-end
-
-function (item_criterion::InformationItemCriterion)(tracked_responses::TrackedResponses,
-        item_idx)
-    ability = maybe_tracked_ability_estimate(tracked_responses,
-        item_criterion.ability_estimator)
-    ir = ItemResponse(tracked_responses.item_bank, item_idx)
-    return -item_criterion.expected_item_information(ir, ability)
+function (criteria::AbilityCovarianceStateCriteria)(
+        tracked_responses::TrackedResponses,
+        denom = normdenom(criteria.integrator,
+            criteria.dist_est,
+            tracked_responses)
+)
+    if denom == 0.0 && criteria.skip_zero
+        return Inf
+    end
+    covariance_matrix(
+        criteria.integrator,
+        criteria.dist_est,
+        tracked_responses,
+        denom
+    )
 end
