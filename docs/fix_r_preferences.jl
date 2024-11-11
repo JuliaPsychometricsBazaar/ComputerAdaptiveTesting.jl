@@ -1,19 +1,15 @@
+using Libdl
 using CondaPkg
 using Preferences
-using Libdl
-using PreferenceTools
+using UUIDs
 
-function locate_libR(Rhome)
-    @static if Sys.iswindows()
-        libR = joinpath(Rhome, "bin", Sys.WORD_SIZE == 64 ? "x64" : "i386", "R.dll")
-    else
-        libR = joinpath(Rhome, "lib", "libR.$(Libdl.dlext)")
-    end
-    return libR
+const RCALL_UUID = UUID("6f49c342-dc21-5d91-9882-a32aef131414")
+
+CondaPkg.add("r")
+target_rhome = joinpath(CondaPkg.envdir(), "lib", "R")
+if Sys.iswindows()
+    target_libr = joinpath(target_rhome, "bin", Sys.WORD_SIZE==64 ? "x64" : "i386", "R.dll")
+else
+    target_libr = joinpath(target_rhome, "lib", "libR.$(Libdl.dlext)")
 end
-
-CondaPkg.resolve()
-target_rhome = "$(CondaPkg.envdir())/lib/R"
-PreferenceTools.add("RCall",
-    "Rhome" => target_rhome,
-    "libR" => locate_libR(target_rhome))
+set_preferences!(RCALL_UUID, "Rhome" => target_rhome, "libR" => target_libr)
