@@ -58,16 +58,16 @@ information_item_criterion = InformationItemCriterion(mle_mean_1d)
 
 @testcase "1 dim neg information smaller closer to current estimate" begin
     @test (
-        information_item_criterion(tracked_responses_1d, 5) <
-        information_item_criterion(tracked_responses_1d, 6)
+        compute_criterion(information_item_criterion, tracked_responses_1d, 5) <
+        compute_criterion(information_item_criterion, tracked_responses_1d, 6)
     )
 end
 
 @testcase "1 dim neg information smaller with igher discrimination" begin
     @test (
-        information_item_criterion(tracked_responses_1d, 7) <
-        information_item_criterion(tracked_responses_1d, 5) <
-        information_item_criterion(tracked_responses_1d, 8)
+        compute_criterion(information_item_criterion, tracked_responses_1d, 7) <
+        compute_criterion(information_item_criterion, tracked_responses_1d, 5) <
+        compute_criterion(information_item_criterion, tracked_responses_1d, 8)
     )
 end
 
@@ -79,23 +79,23 @@ ability_variance_item_criterion = ExpectationBasedItemCriterion(
 
 @testcase "postposterior 1 dim variance smaller closer to current estimate" begin
     @test (
-        ability_variance_item_criterion(tracked_responses_1d, 5) <
-        ability_variance_item_criterion(tracked_responses_1d, 6)
+        compute_criterion(ability_variance_item_criterion, tracked_responses_1d, 5) <
+        compute_criterion(ability_variance_item_criterion, tracked_responses_1d, 6)
     )
 end
 
 @testcase "postposterior 1 dim variance smaller with higher discrimination" begin
     @test (
-        ability_variance_item_criterion(tracked_responses_1d, 7) <
-        ability_variance_item_criterion(tracked_responses_1d, 5) <
-        ability_variance_item_criterion(tracked_responses_1d, 8)
+        compute_criterion(ability_variance_item_criterion, tracked_responses_1d, 7) <
+        compute_criterion(ability_variance_item_criterion, tracked_responses_1d, 5) <
+        compute_criterion(ability_variance_item_criterion, tracked_responses_1d, 8)
     )
 end
 
 @testcase "1 dim variance decreases with new responses" begin
-    orig_var = ability_variance_state_criterion(tracked_responses_1d)
+    orig_var = compute_criterion(ability_variance_state_criterion, tracked_responses_1d)
     next_responses = deepcopy(tracked_responses_1d)
     add_response!(next_responses, Response(ResponseType(item_bank_1d), 5, 0))
-    new_var = ability_variance_state_criterion(next_responses)
+    new_var = compute_criterion(ability_variance_state_criterion, next_responses)
     @test new_var < orig_var
 end

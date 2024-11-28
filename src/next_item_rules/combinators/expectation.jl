@@ -96,14 +96,16 @@ function init_thread(::ExpectationBasedItemCriterion, responses::TrackedResponse
 end
 
 function _generic_criterion(criterion::StateCriterion, tracked_responses, item_idx)
-    criterion(tracked_responses)
+    compute_criterion(criterion, tracked_responses)
 end
 # TODO: Support init_thread for wrapped ItemCriterion
 function _generic_criterion(criterion::ItemCriterion, tracked_responses, item_idx)
-    criterion(tracked_responses, item_idx)
+    compute_criterion(criterion, tracked_responses, item_idx)
 end
 
-function (item_criterion::ExpectationBasedItemCriterion)(speculator::Speculator,
+function compute_criterion(
+        item_criterion::ExpectationBasedItemCriterion,
+        speculator::Speculator,
         tracked_responses::TrackedResponses,
         item_idx)
     exp_resp = Aggregators.response_expectation(item_criterion.response_expectation,

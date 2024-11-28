@@ -128,7 +128,7 @@ function generate_dt_cat(config::DecisionTreeGenerationConfig, item_bank)
     while true
         track!(responses, config.ability_tracker)
         ability = config.ability_estimator(responses)
-        next_item = config.next_item(responses, item_bank)
+        next_item = best_item(config.next_item, responses, item_bank)
 
         insert!(decision_tree_result, responses.responses, ability, next_item)
         if state_tree.cur_depth == state_tree.max_depth

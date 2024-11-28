@@ -36,7 +36,8 @@ function AbilityVarianceStateCriterion(bits...)
     return AbilityVarianceStateCriterion(dist_est, integrator, skip_zero)
 end
 
-function (criterion::AbilityVarianceStateCriterion)(tracked_responses::TrackedResponses)::Float64
+function compute_criterion(criterion::AbilityVarianceStateCriterion,
+        tracked_responses::TrackedResponses)::Float64
     # XXX: Not sure if the estimator should come from somewhere else here
     denom = normdenom(criterion.integrator,
         criterion.dist_est,
@@ -44,10 +45,11 @@ function (criterion::AbilityVarianceStateCriterion)(tracked_responses::TrackedRe
     if denom == 0.0 && criterion.skip_zero
         return Inf
     end
-    criterion(DomainType(tracked_responses.item_bank), tracked_responses, denom)
+    compute_criterion(
+        criterion, DomainType(tracked_responses.item_bank), tracked_responses, denom)
 end
 
-function (criterion::AbilityVarianceStateCriterion)(
+function compute_criterion(criterion::AbilityVarianceStateCriterion,
         ::Union{OneDimContinuousDomain, DiscreteDomain},
         tracked_responses::TrackedResponses,
         denom)::Float64
@@ -59,9 +61,12 @@ function (criterion::AbilityVarianceStateCriterion)(
     )
 end
 
-function (criterion::AbilityVarianceStateCriterion)(::Vector,
+function compute_criterion(
+        criterion::AbilityVarianceStateCriterion,
+        ::Vector,
         tracked_responses::TrackedResponses,
-        denom)::Float64
+        denom
+)::Float64
     # XXX: Not quite sure about this --- is it useful, the MIRT rules cover this case
     mean = expectation(IntegralCoeffs.id,
         ndims(tracked_responses.item_bank),
@@ -77,25 +82,26 @@ function (criterion::AbilityVarianceStateCriterion)(::Vector,
         denom)
 end
 
-struct AbilityCovarianceStateCriteria{
+struct AbilityCovarianceStateMultiCriterion{
     DistEstT <: DistributionAbilityEstimator,
     IntegratorT <: AbilityIntegrator
-} <: StateCriteria
+} <: StateMultiCriterion
     dist_est::DistEstT
     integrator::IntegratorT
     skip_zero::Bool
 end
 
-function AbilityCovarianceStateCriteria(bits...)
+function AbilityCovarianceStateMultiCriterion(bits...)
     skip_zero = false
     @requiresome (dist_est, integrator) = _get_dist_est_and_integrator(bits...)
-    return AbilityCovarianceStateCriteria(dist_est, integrator, skip_zero)
+    return AbilityCovarianceStateMultiCriterion(dist_est, integrator, skip_zero)
 end
 
 # XXX: Should be at type level
-should_minimize(::AbilityCovarianceStateCriteria) = true
+should_minimize(::AbilityCovarianceStateMultiCriterion) = true
 
-function (criteria::AbilityCovarianceStateCriteria)(
+function compute_multi_criterion(
+        criteria::AbilityCovarianceStateMultiCriterion,
         tracked_responses::TrackedResponses,
         denom = normdenom(criteria.integrator,
             criteria.dist_est,
