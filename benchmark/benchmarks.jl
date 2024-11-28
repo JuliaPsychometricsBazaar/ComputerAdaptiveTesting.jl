@@ -48,8 +48,11 @@ function prepare_4pls(group)
         tracked_responses = TrackedResponses(BareResponses(ResponseType(item_bank)),
             item_bank,
             NullAbilityTracker())
-        group["$(est_nick)_point_mepv_bare"] = @benchmarkable ($next_item_rule)(
-            $tracked_responses, $item_bank)
+        group["$(est_nick)_point_mepv_bare"] = @benchmarkable best_item(
+            $next_item_rule,
+            $tracked_responses,
+            $item_bank
+        )
         bare_responses = BareResponses(
             ResponseType(item_bank),
             response_idxs,
@@ -60,8 +63,11 @@ function prepare_4pls(group)
             bare_responses,
             item_bank,
             NullAbilityTracker())
-        group["$(est_nick)_point_mepv_10"] = @benchmarkable ($next_item_rule)(
-            $tracked_responses, $item_bank)
+        group["$(est_nick)_point_mepv_10"] = @benchmarkable best_item(
+            $next_item_rule,
+            $tracked_responses,
+            $item_bank
+        )
     end
     return group
 end
