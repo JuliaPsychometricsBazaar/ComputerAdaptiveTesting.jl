@@ -15,7 +15,7 @@ function exhaustive_search(objective::ItemCriterionT,
             continue
         end
 
-        obj_val = objective(objective_state, responses, item_idx)
+        obj_val = compute_criterion(objective, objective_state, responses, item_idx)
 
         if obj_val <= min_obj_val
             min_obj_val = obj_val
@@ -34,8 +34,11 @@ $(TYPEDFIELDS)
     parallel::Bool = false
 end
 
-function (rule::ItemStrategyNextItemRule{ExhaustiveSearch, ItemCriterionT})(responses,
-        items) where {ItemCriterionT <: ItemCriterion}
+function best_item(
+        rule::ItemStrategyNextItemRule{ExhaustiveSearch, ItemCriterionT},
+        responses::TrackedResponses,
+        items
+) where {ItemCriterionT <: ItemCriterion}
     #, rule.strategy.parallel
     exhaustive_search(rule.criterion, responses, items)[1]
 end

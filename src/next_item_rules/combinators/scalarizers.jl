@@ -1,57 +1,58 @@
 struct DeterminantScalarizer <: MatrixScalarizer end
-(::DeterminantScalarizer)(mat) = det(mat)
+scalarize(::DeterminantScalarizer, mat) = det(mat)
 
 struct TraceScalarizer <: MatrixScalarizer end
-(::TraceScalarizer)(mat) = tr(mat)
+scalarize(::TraceScalarizer, mat) = tr(mat)
 
 struct ScalarizedItemCriteron{
-    ItemCriteriaT <: ItemCriteria,
+    ItemMultiCriterionT <: ItemMultiCriterion,
     MatrixScalarizerT <: MatrixScalarizer
 } <: ItemCriterion
-    criteria::ItemCriteriaT
+    criteria::ItemMultiCriterionT
     scalarizer::MatrixScalarizerT
-end
-
-function (ssc::ScalarizedItemCriteron)(tracked_responses, item_idx)
-    res = ssc.criteria(
-        init_thread(ssc.criteria, tracked_responses), tracked_responses, item_idx) |>
-          ssc.scalarizer
-    if !should_minimize(ssc.criteria)
-        res = -res
-    end
-    res
 end
 
 struct ScalarizedStateCriteron{
-    StateCriteriaT <: StateCriteria,
+    StateMultiCriterionT <: StateMultiCriterion,
     MatrixScalarizerT <: MatrixScalarizer
 } <: StateCriterion
-    criteria::StateCriteriaT
+    criteria::StateMultiCriterionT
     scalarizer::MatrixScalarizerT
 end
 
-function (ssc::ScalarizedStateCriteron)(tracked_responses)
-    res = ssc.criteria(tracked_responses) |> ssc.scalarizer
+function compute_criterion(ssc::Union{ScalarizedItemCriteron, ScalarizedStateCriteron},
+        tracked_responses::TrackedResponses, item_idx...)
+    res = scalarize(
+        ssc.scalarizer,
+        compute_multi_criterion(
+            ssc.criteria,
+            init_thread(ssc.criteria, tracked_responses),
+            tracked_responses,
+            item_idx...
+        )
+    )
     if !should_minimize(ssc.criteria)
         res = -res
     end
     res
 end
 
-struct WeightedStateCriteria{InnerT <: StateCriteria} <: StateCriteria
+struct WeightedStateMultiCriterion{InnerT <: StateMultiCriterion} <: StateMultiCriterion
     weights::Vector{Float64}
     criteria::InnerT
 end
 
-function (wsc::WeightedStateCriteria)(tracked_responses, item_idx)
+function compute_multi_criterion(
+        wsc::WeightedStateMultiCriterion, tracked_responses::TrackedResponses, item_idx)
     wsc.weights' * wsc.criteria(tracked_responses, item_idx) * wsc.weights
 end
 
-struct WeightedItemCriteria{InnerT <: ItemCriteria} <: ItemCriteria
+struct WeightedItemMultiCriterion{InnerT <: ItemMultiCriterion} <: ItemMultiCriterion
     weights::Vector{Float64}
     criteria::InnerT
 end
 
-function (wsc::WeightedItemCriteria)(tracked_responses, item_idx)
+function compute_multi_criterion(
+        wsc::WeightedItemMultiCriterion, tracked_responses::TrackedResponses, item_idx)
     wsc.weights' * wsc.criteria(tracked_responses, item_idx) * wsc.weights
 end

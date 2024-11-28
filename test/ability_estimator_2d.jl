@@ -68,14 +68,15 @@ end
     # Item further from the current estimate
     far_item = 6
 
-    close_info = information_criterion(tracked_responses_2d, close_item)
-    far_info = information_criterion(tracked_responses_2d, far_item)
+    close_info = compute_criterion(information_criterion, tracked_responses_2d, close_item)
+    far_info = compute_criterion(information_criterion, tracked_responses_2d, far_item)
 
     @test close_info > far_info
 end
 
 @testcase "2 dim variance smaller closer to current estimate" begin
-    covariance_state_criterion = AbilityCovarianceStateCriteria(lh_est_2d, integrator_2d)
+    covariance_state_criterion = AbilityCovarianceStateMultiCriterion(
+        lh_est_2d, integrator_2d)
     variance_criterion = ScalarizedStateCriteron(
         covariance_state_criterion, DeterminantScalarizer())
     variance_item_criterion = ExpectationBasedItemCriterion(mle_mean_2d, variance_criterion)
@@ -85,14 +86,15 @@ end
     # Item further from the current estimate
     far_item = 6
 
-    close_var = variance_item_criterion(tracked_responses_2d, close_item)
-    far_var = variance_item_criterion(tracked_responses_2d, far_item)
+    close_var = compute_criterion(variance_item_criterion, tracked_responses_2d, close_item)
+    far_var = compute_criterion(variance_item_criterion, tracked_responses_2d, far_item)
 
     @test close_var < far_var
 end
 
 @testcase "2 dim variance is whack with trace scalarizer" begin
-    covariance_state_criterion = AbilityCovarianceStateCriteria(lh_est_2d, integrator_2d)
+    covariance_state_criterion = AbilityCovarianceStateMultiCriterion(
+        lh_est_2d, integrator_2d)
     variance_criterion = ScalarizedStateCriteron(
         covariance_state_criterion, TraceScalarizer())
     variance_item_criterion = ExpectationBasedItemCriterion(mle_mean_2d, variance_criterion)
@@ -102,8 +104,8 @@ end
     # Item further from the current estimate
     far_item = 6
 
-    close_var = variance_item_criterion(tracked_responses_2d, close_item)
-    far_var = variance_item_criterion(tracked_responses_2d, far_item)
+    close_var = compute_criterion(variance_item_criterion, tracked_responses_2d, close_item)
+    far_var = compute_criterion(variance_item_criterion, tracked_responses_2d, far_item)
 
     @test far_var < close_var
 end

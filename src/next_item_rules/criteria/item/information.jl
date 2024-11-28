@@ -9,7 +9,8 @@ function InformationItemCriterion(ability_estimator)
     InformationItemCriterion(ability_estimator, expected_item_information)
 end
 
-function (item_criterion::InformationItemCriterion)(tracked_responses::TrackedResponses,
+function compute_criterion(
+        item_criterion::InformationItemCriterion, tracked_responses::TrackedResponses,
         item_idx)
     ability = maybe_tracked_ability_estimate(tracked_responses,
         item_criterion.ability_estimator)
@@ -17,7 +18,8 @@ function (item_criterion::InformationItemCriterion)(tracked_responses::TrackedRe
     return -item_criterion.expected_item_information(ir, ability)
 end
 
-struct InformationMatrixCriteria{AbilityEstimatorT <: AbilityEstimator, F} <: ItemCriteria
+struct InformationMatrixCriteria{AbilityEstimatorT <: AbilityEstimator, F} <:
+       ItemMultiCriterion
     ability_estimator::AbilityEstimatorT
     expected_item_information::F
 end
@@ -35,7 +37,8 @@ function init_thread(item_criterion::InformationMatrixCriteria,
     responses_information(responses.item_bank, responses.responses, ability)
 end
 
-function (item_criterion::InformationMatrixCriteria)(acc_info::Matrix{Float64},
+function compute_multi_criterion(
+        item_criterion::InformationMatrixCriteria, acc_info::Matrix{Float64},
         tracked_responses::TrackedResponses,
         item_idx)
     # TODO: Add in information from the prior

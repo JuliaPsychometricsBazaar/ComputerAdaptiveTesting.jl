@@ -12,6 +12,7 @@ using ComputerAdaptiveTesting.Sim
 using PsychometricsBazaarBase.Integrators
 using PsychometricsBazaarBase.Optimizers
 using ComputerAdaptiveTesting.DecisionTree
+using ComputerAdaptiveTesting: Stateful
 using Distributions
 using Distributions: ZeroMeanIsoNormal, Zeros, ScalMat
 using Optim
@@ -45,6 +46,10 @@ end
 
 @testset "dt" begin
     include("./dt.jl")
+end
+
+@testset "stateful" begin
+    include("./stateful.jl")
 end
 
 @testset "format" begin

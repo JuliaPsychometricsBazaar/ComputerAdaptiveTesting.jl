@@ -39,17 +39,18 @@ export RandomNextItemRule
 export ExhaustiveSearch
 export catr_next_item_aliases
 export preallocate
-export compute_criteria
+export compute_criteria, compute_criterion, compute_multi_criterion,
+       compute_pointwise_criterion
+export best_item
 export PointResponseExpectation, DistributionResponseExpectation
 export MatrixScalarizer, DeterminantScalarizer, TraceScalarizer
-export AbilityCovarianceStateCriteria, StateCriteria, ItemCriteria
+export AbilityCovarianceStateMultiCriterion, StateMultiCriterion, ItemMultiCriterion
 export InformationMatrixCriteria
 export ScalarizedStateCriteron, ScalarizedItemCriteron
 
 # Prelude
 include("./prelude/abstract.jl")
 include("./prelude/next_item_rule.jl")
-include("./prelude/strategy.jl")
 include("./prelude/criteria.jl")
 include("./prelude/preallocate.jl")
 

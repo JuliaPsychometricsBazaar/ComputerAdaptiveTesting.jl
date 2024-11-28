@@ -10,25 +10,34 @@ function ItemCriterion(bits...; ability_estimator = nothing, ability_tracker = n
         ability_tracker = ability_tracker)
 end
 
-function init_thread(::ItemCriterion, ::TrackedResponses)
-    nothing
-end
-
 function StateCriterion(bits...; ability_estimator = nothing, ability_tracker = nothing)
     @returnsome find1_instance(StateCriterion, bits)
     @returnsome find1_type(StateCriterion, bits) typ->typ()
 end
 
-function (item_criterion::ItemCriterion)(::Nothing, tracked_responses, item_idx)
-    item_criterion(tracked_responses, item_idx)
+function init_thread(::ItemCriterion, ::TrackedResponses)
+    nothing
 end
 
-function (item_criterion::ItemCriterion)(tracked_responses, item_idx)
+function init_thread(::StateCriterion, ::TrackedResponses)
+    nothing
+end
+
+function compute_criterion(
+        item_criterion::ItemCriterion, ::Nothing, tracked_responses, item_idx)
+    compute_criterion(item_criterion, tracked_responses, item_idx)
+end
+
+function compute_criterion(item_criterion::ItemCriterion, tracked_responses, item_idx)
     criterion_state = init_thread(item_criterion, tracked_responses)
     if criterion_state === nothing
         error("Tried to run an state-requiring item criterion $(typeof(item_criterion)), but init_thread(...) returned nothing")
     end
-    item_criterion(criterion_state, tracked_responses, item_idx)
+    compute_criterion(item_criterion, criterion_state, tracked_responses, item_idx)
+end
+
+function compute_criterion(state_criterion::StateCriterion, ::Nothing, tracked_responses)
+    compute_criterion(state_criterion, tracked_responses)
 end
 
 function compute_criteria(
@@ -47,4 +56,31 @@ function compute_criteria(
         items
 ) where {StrategyT, ItemCriterionT <: ItemCriterion}
     compute_criteria(rule.criterion, responses, items)
+end
+
+function compute_pointwise_criterion(
+        ppic::PurePointwiseItemCriterion, tracked_responses, item_idx)
+    compute_pointwise_criterion(ppic, ItemResponse(tracked_responses.item_bank, item_idx))
+end
+
+struct PurePointwiseItemCriterionFunction{PointwiseItemCriterionT <: PointwiseItemCriterion}
+    item_response::ItemResponse
+end
+
+function init_thread(::ItemMultiCriterion, ::TrackedResponses)
+    nothing
+end
+
+function init_thread(::StateMultiCriterion, ::TrackedResponses)
+    nothing
+end
+
+function compute_multi_criterion(
+        item_criterion::ItemMultiCriterion, ::Nothing, tracked_responses, item_idx)
+    compute_multi_criterion(item_criterion, tracked_responses, item_idx)
+end
+
+function compute_multi_criterion(
+        state_criterion::StateMultiCriterion, ::Nothing, tracked_responses)
+    compute_multi_criterion(state_criterion, tracked_responses)
 end
