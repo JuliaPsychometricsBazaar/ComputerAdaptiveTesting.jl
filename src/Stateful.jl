@@ -4,7 +4,7 @@ using FittedItemBanks: AbstractItemBank, ResponseType
 using ..Aggregators: TrackedResponses, Aggregators
 using ..CatConfig: CatLoopConfig, CatRules
 using ..Responses: BareResponses, Response
-using ..NextItemRules: compute_criteria
+using ..NextItemRules: compute_criteria, best_item
 
 ## StatefulCat interface
 abstract type StatefulCat end
@@ -73,7 +73,7 @@ function StatefulCatConfig(rules, item_bank)
 end
 
 function next_item(config::StatefulCatConfig)
-    return config.rules.next_item(config.tracked_responses, config.item_bank)
+    return best_item(config.rules.next_item, config.tracked_responses, config.item_bank)
 end
 
 function ranked_items(config::StatefulCatConfig)
