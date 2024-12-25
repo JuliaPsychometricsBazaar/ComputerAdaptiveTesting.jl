@@ -72,7 +72,4 @@ include("./criteria/state/ability_variance.jl")
 # Porcelain
 include("./porcelain/aliases.jl")
 
-# Experimental
-include("./experimental/ka.jl")
-
 end
