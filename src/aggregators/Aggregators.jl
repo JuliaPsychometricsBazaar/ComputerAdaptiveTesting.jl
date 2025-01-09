@@ -26,7 +26,7 @@ import PsychometricsBazaarBase.IntegralCoeffs
 
 export AbilityEstimator, TrackedResponses
 export AbilityTracker, NullAbilityTracker, PointAbilityTracker, GriddedAbilityTracker
-export ClosedFormNormalAbilityTracker, MultiAbilityTracker, track!
+export ClosedFormNormalAbilityTracker, track!
 export response_expectation,
        add_response!, pop_response!, expectation, distribution_estimator
 export PointAbilityEstimator, PriorAbilityEstimator, LikelihoodAbilityEstimator
