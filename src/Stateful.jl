@@ -59,7 +59,7 @@ end
 struct StatefulCatConfig{ItemBankT <: AbstractItemBank} <: StatefulCat
     rules::CatRules
     tracked_responses::TrackedResponses
-    item_bank::ItemBankT
+    item_bank::Ref{ItemBankT}
 end
 
 function StatefulCatConfig(rules, item_bank)
@@ -69,26 +69,27 @@ function StatefulCatConfig(rules, item_bank)
         item_bank,
         rules.ability_tracker
     )
-    return StatefulCatConfig(rules, tracked_responses, item_bank)
+    return StatefulCatConfig(rules, tracked_responses, Ref(item_bank))
 end
 
 function next_item(config::StatefulCatConfig)
-    return best_item(config.rules.next_item, config.tracked_responses, config.item_bank)
+    return best_item(config.rules.next_item, config.tracked_responses, config.item_bank[])
 end
 
 function ranked_items(config::StatefulCatConfig)
     return sortperm(compute_criteria(
-        config.rules.next_item, config.tracked_responses, config.item_bank))
+        config.rules.next_item, config.tracked_responses, config.item_bank[]))
 end
 
 function item_criteria(config::StatefulCatConfig)
     return compute_criteria(
-        config.rules.next_item, config.tracked_responses, config.item_bank)
+        config.rules.next_item, config.tracked_responses, config.item_bank[])
 end
 
 function add_response!(config::StatefulCatConfig, index, response)
     Aggregators.add_response!(
-        config.tracked_responses, Response(ResponseType(config.item_bank), index, response))
+        config.tracked_responses, Response(
+            ResponseType(config.item_bank[]), index, response))
 end
 
 function rollback!(config::StatefulCatConfig)
@@ -97,6 +98,11 @@ end
 
 function reset!(config::StatefulCatConfig)
     empty!(config.tracked_responses)
+end
+
+function set_item_bank!(config::StatefulCatConfig, item_bank)
+    reset!(config)
+    config.item_bank[] = item_bank
 end
 
 function get_responses(config::StatefulCatConfig)

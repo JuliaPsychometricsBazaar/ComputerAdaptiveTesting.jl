@@ -9,10 +9,14 @@ end
 
 function GriddedAbilityTracker(ability_estimator::DistributionAbilityEstimator,
         integrator::FixedGridIntegrator)
-    GriddedAbilityTracker(ability_estimator, integrator, fill(NaN, length(integrator.grid)))
+    GriddedAbilityTracker(ability_estimator, integrator, fill(1.0, length(integrator.grid)))
 end
+
+find_grid(integrator::FixedGridIntegrator) = integrator.grid
+find_grid(integrator::PreallocatedFixedGridIntegrator) = integrator.inner.grid
 
 function track!(responses, ability_tracker::GriddedAbilityTracker)
     ability_pdf = pdf(ability_tracker.ability_estimator, responses)
-    ability_tracker.cur_ability .= ability_pdf.(ability_tracker.integrator.grid)
+    grid = find_grid(ability_tracker.integrator)
+    ability_tracker.cur_ability .= ability_pdf.(grid)
 end

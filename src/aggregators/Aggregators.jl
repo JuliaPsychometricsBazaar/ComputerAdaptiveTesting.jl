@@ -26,7 +26,7 @@ import PsychometricsBazaarBase.IntegralCoeffs
 
 export AbilityEstimator, TrackedResponses
 export AbilityTracker, NullAbilityTracker, PointAbilityTracker, GriddedAbilityTracker
-export ClosedFormNormalAbilityTracker, MultiAbilityTracker, track!
+export ClosedFormNormalAbilityTracker, track!
 export response_expectation,
        add_response!, pop_response!, expectation, distribution_estimator
 export PointAbilityEstimator, PriorAbilityEstimator, LikelihoodAbilityEstimator
@@ -91,12 +91,16 @@ function AbilityTracker(bits...; integrator = nothing, ability_estimator = nothi
     end
 end
 
-function compatible_tracker(bits...; integrator, ability_estimator, prefer_tracked)
-    ability_tracker = AbilityTracker(bits...; ability_estimator = ability_estimator)
-    if ability_tracker isa GriddedAbilityTracker &&
+function find_ability_tracker(ability_tracker, typ, integrator)
+    if ability_tracker isa typ &&
        ability_tracker.integrator === integrator
         return ability_tracker
     end
+end
+
+function compatible_tracker(bits...; integrator, ability_estimator, prefer_tracked)
+    ability_tracker = AbilityTracker(bits...; ability_estimator = ability_estimator)
+    @returnsome find_ability_tracker(ability_tracker, GriddedAbilityTracker, integrator)
     if prefer_tracked
         return AbilityTracker(bits...;
             integrator = integrator,

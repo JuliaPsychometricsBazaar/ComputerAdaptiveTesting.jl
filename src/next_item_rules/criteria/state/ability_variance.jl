@@ -18,7 +18,6 @@ function _get_dist_est_and_integrator(bits...)
     # XXX: Weakness in this initialisation system is showing now
     # This needs ot be explicitly passed dist_est and integrator, but this may
     # be burried within a MeanAbilityEstimator
-    @returnsome find1_instance(AbilityVarianceStateCriterion, bits)
     dist_est = DistributionAbilityEstimator(bits...)
     integrator = AbilityIntegrator(bits...)
     if dist_est !== nothing && integrator !== nothing
@@ -27,12 +26,14 @@ function _get_dist_est_and_integrator(bits...)
     # So let's just handle this case individually for now
     # (Is this going to cause a problem with this being picked over something more appropriate?)
     @requiresome mean_ability_est = MeanAbilityEstimator(bits...)
-    return (dist_est, integrator)
+    return (mean_ability_est.dist_est, mean_ability_est.integrator)
 end
 
 function AbilityVarianceStateCriterion(bits...)
     skip_zero = false
-    @requiresome (dist_est, integrator) = _get_dist_est_and_integrator(bits...)
+    @returnsome find1_instance(AbilityVarianceStateCriterion, bits)
+    @requiresome dist_est_integrator_pair = _get_dist_est_and_integrator(bits...)
+    (dist_est, integrator) = dist_est_integrator_pair
     return AbilityVarianceStateCriterion(dist_est, integrator, skip_zero)
 end
 

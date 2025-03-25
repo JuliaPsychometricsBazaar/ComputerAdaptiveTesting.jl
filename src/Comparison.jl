@@ -4,7 +4,7 @@ module Comparison
 # Should be kept in mind and kept distinct or code reuse
 
 using StatsBase
-using FittedItemBanks: AbstractItemBank, ResponseType
+using FittedItemBanks: AbstractItemBank, ResponseType, subset
 using ..Responses
 using ..CatConfig: CatLoopConfig, CatRules
 using ..Aggregators: TrackedResponses, add_response!, Speculator, Aggregators, track!,
@@ -14,11 +14,11 @@ using Base: Iterators
 
 using HypothesisTests
 using EffectSizes
-using DataFrames
+using DataFrames: DataFrame
 using ComputerAdaptiveTesting: Stateful
 
 export run_random_comparison, run_comparison
-export CatComparisonExecutionStrategy#, IncreaseItemBankSizeExecutionStrategy
+export CatComparisonExecutionStrategy, IncreaseItemBankSizeExecutionStrategy
 #export FollowOneExecutionStrategy, RunIndependentlyExecutionStrategy
 #export DecisionTreeExecutionStrategy
 export ReplayResponsesExecutionStrategy
@@ -83,7 +83,8 @@ end
 
 abstract type CatComparisonExecutionStrategy end
 
-Base.@kwdef struct CatComparisonConfig{StrategyT <: CatComparisonExecutionStrategy}
+struct CatComparisonConfig{
+    StrategyT <: CatComparisonExecutionStrategy, PhasesT <: NamedTuple}
     """
     A named tuple with the (named) CatRules (or compatable) to be compared
     """
@@ -99,13 +100,42 @@ Base.@kwdef struct CatComparisonConfig{StrategyT <: CatComparisonExecutionStrate
     measurements::Vector{}
     =#
     """
-    Which phases to run and/or call the callback on
+    The phases to run, optionally paired with a callback
     """
-    phases::Set{Symbol} = Set((:before_next_item, :after_next_item))
-    """
-    The callback which should take a named tuple with information at different phases
-    """
-    callback::Any
+    phases::PhasesT
+end
+
+"""
+    CatComparisonConfig(;
+        rules::NamedTuple{Symbol, StatefulCat},
+        strategy::CatComparisonExecutionStrategy,
+        phases::Union{NamedTuple{Symbol, Callable}, Tuple{Symbol}},
+        callback::Callable
+    ) -> CatComparisonConfig
+
+CatComparisonConfig sets up a evaluation-oriented comparison between different CAT systems.
+
+Specify the comparison by listing: CAT systems in `rules`, a `NamedTuple` which gives
+identifiers to implementations of the `StatefulCat` interface; the `strategy` to use,
+an implementation of `CatComparisonExecutionStrategy`; the `phases` to run listed as
+either as a `NamedTuple` with names of phases and corresponding callbacks or `nothing` a
+`Tuple` of phases to run; and a `callback` which will be used as a fallback in cases where
+no callback is provided.
+
+The exact phases depend on the strategy used. See their individual documentation for more.
+"""
+function CatComparisonConfig(; rules, strategy, phases = nothing, callback = nothing)
+    if callback === nothing
+        callback = (info; kwargs...) -> nothing
+    end
+    if phases === nothing
+        phases = (:before_next_item, :after_next_item)
+    end
+    # TODO: normalize phases into named tuple
+    if !(phases isa NamedTuple)
+        phases = NamedTuple((phase => callback for phase in phases))
+    end
+    CatComparisonConfig(rules, strategy, phases)
 end
 
 # Comparison scenarios:
@@ -129,9 +159,11 @@ end
 
 #phase_func=nothing;
 function measure_all(comparison, system, cat, phase; kwargs...)
-    if !(phase in comparison.phases)
+    @info "measure_all" phase comparison.phases
+    if !(phase in keys(comparison.phases))
         return
     end
+    callback = comparison.phases[phase]
     strategy = comparison.strategy
     #=measurement_results = []
     for measurement in comparison.measurements
@@ -145,7 +177,7 @@ function measure_all(comparison, system, cat, phase; kwargs...)
         #end
         push!(measurement_results, result)
     end=#
-    comparison.callback((;
+    callback((;
         phase,
         system,
         cat,
@@ -158,30 +190,56 @@ struct IncreaseItemBankSizeExecutionStrategy <: CatComparisonExecutionStrategy
     item_bank::AbstractItemBank
     sizes::AbstractVector{Int}
     starting_responses::Int
+    shuffle::Bool
+    time_limit::Float64
+
+    function IncreaseItemBankSizeExecutionStrategy(item_bank, sizes, args...)
+        if any((size > length(item_bank) for size in sizes))
+            error("IncreaseItemBankSizeExecutionStrategy: No subset size can be greater than the number of items available in the item bank")
+        end
+        new(item_bank, sizes, args...)
+    end
 end
 
 function IncreaseItemBankSizeExecutionStrategy(item_bank, sizes)
-    return IncreaseItemBankSizeExecutionStrategy(item_bank, sizes, 0)
+    return IncreaseItemBankSizeExecutionStrategy(item_bank, sizes, 0, false, Inf)
 end
 
-function run_comparison(strategy::IncreaseItemBankSizeExecutionStrategy, config)
+function run_comparison(comparison::CatComparisonConfig{IncreaseItemBankSizeExecutionStrategy})
+    strategy = comparison.strategy
+    current_cats = collect(pairs(comparison.rules))
+    next_current_cats = copy(current_cats)
+    @info "sizes" strategy.sizes
     for size in strategy.sizes
-        subsetted_item_bank = subset(strategy.item_bank, size)
-        responses = TrackedResponses(
-            BareResponses(ResponseType(strategy.item_bank)),
-            subsetted_item_bank,
-            config.ability_tracker
-        )
-        for _ in 1:(strategy.starting_responses)
-            next_item = config.next_item(responses, subsetted_item_bank)
-            add_response!(responses,
-                Response(ResponseType(subsetted_item_bank), next_item, rand(Bool)))
+        subsetted_item_bank = subset(strategy.item_bank, 1:size)
+        empty!(next_current_cats)
+        for (name, cat) in current_cats
+            Stateful.set_item_bank!(cat, subsetted_item_bank)
+            for _ in 1:(strategy.starting_responses)
+                Stateful.next_item(cat)
+            end
+            measure_all(
+                comparison,
+                name,
+                cat,
+                :before_next_item
+            )
+            timed_next_item = @timed Stateful.next_item(cat)
+            next_item = timed_next_item.value
+            measure_all(
+                comparison,
+                name,
+                cat,
+                :after_next_item,
+                next_item = next_item,
+                timing = timed_next_item
+            )
+            @info "next_item" timed_next_item.time strategy.time_limit
+            if timed_next_item.time < strategy.time_limit
+                push!(next_current_cats, name => cat)
+            end
         end
-        measure_all(config, :before_next_item, before_next_item; responses = responses)
-        timed_next_item = @timed config.next_item(responses, item_bank)
-        next_item = timed_next_item.value
-        measure_all(config, :after_next_item, after_next_item;
-            responses = responses, next_item = next_item)
+        current_cats, next_current_cats = next_current_cats, current_cats
     end
 end
 

@@ -1,4 +1,4 @@
-@testcase "Stateful" begin
+@testset "Stateful" begin
     rng = Random.default_rng(42)
 
     # Create test data

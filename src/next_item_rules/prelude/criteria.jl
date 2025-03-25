@@ -46,7 +46,7 @@ function compute_criteria(
         items::AbstractItemBank
 ) where {ItemCriterionT <: ItemCriterion, TrackedResponseT <: TrackedResponses}
     objective_state = init_thread(criterion, responses)
-    return [criterion(objective_state, responses, item_idx)
+    return [compute_criterion(criterion, objective_state, responses, item_idx)
             for item_idx in eachindex(items)]
 end
 

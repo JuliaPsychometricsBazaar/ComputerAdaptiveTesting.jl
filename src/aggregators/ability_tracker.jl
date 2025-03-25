@@ -80,7 +80,6 @@ include("./ability_trackers/grid.jl")
 include("./ability_trackers/point.jl")
 include("./ability_trackers/closed_form_normal.jl")
 include("./ability_trackers/laplace.jl")
-include("./ability_trackers/multi.jl")
 
 """
 This method returns a tracked point estimate if it is has the given ability
