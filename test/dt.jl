@@ -8,7 +8,7 @@ integrator = FunctionIntegrator(Integrators.even_grid(-6, 6, 61))
 ability_estimator = MeanAbilityEstimator(LikelihoodAbilityEstimator(), integrator)
 get_response = auto_responder(@view true_responses[:, 1])
 
-@testcase "round trip" begin
+@testset "decision tree round trip" begin
     next_item_rule = ItemStrategyNextItemRule(
         AbilityVarianceStateCriterion(
             distribution_estimator(ability_estimator), integrator),

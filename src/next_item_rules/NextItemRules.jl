@@ -47,6 +47,7 @@ export MatrixScalarizer, DeterminantScalarizer, TraceScalarizer
 export AbilityCovarianceStateMultiCriterion, StateMultiCriterion, ItemMultiCriterion
 export InformationMatrixCriteria
 export ScalarizedStateCriteron, ScalarizedItemCriteron
+export DRuleItemCriterion, TRuleItemCriterion
 
 # Prelude
 include("./prelude/abstract.jl")
@@ -61,6 +62,7 @@ include("./strategies/exhaustive.jl")
 # Combinators
 include("./combinators/expectation.jl")
 include("./combinators/scalarizers.jl")
+include("./combinators/likelihood.jl")
 
 # Criteria
 include("./criteria/item/information_special.jl")
@@ -68,8 +70,10 @@ include("./criteria/item/information_support.jl")
 include("./criteria/item/information.jl")
 include("./criteria/item/urry.jl")
 include("./criteria/state/ability_variance.jl")
+include("./criteria/pointwise/kl.jl")
 
 # Porcelain
+include("./porcelain/porcelain.jl")
 include("./porcelain/aliases.jl")
 
 end

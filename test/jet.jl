@@ -1,7 +1,7 @@
 using JET
 using Optim: Optim
 
-@testset "JET checks" begin
+@testset "jet" begin
     rep = report_package(
         ComputerAdaptiveTesting;
         target_modules = (

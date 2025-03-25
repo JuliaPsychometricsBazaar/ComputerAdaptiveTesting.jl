@@ -1,6 +1,6 @@
 #(item_bank, abilities, responses) = dummy_full(Random.default_rng(42), SimpleItemBankSpec(StdModel4PL(), VectorContinuousDomain(), BooleanResponse()), 2; num_questions=100, num_testees=3)
 
-@testcase "Smoke test 1d" begin
+@testset "Smoke test 1d" begin
     (item_bank, abilities, true_responses) = dummy_full(
         Random.default_rng(42),
         SimpleItemBankSpec(StdModel3PL(), OneDimContinuousDomain(), BooleanResponse());
@@ -44,7 +44,7 @@
 end
 
 #=
-@testcase "Smoke test 2d" begin
+@testset "Smoke test 2d" begin
     Random.seed!(42)
     (item_bank, abilities, responses) = dummy_mirt_4pl(2; num_questions=4, num_testees=2)
 end

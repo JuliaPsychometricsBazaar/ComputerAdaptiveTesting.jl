@@ -41,12 +41,8 @@ const mirtcat_next_item_aliases = Dict(
     "MEPV" => _mirtcat_helper((bits, ability_estimator) -> ExpectationBasedItemCriterion(
         ability_estimator,
         AbilityVarianceStateCriterion(bits...))),
-    "Drule" => _mirtcat_helper((bits, ability_estimator) -> ScalarizedItemCriteron(
-        InformationMatrixCriteria(ability_estimator),
-        DeterminantScalarizer())),
-    "Trule" => _mirtcat_helper((bits, ability_estimator) -> ScalarizedItemCriteron(
-        InformationMatrixCriteria(ability_estimator),
-        TraceScalarizer()))
+    "Drule" => _mirtcat_helper((bits, ability_estimator) -> DRuleItemCriteron(ability_estimator)),
+    "Trule" => _mirtcat_helper((bits, ability_estimator) -> TRuleItemCriteron(ability_estimator))
 )
 
 # 'MLWI' for maximum likelihood weighted information

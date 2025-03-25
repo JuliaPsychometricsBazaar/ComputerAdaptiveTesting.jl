@@ -41,8 +41,7 @@ function (condition::SimpleFunctionTerminationCondition)(responses::TrackedRespo
 end
 
 struct RunForeverTerminationCondition <: TerminationCondition end
-function (condition::RunForeverTerminationCondition)(responses::TrackedResponses,
-        items::AbstractItemBank)
+function (condition::RunForeverTerminationCondition)(::TrackedResponses, ::AbstractItemBank)
     return false
 end
 

@@ -40,72 +40,79 @@ map_2d = ModeAbilityEstimator(pa_est_2d, optimizer_2d)
 mle_mean_2d = MeanAbilityEstimator(lh_est_2d, integrator_2d)
 mle_mode_2d = ModeAbilityEstimator(lh_est_2d, optimizer_2d)
 
-@testcase "Estimator: 2 dim MAP" begin
-    @test map_2d(tracked_responses_2d)≈[1.0, 1.0] atol=0.001
-end
+@testset "abilest_2d" begin
+    @testset "Estimator: 2 dim MAP" begin
+        @test map_2d(tracked_responses_2d)≈[1.0, 1.0] atol=0.001
+    end
 
-@testcase "Estimator: 2 dim EAP" begin
-    @test eap_2d(tracked_responses_2d)≈[1.0, 1.0] atol=0.001
-end
+    @testset "Estimator: 2 dim EAP" begin
+        @test eap_2d(tracked_responses_2d)≈[1.0, 1.0] atol=0.001
+    end
 
-@testcase "Estimator: 2 mle mean" begin
-    ans = mle_mean_2d(tracked_responses_2d)
-    @test ans[1] - ans[2]≈0.0 atol=0.001
-end
+    @testset "Estimator: 2 mle mean" begin
+        ans = mle_mean_2d(tracked_responses_2d)
+        @test ans[1] - ans[2]≈0.0 atol=0.001
+    end
 
-@testcase "Estimator: 2 mle mode" begin
-    ans = mle_mode_2d(tracked_responses_2d)
-    @test ans[1] + ans[2]≈2.0 atol=0.001
-end
+    @testset "Estimator: 2 mle mode" begin
+        ans = mle_mode_2d(tracked_responses_2d)
+        @test ans[1] + ans[2]≈2.0 atol=0.001
+    end
 
-@testcase "2 dim information higher closer to current estimate" begin
-    information_matrix_criteria = InformationMatrixCriteria(mle_mean_2d)
-    information_criterion = ScalarizedItemCriteron(
-        information_matrix_criteria, DeterminantScalarizer())
+    @testset "2 dim information higher closer to current estimate" begin
+        information_matrix_criteria = InformationMatrixCriteria(mle_mean_2d)
+        information_criterion = ScalarizedItemCriteron(
+            information_matrix_criteria, DeterminantScalarizer())
 
-    # Item closer to the current estimate (1, 1)
-    close_item = 5
-    # Item further from the current estimate
-    far_item = 6
+        # Item closer to the current estimate (1, 1)
+        close_item = 5
+        # Item further from the current estimate
+        far_item = 6
 
-    close_info = compute_criterion(information_criterion, tracked_responses_2d, close_item)
-    far_info = compute_criterion(information_criterion, tracked_responses_2d, far_item)
+        close_info = compute_criterion(
+            information_criterion, tracked_responses_2d, close_item)
+        far_info = compute_criterion(information_criterion, tracked_responses_2d, far_item)
 
-    @test close_info > far_info
-end
+        @test close_info > far_info
+    end
 
-@testcase "2 dim variance smaller closer to current estimate" begin
-    covariance_state_criterion = AbilityCovarianceStateMultiCriterion(
-        lh_est_2d, integrator_2d)
-    variance_criterion = ScalarizedStateCriteron(
-        covariance_state_criterion, DeterminantScalarizer())
-    variance_item_criterion = ExpectationBasedItemCriterion(mle_mean_2d, variance_criterion)
+    @testset "2 dim variance smaller closer to current estimate" begin
+        covariance_state_criterion = AbilityCovarianceStateMultiCriterion(
+            lh_est_2d, integrator_2d)
+        variance_criterion = ScalarizedStateCriteron(
+            covariance_state_criterion, DeterminantScalarizer())
+        variance_item_criterion = ExpectationBasedItemCriterion(
+            mle_mean_2d, variance_criterion)
 
-    # Item closer to the current estimate (1, 1)
-    close_item = 5
-    # Item further from the current estimate
-    far_item = 6
+        # Item closer to the current estimate (1, 1)
+        close_item = 5
+        # Item further from the current estimate
+        far_item = 6
 
-    close_var = compute_criterion(variance_item_criterion, tracked_responses_2d, close_item)
-    far_var = compute_criterion(variance_item_criterion, tracked_responses_2d, far_item)
+        close_var = compute_criterion(
+            variance_item_criterion, tracked_responses_2d, close_item)
+        far_var = compute_criterion(variance_item_criterion, tracked_responses_2d, far_item)
 
-    @test close_var < far_var
-end
+        @test close_var < far_var
+    end
 
-@testcase "2 dim variance is whack with trace scalarizer" begin
-    covariance_state_criterion = AbilityCovarianceStateMultiCriterion(
-        lh_est_2d, integrator_2d)
-    variance_criterion = ScalarizedStateCriteron(
-        covariance_state_criterion, TraceScalarizer())
-    variance_item_criterion = ExpectationBasedItemCriterion(mle_mean_2d, variance_criterion)
+    @testset "2 dim variance is whack with trace scalarizer" begin
+        covariance_state_criterion = AbilityCovarianceStateMultiCriterion(
+            lh_est_2d, integrator_2d)
+        variance_criterion = ScalarizedStateCriteron(
+            covariance_state_criterion, TraceScalarizer())
+        variance_item_criterion = ExpectationBasedItemCriterion(
+            mle_mean_2d, variance_criterion)
 
-    # Item closer to the current estimate (1, 1)
-    close_item = 5
-    # Item further from the current estimate
-    far_item = 6
+        # Item closer to the current estimate (1, 1)
+        close_item = 5
+        # Item further from the current estimate
+        far_item = 6
 
-    close_var = compute_criterion(variance_item_criterion, tracked_responses_2d, close_item)
-    far_var = compute_criterion(variance_item_criterion, tracked_responses_2d, far_item)
+        close_var = compute_criterion(
+            variance_item_criterion, tracked_responses_2d, close_item)
+        far_var = compute_criterion(variance_item_criterion, tracked_responses_2d, far_item)
 
-    @test far_var < close_var
+        @test far_var < close_var
+    end
 end
