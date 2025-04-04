@@ -51,3 +51,7 @@ function ItemStrategyNextItemRule(bits...;
         return ItemStrategyNextItemRule(strategy, criterion)
     end
 end
+
+function best_item(rule::NextItemRule, tracked_responses::TrackedResponses)
+    best_item(rule, tracked_responses, tracked_responses.item_bank)
+end
