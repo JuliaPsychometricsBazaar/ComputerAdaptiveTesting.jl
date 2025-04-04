@@ -159,7 +159,7 @@ end
 
 #phase_func=nothing;
 function measure_all(comparison, system, cat, phase; kwargs...)
-    @info "measure_all" phase comparison.phases
+    @info "measure_all" phase system kwargs
     if !(phase in keys(comparison.phases))
         return
     end
@@ -189,6 +189,7 @@ end
 struct IncreaseItemBankSizeExecutionStrategy <: CatComparisonExecutionStrategy
     item_bank::AbstractItemBank
     sizes::AbstractVector{Int}
+    responses::Vector # XXX: Type
     starting_responses::Int
     shuffle::Bool
     time_limit::Float64
@@ -205,24 +206,42 @@ function IncreaseItemBankSizeExecutionStrategy(item_bank, sizes)
     return IncreaseItemBankSizeExecutionStrategy(item_bank, sizes, 0, false, Inf)
 end
 
+function init_cat(cat::Stateful.StatefulCat, item_bank)
+    Stateful.set_item_bank!(cat, item_bank)
+    cat
+end
+
+function init_cat(cat, item_bank)
+    cat(item_bank)
+end
+
 function run_comparison(comparison::CatComparisonConfig{IncreaseItemBankSizeExecutionStrategy})
     strategy = comparison.strategy
     current_cats = collect(pairs(comparison.rules))
-    next_current_cats = copy(current_cats)
+    next_current_cats = []
     @info "sizes" strategy.sizes
     for size in strategy.sizes
         subsetted_item_bank = subset(strategy.item_bank, 1:size)
         empty!(next_current_cats)
-        for (name, cat) in current_cats
-            Stateful.set_item_bank!(cat, subsetted_item_bank)
-            for _ in 1:(strategy.starting_responses)
-                Stateful.next_item(cat)
+        for (name, mk_cat) in current_cats
+            init_time = @timed begin
+                cat = init_cat(mk_cat, subsetted_item_bank)
             end
+            response_add_time = @timed begin
+                for idx in 1:(strategy.starting_responses)
+                    Stateful.add_response!(cat, idx, strategy.responses[idx])
+                end
+            end
+            @info "responses" Stateful.get_responses(cat)
             measure_all(
                 comparison,
                 name,
                 cat,
-                :before_next_item
+                :before_next_item,
+                init_time = init_time.time,
+                response_add_time = response_add_time.time,
+                num_items=size,
+                system_name=name
             )
             timed_next_item = @timed Stateful.next_item(cat)
             next_item = timed_next_item.value
@@ -232,14 +251,17 @@ function run_comparison(comparison::CatComparisonConfig{IncreaseItemBankSizeExec
                 cat,
                 :after_next_item,
                 next_item = next_item,
-                timing = timed_next_item
+                timing = timed_next_item,
+                num_items=size,
+                system_name=name
             )
-            @info "next_item" timed_next_item.time strategy.time_limit
+            @info "next_item" name timed_next_item.time strategy.time_limit
             if timed_next_item.time < strategy.time_limit
                 push!(next_current_cats, name => cat)
             end
         end
-        current_cats, next_current_cats = next_current_cats, current_cats
+        current_cats = next_current_cats
+        next_current_cats = []
     end
 end
 
