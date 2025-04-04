@@ -51,11 +51,25 @@ function compute_criteria(
 end
 
 function compute_criteria(
+        criterion,
+        responses::TrackedResponses,
+)
+    compute_criteria(criterion, responses, responses.item_bank)
+end
+
+function compute_criteria(
         rule::ItemStrategyNextItemRule{StrategyT, ItemCriterionT},
         responses,
         items
 ) where {StrategyT, ItemCriterionT <: ItemCriterion}
     compute_criteria(rule.criterion, responses, items)
+end
+
+function compute_criteria(
+        rule::ItemStrategyNextItemRule{StrategyT, ItemCriterionT},
+        responses
+) where {StrategyT, ItemCriterionT <: ItemCriterion}
+    compute_criteria(rule.criterion, responses)
 end
 
 function compute_pointwise_criterion(
