@@ -51,7 +51,7 @@ function compute_criteria(
 end
 
 function compute_criteria(
-        criterion,
+        criterion::ItemCriterion,
         responses::TrackedResponses,
 )
     compute_criteria(criterion, responses, responses.item_bank)
@@ -67,7 +67,7 @@ end
 
 function compute_criteria(
         rule::ItemStrategyNextItemRule{StrategyT, ItemCriterionT},
-        responses
+        responses::TrackedResponses
 ) where {StrategyT, ItemCriterionT <: ItemCriterion}
     compute_criteria(rule.criterion, responses)
 end
