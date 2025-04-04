@@ -39,6 +39,12 @@ function best_item(
         responses::TrackedResponses,
         items
 ) where {ItemCriterionT <: ItemCriterion}
-    #, rule.strategy.parallel
     exhaustive_search(rule.criterion, responses, items)[1]
+end
+
+function best_item(
+        rule::ItemStrategyNextItemRule{ExhaustiveSearch, ItemCriterionT},
+        responses::TrackedResponses
+) where {ItemCriterionT <: ItemCriterion}
+    best_item(rule, responses, responses.item_bank)
 end
