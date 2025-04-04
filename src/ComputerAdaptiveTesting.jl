@@ -5,8 +5,11 @@ include("./hacks.jl")
 using Pkg
 using Reexport
 
-export ConfigBase, Responses, Aggregators, NextItemRules, TerminationConditions
-export CatConfig, Sim
+# Modules
+export ConfigBase, Responses, Aggregators
+export NextItemRules, TerminationConditions
+export CatConfig, Sim, DecisionTree
+export Stateful, Comparison
 
 # Vendored dependencies
 include("./vendor/PushVectors.jl")
