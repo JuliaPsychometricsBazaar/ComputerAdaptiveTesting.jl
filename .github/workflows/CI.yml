@@ -32,18 +32,8 @@ jobs:
       - uses: julia-actions/julia-downgrade-compat@v1
         if: ${{ matrix.version == '1.10' }}
       - uses: julia-actions/cache@v1
-      - name: Set CAT packages to develop & resolve env
-        run: |
-          julia --project=test/ -e 'using Pkg;
-                                    Pkg.develop(path=".");
-                                    Pkg.resolve();
-                                    Pkg.instantiate()'
-        env:
-          R_HOME: '*'
       - uses: julia-actions/julia-buildpkg@v1
-      - name: Run tests
-        run: |
-          cd test && julia --project=. --code-coverage=user ./runtests.jl
+      - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
       - uses: coverallsapp/github-action@v2
         with:
