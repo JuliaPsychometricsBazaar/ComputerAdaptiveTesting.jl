@@ -1,18 +1,18 @@
-using ComputerAdaptiveTesting: CatRules
-using FittedItemBanks.DummyData: dummy_full
-using FittedItemBanks: OneDimContinuousDomain, SimpleItemBankSpec, StdModel3PL,
-                       BooleanResponse
-using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
-using ComputerAdaptiveTesting.NextItemRules: RandomNextItemRule
-using ComputerAdaptiveTesting: Stateful
-using Random
-using ResumableFunctions
-using Test: @test, @testset
-
-include("./dummy.jl")
-using .Dummy
-
 @testset "Stateful" begin
+    using ComputerAdaptiveTesting: CatRules
+    using FittedItemBanks.DummyData: dummy_full
+    using FittedItemBanks: OneDimContinuousDomain, SimpleItemBankSpec, StdModel3PL,
+                        BooleanResponse
+    using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
+    using ComputerAdaptiveTesting.NextItemRules: RandomNextItemRule
+    using ComputerAdaptiveTesting: Stateful
+    using ResumableFunctions
+    using Test: @test, @testset
+
+    include("./dummy.jl")
+    using .Dummy
+    using Random
+
     rng = Random.default_rng(42)
 
     # Create test data
