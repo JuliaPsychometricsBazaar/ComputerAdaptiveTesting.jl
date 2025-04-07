@@ -6,7 +6,7 @@ using ..CatConfig: CatLoopConfig, CatRules
 using ..Responses: BareResponses, Response
 using ..NextItemRules: compute_criteria, best_item
 
-export StatefulCAT, StatefulCatConfig, run_cat
+export StatefulCat, StatefulCatConfig, run_cat
 public next_item, ranked_items, item_criteria
 public add_response!, rollback!, reset!, get_responses, get_ability
 
