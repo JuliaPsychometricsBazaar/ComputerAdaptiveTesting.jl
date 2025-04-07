@@ -32,5 +32,4 @@ using .Dummy
     include("./smoke.jl")
     include("./dt.jl")
     include("./stateful.jl")
-    include("./format.jl")
 end

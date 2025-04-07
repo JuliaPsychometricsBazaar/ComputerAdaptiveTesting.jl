@@ -6,6 +6,10 @@ using ..CatConfig: CatLoopConfig, CatRules
 using ..Responses: BareResponses, Response
 using ..NextItemRules: compute_criteria, best_item
 
+export StatefulCat, StatefulCatConfig, run_cat
+public next_item, ranked_items, item_criteria
+public add_response!, rollback!, reset!, get_responses, get_ability
+
 ## StatefulCat interface
 abstract type StatefulCat end
 
@@ -56,61 +60,65 @@ end
 ## TODO: Materialise the cat into a decsision tree
 
 ## Implementation for CatConfig
-struct StatefulCatConfig{ItemBankT <: AbstractItemBank} <: StatefulCat
+struct StatefulCatConfig{TrackedResponsesT <: TrackedResponses} <: StatefulCat
     rules::CatRules
-    tracked_responses::TrackedResponses
-    item_bank::Ref{ItemBankT}
+    tracked_responses::Ref{TrackedResponsesT}
 end
 
-function StatefulCatConfig(rules, item_bank)
+function StatefulCatConfig(rules::CatRules, item_bank::AbstractItemBank)
     bare_responses = BareResponses(ResponseType(item_bank))
     tracked_responses = TrackedResponses(
         bare_responses,
         item_bank,
         rules.ability_tracker
     )
-    return StatefulCatConfig(rules, tracked_responses, Ref(item_bank))
+    return StatefulCatConfig(rules, Ref(tracked_responses))
 end
 
 function next_item(config::StatefulCatConfig)
-    return best_item(config.rules.next_item, config.tracked_responses, config.item_bank[])
+    return best_item(config.rules.next_item, config.tracked_responses[])
 end
 
 function ranked_items(config::StatefulCatConfig)
     return sortperm(compute_criteria(
-        config.rules.next_item, config.tracked_responses, config.item_bank[]))
+        config.rules.next_item, config.tracked_responses[]))
 end
 
 function item_criteria(config::StatefulCatConfig)
     return compute_criteria(
-        config.rules.next_item, config.tracked_responses, config.item_bank[])
+        config.rules.next_item, config.tracked_responses[])
 end
 
 function add_response!(config::StatefulCatConfig, index, response)
+    tracked_responses = config.tracked_responses[]
     Aggregators.add_response!(
-        config.tracked_responses, Response(
-            ResponseType(config.item_bank[]), index, response))
+        tracked_responses, Response(
+            ResponseType(tracked_responses.item_bank), index, response))
 end
 
 function rollback!(config::StatefulCatConfig)
-    pop_response!(config.tracked_responses)
+    pop_response!(config.tracked_responses[])
 end
 
 function reset!(config::StatefulCatConfig)
-    empty!(config.tracked_responses)
+    empty!(config.tracked_responses[])
 end
 
 function set_item_bank!(config::StatefulCatConfig, item_bank)
-    reset!(config)
-    config.item_bank[] = item_bank
+    bare_responses = BareResponses(ResponseType(item_bank))
+    config.tracked_responses[] = TrackedResponses(
+        bare_responses,
+        item_bank,
+        config.rules.ability_tracker
+    )
 end
 
 function get_responses(config::StatefulCatConfig)
-    return config.tracked_responses.responses
+    return config.tracked_responses[].responses
 end
 
 function get_ability(config::StatefulCatConfig)
-    return (config.rules.ability_estimator(config.tracked_responses), nothing)
+    return (config.rules.ability_estimator(config.tracked_responses[]), nothing)
 end
 
 ## TODO: Implementation for MaterializedDecisionTree

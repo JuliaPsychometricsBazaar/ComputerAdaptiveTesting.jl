@@ -1,6 +1,5 @@
 module Dummy
 
-using Accessors
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.Aggregators
 using ComputerAdaptiveTesting.Responses
