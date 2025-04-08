@@ -3,8 +3,8 @@ module Responses
 using FittedItemBanks: AbstractItemBank,
                        BooleanResponse, MultinomialResponse, ResponseType, ItemResponse,
                        resp,
-                       DichotomousPointsItemBank, item_xs, item_ys
-using AutoHashEquals
+                       DichotomousPointsItemBank, item_ys
+using AutoHashEquals: @auto_hash_equals
 
 export Response, BareResponses, AbilityLikelihood, function_xs, function_ys
 

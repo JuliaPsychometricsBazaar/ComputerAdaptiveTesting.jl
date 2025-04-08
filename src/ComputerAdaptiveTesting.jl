@@ -2,7 +2,7 @@ module ComputerAdaptiveTesting
 
 include("./hacks.jl")
 
-using Reexport
+using Reexport: Reexport, @reexport
 
 # Modules
 export ConfigBase, Responses, Aggregators

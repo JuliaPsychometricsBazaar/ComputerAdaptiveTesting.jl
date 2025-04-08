@@ -1,14 +1,13 @@
 module DecisionTree
 
-using Mmap
+using Mmap: mmap
 
 using ComputerAdaptiveTesting.ConfigBase: CatConfigBase
 using ComputerAdaptiveTesting.PushVectors
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.Aggregators
 using ComputerAdaptiveTesting.Responses: BareResponses, Response
-using FittedItemBanks
-using FittedItemBanks.DummyData: std_mv_normal
+using FittedItemBanks: AbstractItemBank, BooleanResponse, ResponseType
 
 # TODO: Remove ability tracking from here?
 Base.@kwdef struct AgendaItem

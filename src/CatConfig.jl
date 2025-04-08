@@ -2,8 +2,7 @@ module CatConfig
 
 export CatRules, CatLoopConfig
 
-using DocStringExtensions
-
+using DocStringExtensions: FUNCTIONNAME, TYPEDEF, TYPEDFIELDS
 using PsychometricsBazaarBase.Parameters
 
 using ..Aggregators: AbilityEstimator, AbilityTracker, ConsAbilityTracker,

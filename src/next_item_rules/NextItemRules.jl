@@ -10,25 +10,28 @@ Springer, New York, NY.
 """
 module NextItemRules
 
-using Accessors
-using DocStringExtensions
-using Reexport
-using PsychometricsBazaarBase.Parameters
-using LinearAlgebra
-using Random
+using DocStringExtensions: FUNCTIONNAME, TYPEDEF, TYPEDFIELDS
+using PsychometricsBazaarBase.Parameters: @with_kw
+using LinearAlgebra: det, tr
+using Random: AbstractRNG, Xoshiro
 
-using ..Responses: Response, BareResponses
+using ..Responses: BareResponses
 using ..ConfigBase
-using PsychometricsBazaarBase.ConfigTools
+using PsychometricsBazaarBase.ConfigTools: @requiresome, @returnsome,
+                                           find1_instance, find1_type
 using PsychometricsBazaarBase.Integrators: Integrator
 using PsychometricsBazaarBase: Integrators
 import PsychometricsBazaarBase.IntegralCoeffs
-using FittedItemBanks
-using FittedItemBanks: item_params
+using FittedItemBanks: AbstractItemBank, DiscreteDomain, DomainType,
+                       ItemResponse, OneDimContinuousDomain, domdims, item_params,
+                       resp, resp_vec, responses
 using ..Aggregators
 using ..Aggregators: covariance_matrix
 
-using Distributions, Base.Threads, Base.Order, StaticArrays
+using Distributions: logccdf, logcdf, pdf
+using Base.Threads
+using Base.Order
+using StaticArrays: SVector
 using ConstructionBase: constructorof
 import ForwardDiff
 
