@@ -24,7 +24,7 @@ using Test
 include("./dummy.jl")
 using .Dummy
 
-@testset "test" begin
+@testset verbose=true "Test ComputerAdaptiveTesting.jl" begin
     include("./aqua.jl")
     include("./jet.jl")
     include("./ability_estimator_1d.jl")
