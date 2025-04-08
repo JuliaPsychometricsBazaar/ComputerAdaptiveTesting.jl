@@ -242,7 +242,6 @@ function run_comparison(comparison::CatComparisonConfig{IncreaseItemBankSizeExec
     @info "sizes" strategy.sizes
     for size in strategy.sizes
         subsetted_item_bank = subset(strategy.item_bank, 1:size)
-        empty!(next_current_cats)
         for (name, mk_cat) in current_cats
             init_time = @timed begin
                 cat = init_cat(mk_cat, subsetted_item_bank)
@@ -279,6 +278,9 @@ function run_comparison(comparison::CatComparisonConfig{IncreaseItemBankSizeExec
             if timed_next_item.time < strategy.time_limit
                 push!(next_current_cats, name => cat)
             end
+        end
+        if length(next_current_cats) == 0
+            break
         end
         current_cats = next_current_cats
         next_current_cats = []
