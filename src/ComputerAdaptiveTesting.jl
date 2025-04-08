@@ -43,4 +43,6 @@ include("./Comparison.jl")
 @reexport using .Sim: run_cat
 @reexport using .NextItemRules: preallocate
 
+include("./precompiles.jl")
+
 end
