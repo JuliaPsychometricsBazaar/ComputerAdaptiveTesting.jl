@@ -2,7 +2,6 @@ module ComputerAdaptiveTesting
 
 include("./hacks.jl")
 
-using Pkg
 using Reexport
 
 # Modules
