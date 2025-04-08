@@ -9,8 +9,8 @@ function moneypatch_broadcast()
         methods(Base.Broadcast._broadcast_getindex)...,
         methods(Base.Broadcast.materialize)...,
         methods(Base.Broadcast.materialize!)...,
-        methods(Base.Broadcast.copy)...,
-        methods(Base.Broadcast.copyto!)...,
+        methods(Base.copy)...,
+        methods(Base.copyto!)...,
         methods(Base.getindex)...
     ]
         m.recursion_relation = function (method1, method2, parent_sig, new_sig)
