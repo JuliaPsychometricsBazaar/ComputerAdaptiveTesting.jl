@@ -215,6 +215,26 @@ function init_cat(cat, item_bank)
     cat(item_bank)
 end
 
+function run_warmup(comparison::CatComparisonConfig{IncreaseItemBankSizeExecutionStrategy})
+    strategy = comparison.strategy
+    size = strategy.sizes[1]
+    subsetted_item_bank = subset(strategy.item_bank, 1:size)
+    for (name, mk_cat) in pairs(comparison.rules)
+        warmup_time = @timed begin
+            cat = init_cat(mk_cat, subsetted_item_bank)
+            for idx in 1:(strategy.starting_responses)
+                Stateful.add_response!(cat, idx, strategy.responses[idx])
+            end
+            Stateful.next_item(cat)
+        end
+        total_compile_time = warmup_time.compile_time + warmup_time.recompile_time
+        compile_frac = total_compile_time / warmup_time.time
+        if compile_frac > 0.01
+            @warn "Compilation during warmup" name compile_frac warmup_time
+        end
+    end
+end
+
 function run_comparison(comparison::CatComparisonConfig{IncreaseItemBankSizeExecutionStrategy})
     strategy = comparison.strategy
     current_cats = collect(pairs(comparison.rules))
