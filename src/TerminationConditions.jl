@@ -1,10 +1,10 @@
 module TerminationConditions
 
-using DocStringExtensions
+using DocStringExtensions: TYPEDEF, TYPEDFIELDS
 using FittedItemBanks: AbstractItemBank
 using ..Aggregators: TrackedResponses
 using ..ConfigBase
-using PsychometricsBazaarBase.ConfigTools
+using PsychometricsBazaarBase.ConfigTools: @returnsome, find1_instance
 using FittedItemBanks
 
 export TerminationCondition,

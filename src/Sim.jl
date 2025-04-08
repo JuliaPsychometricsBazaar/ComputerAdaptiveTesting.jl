@@ -4,7 +4,7 @@ using StatsBase
 using FittedItemBanks: AbstractItemBank, ResponseType
 using ..Responses
 using ..CatConfig: CatLoopConfig, CatRules
-using ..Aggregators: TrackedResponses, add_response!, Speculator, Aggregators
+using ..Aggregators: TrackedResponses, add_response!, Aggregators
 using ..NextItemRules: compute_criteria, best_item
 
 export run_cat, prompt_response, auto_responder

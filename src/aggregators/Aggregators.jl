@@ -11,14 +11,24 @@ using Distributions: Distribution, Normal, Distributions
 using Base.Threads
 using ForwardDiff: ForwardDiff
 
-using FittedItemBanks
+using FittedItemBanks: AbstractItemBank, ContinuousDomain,
+                       DichotomousSmoothedItemBank, DiscreteIndexableDomain,
+                       DomainType, ItemResponse, OneDimContinuousDomain,
+                       PointsItemBank, ResponseType, VectorContinuousDomain,
+                       domdims, item_params, resp, resp_vec, responses
 using ..Responses
 using ..Responses: concrete_response_type, function_xs, function_ys
 using ..ConfigBase
-using PsychometricsBazaarBase.ConfigTools
-using PsychometricsBazaarBase.Integrators
-using PsychometricsBazaarBase: Integrators
-using PsychometricsBazaarBase.Optimizers
+using PsychometricsBazaarBase.ConfigTools: @requiresome, @returnsome,
+                                           find1_instance, find1_type,
+                                           find1_type_sloppy
+using PsychometricsBazaarBase.Integrators: Integrators,
+                                           BareIntegrationResult,
+                                           FixedGridIntegrator, IntReturnType,
+                                           IntValue, Integrator,
+                                           PreallocatedFixedGridIntegrator,
+                                           normdenom
+using PsychometricsBazaarBase.Optimizers: OneDimOptimOptimizer, Optimizer
 using PsychometricsBazaarBase.ConstDistributions: std_normal, std_mv_normal
 
 import FittedItemBanks

@@ -3,17 +3,16 @@ module Comparison
 # TODO: We are overlapping a bit with CatRecorder here
 # Should be kept in mind and kept distinct or code reuse
 
-using StatsBase
 using FittedItemBanks: AbstractItemBank, ResponseType, subset
 using ..Responses
-using ..CatConfig: CatLoopConfig, CatRules
-using ..Aggregators: TrackedResponses, add_response!, Speculator, Aggregators, track!,
-                     pop_response!
-using ..DecisionTree: TreePosition, next!
+using ..Aggregators: TrackedResponses, Aggregators
 using Base: Iterators
 
-using HypothesisTests
-using EffectSizes
+using EffectSizes: CohenD, effectsize
+using HypothesisTests: ExactSignedRankTest, SignTest, UnequalVarianceTTest,
+                       pvalue
+using StatsBase: median, sample!
+
 using DataFrames: DataFrame
 using ComputerAdaptiveTesting: Stateful
 

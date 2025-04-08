@@ -1,7 +1,7 @@
 module ConfigBase
 
-using Accessors
-using DocStringExtensions
+using Accessors: PropertyLens, opcompose
+using DocStringExtensions: TYPEDEF
 
 export CatConfigBase, walk
 
