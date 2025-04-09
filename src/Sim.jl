@@ -1,5 +1,6 @@
 module Sim
 
+using DocStringExtensions
 using StatsBase
 using FittedItemBanks: AbstractItemBank, ResponseType
 using ..Responses
@@ -10,7 +11,9 @@ using ..NextItemRules: compute_criteria, best_item
 export run_cat, prompt_response, auto_responder
 
 """
-This response callback simply prompts 
+$(TYPEDSIGNATURES)
+
+This response callback simply prompts the user for the response using the console
 """
 function prompt_response(index_, label)
     println("Response for $label > ")
@@ -18,6 +21,8 @@ function prompt_response(index_, label)
 end
 
 """
+$(TYPEDSIGNATURES)
+
 This function constructs a next item function which automatically responds
 according to `responses`.
 """
@@ -39,7 +44,13 @@ function item_label(ib_labels, next_index)
 end
 
 """
-Run a given CatLoopConfig
+```julia
+$(FUNCTIONNAME)(cat_config::CatLoopConfig, item_bank::AbstractItemBank; ib_labels=nothing)
+```
+
+Run a given [CatLoopConfig](@ref) `cat_config` on the given `item_bank`.
+If `ib_labels` is not given, default labels of the form
+`<<item #\$index>>` are passed to the callback.
 """
 function run_cat(cat_config::CatLoopConfig{RulesT},
         item_bank::AbstractItemBank;

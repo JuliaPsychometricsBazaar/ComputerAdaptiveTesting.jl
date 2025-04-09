@@ -1,38 +1,131 @@
+"""
+This module defines the interface for a stateful CAT as well as an implementation in terms
+of [CatRules](@ref).
+The interface is meant to enable polymorphic use of different CAT implementations.
+"""
 module Stateful
+
+using DocStringExtensions
 
 using FittedItemBanks: AbstractItemBank, ResponseType
 using ..Aggregators: TrackedResponses, Aggregators
 using ..CatConfig: CatLoopConfig, CatRules
 using ..Responses: BareResponses, Response
 using ..NextItemRules: compute_criteria, best_item
+using ..Sim: Sim, item_label
 
-export StatefulCat, StatefulCatConfig, run_cat
+export StatefulCat, StatefulCatConfig
 public next_item, ranked_items, item_criteria
 public add_response!, rollback!, reset!, get_responses, get_ability
 
-## StatefulCat interface
+"""
+$(TYPEDEF)
+
+Abstract supertype for implementation of the stateful CAT interface.
+"""
 abstract type StatefulCat end
 
+"""
+```julia
+$(FUNCTIONNAME)(config::StatefulCat) -> IndexT
+```
+
+Returns the index of the best next item according to the CAT.
+
+Ideally `IndexT` will be an integer and the return type a 1-based index, however it
+should at least be the same type as accepted by [add_response!](@ref).
+"""
 function next_item end
 
+"""
+```julia
+$(FUNCTIONNAME)(config::StatefulCat) -> AbstractVector{IndexT}
+```
+
+Return a vector of indices of the sorted from best to worst item according to the CAT.
+"""
 function ranked_items end
 
+"""
+```julia
+$(FUNCTIONNAME)(config::StatefulCat) -> AbstractVector{CriteriaT}
+```
+
+Returns a vector of criteria values for each item in the item bank.
+
+The criteria can vary, but should attempt to interoperate with ComputerAdaptiveTesting.jl.
+"""
 function item_criteria end
 
+"""
+```julia
+$(FUNCTIONNAME)(config::StatefulCat, index::IndexT, response::ResponseT)
+````
+
+The exact response type `ResponseT` depends on the item bank.
+It should be chosen to interoperate with any equivalent item bank according to the
+implementation in `ComputerAdaptiveTesting.jl`.
+"""
 function add_response! end
 
-#function add_responses! end
+"""
+```julia
+$(FUNCTIONNAME)(config::StatefulCat)
+```
 
+Rollback the last response added with [add_response!](@ref).
+
+Some CAT implementations may not support this operation in which case they will
+throw an error.
+"""
 function rollback! end
 
+
+"""
+```julia
+$(FUNCTIONNAME)(config::StatefulCat)
+```
+
+Reset the CAT to its initial state, removing all responses.
+"""
 function reset! end
 
+"""
+```julia
+$(FUNCTIONNAME)(config::StatefulCat, item_bank::AbstractItemBank)
+```
+
+Set the current item bank of the CAT.
+This will also reset the CAT to its initial state, removing all responses.
+
+Some CAT implementations may not support this operation in which case they will
+throw an error.
+"""
+function set_item_bank! end
+
+"""
+```julia
+$(FUNCTIONNAME)(config::StatefulCat) -> Tuple{AbstractVector{IndexT}, AbstractVector{ResponseT}}
+```
+
+Returns a tuple of the indices and responses of the items that have been
+added to the CAT with [add_response!](@ref) so far.
+"""
 function get_responses end
 
+"""
+```julia
+$(FUNCTIONNAME)(config::StatefulCat) -> AbilityT
+```
+
+Return the current ability estimate according to the CAT.
+The type of the ability estimate `AbilityT` depends on the CAT implementation
+but should attempt to interoperate with ComputerAdaptiveTesting.jl.
+"""
 function get_ability end
 
 ## Running the CAT
-function run_cat(cat_config::CatLoopConfig{RulesT},
+function Sim.run_cat(cat_config::CatLoopConfig{RulesT},
         ib_labels = nothing) where {RulesT <: StatefulCat}
     (; stateful_cat, get_response, new_response_callback) = cat_config
     while true
@@ -59,7 +152,13 @@ end
 
 ## TODO: Materialise the cat into a decsision tree
 
-## Implementation for CatConfig
+"""
+$(TYPEDEF)
+$(TYPEDSIGNATURES)
+
+This is a the `StatefulCat` implementation in terms of `CatRules`.
+It is also the de-facto standard for the behavior of the interface.
+"""
 struct StatefulCatConfig{TrackedResponsesT <: TrackedResponses} <: StatefulCat
     rules::CatRules
     tracked_responses::Ref{TrackedResponsesT}

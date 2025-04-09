@@ -34,10 +34,15 @@ makedocs(;
     format = format,
     pages = [
         "Getting started" => "index.md",
-        "Creating a CAT" => "creating_a_cat.md",
-        "Using your CAT" => "using_your_cat.md",
+        "Guides" => [
+            "Creating a CAT" => "creating_a_cat.md",
+            "Using your CAT" => "using_your_cat.md",
+        ],
         (build_demos ? demopage : "Demo page skipped" => []),
-        "API reference" => "api.md",
+        "References" => [
+            "Stateful interface" => "stateful.md",
+            "API reference (all docstrings)" => "api.md",
+        ],
         "Contributing" => "contributing.md",
     ],
     warnonly = [:missing_docs],

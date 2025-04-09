@@ -2,7 +2,7 @@ module CatConfig
 
 export CatRules, CatLoopConfig
 
-using DocStringExtensions: FUNCTIONNAME, TYPEDEF, TYPEDFIELDS
+using DocStringExtensions
 using PsychometricsBazaarBase.Parameters
 
 using ..Aggregators: AbilityEstimator, AbilityTracker, ConsAbilityTracker,
@@ -114,20 +114,30 @@ function collect_trackers(next_item_rule::NextItemRule, ability_tracker::Ability
 end
 
 """
+```julia
+struct $(FUNCTIONNAME)
+$(FUNCTIONNAME)(; rules=..., get_response=..., new_response_callback=...)
+```
+$(TYPEDFIELDS)
+
 Configuration for a simulatable CAT.
 """
 @with_kw struct CatLoopConfig{CatEngineT} <: CatConfigBase
     """
-    The CAT configuration.
+    An object which implements the CAT engine.
+    Implementations exist for:
+      * [CatRules](@ref)
+      * [Stateful.StatefulCat](@ref ComputerAdaptiveTesting.Stateful.StatefulCat)
     """
     rules::CatEngineT # e.g. CatRules
     """
-    The function (index, label) -> Int8 which obtains the testee's response for
+    The function `(index, label) -> Int8`` which obtains the testee's response for
     a given question, e.g. by prompting or simulation from data.
     """
     get_response::Any
     """
-    A callback called each time there is a new responses
+    A callback called each time there is a new responses.
+    If provided, it is passed `(responses::TrackedResponses, terminating)`.
     """
     new_response_callback = nothing
 end
