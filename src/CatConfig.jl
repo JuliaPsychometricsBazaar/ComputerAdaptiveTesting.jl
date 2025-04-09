@@ -54,6 +54,31 @@ Implicit constructor for $(FUNCTIONNAME).
     ability_tracker::AbilityTrackerT = NullAbilityTracker()
 end
 
+function CatRules(bits...)
+    ability_estimator, ability_tracker = _find_ability_estimator_and_tracker(bits...)
+    if ability_estimator === nothing
+        error("Could not find an ability estimator in $(bits)")
+    end
+    if ability_tracker === nothing
+        error("Could not find an ability tracker in $(bits)")
+    end
+    next_item = NextItemRule(bits...,
+        ability_estimator = ability_estimator,
+        ability_tracker = ability_tracker)
+    if next_item === nothing
+        error("Could not find a next item rule in $(bits)")
+    end
+    termination_condition = TerminationCondition(bits...)
+    if termination_condition === nothing
+        error("Could not find a termination condition in $(bits)")
+    end
+    CatRules(;
+        next_item = next_item,
+        termination_condition = termination_condition,
+        ability_estimator = ability_estimator,
+        ability_tracker = collect_trackers(next_item, ability_tracker))
+end
+
 function _find_ability_estimator_and_tracker(bits...)
     ability_estimator = AbilityEstimator(bits...)
     ability_tracker = AbilityTracker(bits...; ability_estimator = ability_estimator)
@@ -86,31 +111,6 @@ function collect_trackers(next_item_rule::NextItemRule, ability_tracker::Ability
     else
         rest
     end
-end
-
-function CatRules(bits...)
-    ability_estimator, ability_tracker = _find_ability_estimator_and_tracker(bits...)
-    if ability_estimator === nothing
-        error("Could not find an ability estimator in $(bits)")
-    end
-    if ability_tracker === nothing
-        error("Could not find an ability tracker in $(bits)")
-    end
-    next_item = NextItemRule(bits...,
-        ability_estimator = ability_estimator,
-        ability_tracker = ability_tracker)
-    if next_item === nothing
-        error("Could not find a next item rule in $(bits)")
-    end
-    termination_condition = TerminationCondition(bits...)
-    if termination_condition === nothing
-        error("Could not find a termination condition in $(bits)")
-    end
-    CatRules(;
-        next_item = next_item,
-        termination_condition = termination_condition,
-        ability_estimator = ability_estimator,
-        ability_tracker = collect_trackers(next_item, ability_tracker))
 end
 
 """
