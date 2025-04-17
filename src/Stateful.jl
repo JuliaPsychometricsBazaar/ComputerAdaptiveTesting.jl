@@ -10,7 +10,7 @@ using DocStringExtensions
 using FittedItemBanks: AbstractItemBank, ResponseType
 using ..Aggregators: TrackedResponses, Aggregators
 using ..CatConfig: CatLoopConfig, CatRules
-using ..Responses: BareResponses, Response
+using ..Responses: BareResponses, Response, Responses
 using ..NextItemRules: compute_criteria, best_item
 using ..Sim: Sim, item_label
 
@@ -190,13 +190,13 @@ end
 
 function add_response!(config::StatefulCatConfig, index, response)
     tracked_responses = config.tracked_responses[]
-    Aggregators.add_response!(
+    Responses.add_response!(
         tracked_responses, Response(
             ResponseType(tracked_responses.item_bank), index, response))
 end
 
 function rollback!(config::StatefulCatConfig)
-    pop_response!(config.tracked_responses[])
+    Responses.pop_response!(config.tracked_responses[])
 end
 
 function reset!(config::StatefulCatConfig)

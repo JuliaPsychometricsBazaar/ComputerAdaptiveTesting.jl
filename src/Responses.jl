@@ -7,6 +7,7 @@ using FittedItemBanks: AbstractItemBank,
 using AutoHashEquals: @auto_hash_equals
 
 export Response, BareResponses, AbilityLikelihood, function_xs, function_ys
+export add_response!, pop_response!
 
 concrete_response_type(::BooleanResponse) = Bool
 concrete_response_type(::MultinomialResponse) = Int
@@ -67,6 +68,28 @@ end
 function Base.iterate(::BareResponses, gen_gen_state)
     (gen, gen_state) = gen_gen_state
     return _iter_helper(gen, iterate(gen, gen_state))
+end
+
+function Base.empty!(responses::BareResponses)
+    Base.empty!(responses.indices)
+    Base.empty!(responses.values)
+end
+
+function add_response!(responses::BareResponses, response::Response)::BareResponses
+    push!(responses.indices, response.index)
+    push!(responses.values, response.value)
+    responses
+end
+
+function pop_response!(responses::BareResponses)::BareResponses
+    pop!(responses.indices)
+    pop!(responses.values)
+    responses
+end
+
+function Base.sizehint!(bare_responses::BareResponses, n)
+    sizehint!(bare_responses.indices, n)
+    sizehint!(bare_responses.values, n)
 end
 
 struct AbilityLikelihood{ItemBankT <: AbstractItemBank, BareResponsesT <: BareResponses}
