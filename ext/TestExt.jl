@@ -2,8 +2,9 @@ module TestExt
 
 using Test
 using ComputerAdaptiveTesting: Stateful
+using FittedItemBanks: AbstractItemBank, ItemResponse, resp
 
-export test_stateful_cat_1d_dich_ib
+export test_stateful_cat_1d_dich_ib, test_stateful_cat_item_bank_1d_dich_ib
 
 function test_stateful_cat_1d_dich_ib(
         cat::Stateful.StatefulCat,
@@ -66,9 +67,8 @@ function test_stateful_cat_1d_dich_ib(
         end
     end
 
-    Stateful.reset!(cat)
-
     @testset "basic get_ability tests" begin
+        Stateful.reset!(cat)
         Stateful.add_response!(cat, 1, false)
         Stateful.add_response!(cat, 2, true)
         ability = Stateful.get_ability(cat)
@@ -79,6 +79,7 @@ function test_stateful_cat_1d_dich_ib(
 
     if supports_rollback
         @testset "rollback ability tests" begin
+            Stateful.reset!(cat)
             Stateful.add_response!(cat, 1, false)
             ability1 = Stateful.get_ability(cat)
             Stateful.add_response!(cat, 2, true)
@@ -87,6 +88,24 @@ function test_stateful_cat_1d_dich_ib(
             @test Stateful.get_ability(cat) == ability1
             Stateful.add_response!(cat, 2, true)
             @test Stateful.get_ability(cat) == ability2
+        end
+    end
+end
+
+function test_stateful_cat_item_bank_1d_dich_ib(
+    cat::Stateful.StatefulCat,
+    item_bank::AbstractItemBank,
+    points=[-.78, 0.0, .78],
+    margin=0.05,
+)
+    if length(item_bank) != Stateful.item_bank_size(cat)
+        error("Item bank length does not match the cat's item bank size.")
+    end
+    for i in 1:length(item_bank)
+        for point in points
+            cat_prob = Stateful.item_response_function(cat, i, true, point)
+            ib_prob = resp(ItemResponse(item_bank, i), true, point)
+            @test cat_prob ≈ ib_prob  rtol=margin
         end
     end
 end

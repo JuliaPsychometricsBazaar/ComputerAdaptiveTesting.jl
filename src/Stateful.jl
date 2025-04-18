@@ -7,7 +7,7 @@ module Stateful
 
 using DocStringExtensions
 
-using FittedItemBanks: AbstractItemBank, ResponseType
+using FittedItemBanks: AbstractItemBank, ResponseType, ItemResponse, resp
 using ..Aggregators: TrackedResponses, Aggregators
 using ..CatConfig: CatLoopConfig, CatRules
 using ..Responses: BareResponses, Response, Responses
@@ -124,6 +124,25 @@ but should attempt to interoperate with ComputerAdaptiveTesting.jl.
 """
 function get_ability end
 
+"""
+```julia
+$(FUNCTIONNAME)(config::StatefulCat)
+````
+
+Return number of items in the current item bank.
+"""
+function item_bank_size end
+
+"""
+```julia
+$(FUNCTIONNAME)(config::StatefulCat, index::IndexT, response::ResponseT, ability::AbilityT) -> Float
+````
+
+Return the probability of a `response` to item at `index` for someone with
+a certain `ability` according to the IRT model backing the CAT.
+"""
+function item_response_function end
+
 ## Running the CAT
 function Sim.run_cat(cat_config::CatLoopConfig{RulesT},
         ib_labels = nothing) where {RulesT <: StatefulCat}
@@ -218,6 +237,16 @@ end
 
 function get_ability(config::StatefulCatConfig)
     return (config.rules.ability_estimator(config.tracked_responses[]), nothing)
+end
+
+function item_bank_size(config::StatefulCatConfig)
+    return length(config.tracked_responses[].item_bank)
+end
+
+function item_response_function(config::StatefulCatConfig, index, response, ability)
+    item_bank = config.tracked_responses[].item_bank
+    item_response = ItemResponse(item_bank, index)
+    return resp(item_response, response, ability)
 end
 
 ## TODO: Implementation for MaterializedDecisionTree

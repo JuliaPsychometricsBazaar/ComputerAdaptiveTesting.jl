@@ -88,5 +88,6 @@
             4;
             supports_ranked_and_criteria = false,
         )
+        TestExt.test_stateful_cat_item_bank_1d_dich_ib(cat_config, item_bank)
     end
 end
