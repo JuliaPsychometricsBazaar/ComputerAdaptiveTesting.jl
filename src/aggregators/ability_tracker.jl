@@ -1,37 +1,19 @@
-function sizehint!(bare_responses::BareResponses, n)
-    sizehint!(bare_responses.indices, n)
-    sizehint!(bare_responses.values, n)
-end
-
 function track!(responses)
     track!(responses, responses.ability_tracker)
 end
 
-function add_response!(responses::BareResponses, response::Response)::BareResponses
-    push!(responses.indices, response.index)
-    push!(responses.values, response.value)
-    responses
-end
-
-function add_response!(tracked_responses::TrackedResponses, response::Response)
+function Responses.add_response!(tracked_responses::TrackedResponses, response::Response)
     add_response!(tracked_responses.responses, response)
     track!(tracked_responses)
 end
 
-function pop_response!(responses::BareResponses)::BareResponses
-    pop!(responses.indices)
-    pop!(responses.values)
-    responses
-end
-
-function pop_response!(tracked_responses::TrackedResponses)::TrackedResponses
+function Responses.pop_response!(tracked_responses::TrackedResponses)::TrackedResponses
     pop_response!(tracked_responses.responses)
     tracked_responses
 end
 
 function Base.empty!(tracked_responses::TrackedResponses)
-    Base.empty!(tracked_responses.responses.indices)
-    Base.empty!(tracked_responses.responses.values)
+    Base.empty!(tracked_responses.responses)
 end
 
 function response_expectation(ability_estimator::DistributionAbilityEstimator,

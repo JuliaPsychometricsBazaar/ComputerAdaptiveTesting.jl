@@ -17,7 +17,7 @@ using FittedItemBanks: AbstractItemBank, ContinuousDomain,
                        PointsItemBank, ResponseType, VectorContinuousDomain,
                        domdims, item_params, resp, resp_vec, responses
 using ..Responses
-using ..Responses: concrete_response_type, function_xs, function_ys
+using ..Responses: concrete_response_type, function_xs, function_ys, Responses
 using ..ConfigBase
 using PsychometricsBazaarBase.ConfigTools: @requiresome, @returnsome,
                                            find1_instance, find1_type,
@@ -37,8 +37,7 @@ import PsychometricsBazaarBase.IntegralCoeffs
 export AbilityEstimator, TrackedResponses
 export AbilityTracker, NullAbilityTracker, PointAbilityTracker, GriddedAbilityTracker
 export ClosedFormNormalAbilityTracker, track!
-export response_expectation,
-       add_response!, pop_response!, expectation, distribution_estimator
+export response_expectation, expectation, distribution_estimator
 export PointAbilityEstimator, PriorAbilityEstimator, LikelihoodAbilityEstimator
 export ModeAbilityEstimator, MeanAbilityEstimator
 export Speculator, replace_speculation!, normdenom, maybe_tracked_ability_estimate

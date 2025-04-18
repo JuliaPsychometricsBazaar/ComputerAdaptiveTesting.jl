@@ -10,6 +10,9 @@ export NextItemRules, TerminationConditions
 export CatConfig, Sim, DecisionTree
 export Stateful, Comparison
 
+# Extension modules
+public require_testext
+
 # Vendored dependencies
 include("./vendor/PushVectors.jl")
 
@@ -43,5 +46,13 @@ include("./Comparison.jl")
 @reexport using .NextItemRules: preallocate
 
 include("./precompiles.jl")
+
+function require_testext()
+    TestExt = Base.get_extension(@__MODULE__, :TestExt)
+    if TestExt === nothing
+        error("Failed to load extension module TestExt.")
+    end
+    return TestExt
+end
 
 end

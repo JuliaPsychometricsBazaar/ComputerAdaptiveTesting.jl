@@ -6,6 +6,7 @@
     using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
     using ComputerAdaptiveTesting.NextItemRules: RandomNextItemRule
     using ComputerAdaptiveTesting: Stateful
+    using ComputerAdaptiveTesting: require_testext
     using ResumableFunctions
     using Test: @test, @testset
 
@@ -26,7 +27,7 @@
     @testset "StatefulCatConfig basic usage" begin
         rules = CatRules(
             FixedItemsTerminationCondition(2),
-            Dummy.DummyAbilityEstimator(0),
+            Dummy.DummyAbilityEstimator(0.0),
             RandomNextItemRule()
         )
 
@@ -54,7 +55,7 @@
     @testset "Stateful next item selection" begin
         rules = CatRules(
             FixedItemsTerminationCondition(2),
-            Dummy.DummyAbilityEstimator(0),
+            Dummy.DummyAbilityEstimator(0.0),
             RandomNextItemRule()
         )
         cat_config = Stateful.StatefulCatConfig(rules, item_bank)
@@ -68,5 +69,25 @@
         second_item = Stateful.next_item(cat_config)
         @test 1 <= second_item <= 4
         @test second_item != first_item  # Should select different item
+    end
+
+    @testset "Standard interface tests" begin
+        rules = CatRules(
+            FixedItemsTerminationCondition(2),
+            Dummy.DummyAbilityEstimator(0.0),
+            RandomNextItemRule()
+        )
+
+        # Initialize config
+        cat_config = Stateful.StatefulCatConfig(rules, item_bank)
+
+        # Run the standard interface tests
+        TestExt = require_testext()
+        TestExt.test_stateful_cat_1d_dich_ib(
+            cat_config,
+            4;
+            supports_ranked_and_criteria = false,
+        )
+        TestExt.test_stateful_cat_item_bank_1d_dich_ib(cat_config, item_bank)
     end
 end

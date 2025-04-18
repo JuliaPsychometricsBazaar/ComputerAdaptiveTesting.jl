@@ -6,7 +6,7 @@ using ComputerAdaptiveTesting.ConfigBase: CatConfigBase
 using ComputerAdaptiveTesting.PushVectors
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.Aggregators
-using ComputerAdaptiveTesting.Responses: BareResponses, Response
+using ComputerAdaptiveTesting.Responses: BareResponses, Response, add_response!, pop_response!
 using FittedItemBanks: AbstractItemBank, BooleanResponse, ResponseType
 
 # TODO: Remove ability tracking from here?
