@@ -7,7 +7,7 @@ module Stateful
 
 using DocStringExtensions
 
-using FittedItemBanks: AbstractItemBank, ResponseType, ItemResponse, resp
+using FittedItemBanks: AbstractItemBank, ResponseType, ItemResponse, resp_vec
 using ..Aggregators: TrackedResponses, Aggregators
 using ..CatConfig: CatLoopConfig, CatRules
 using ..Responses: BareResponses, Response, Responses
@@ -135,13 +135,14 @@ function item_bank_size end
 
 """
 ```julia
-$(FUNCTIONNAME)(config::StatefulCat, index::IndexT, response::ResponseT, ability::AbilityT) -> Float
+$(FUNCTIONNAME)(config::StatefulCat, index::IndexT, ability::AbilityT) -> AbstractVector{Float}
 ````
 
-Return the probability of a `response` to item at `index` for someone with
-a certain `ability` according to the IRT model backing the CAT.
+Return the vector of probability of different responses to item at
+`index` for someone with a certain `ability` according to the IRT
+model backing the CAT.
 """
-function item_response_function end
+function item_response_functions end
 
 ## Running the CAT
 function Sim.run_cat(cat_config::CatLoopConfig{RulesT},
@@ -243,10 +244,10 @@ function item_bank_size(config::StatefulCatConfig)
     return length(config.tracked_responses[].item_bank)
 end
 
-function item_response_function(config::StatefulCatConfig, index, response, ability)
+function item_response_functions(config::StatefulCatConfig, index, ability)
     item_bank = config.tracked_responses[].item_bank
     item_response = ItemResponse(item_bank, index)
-    return resp(item_response, response, ability)
+    return resp_vec(item_response, ability)
 end
 
 ## TODO: Implementation for MaterializedDecisionTree
