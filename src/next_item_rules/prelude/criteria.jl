@@ -1,18 +1,35 @@
 #= Single dimensional =#
 
-function ItemCriterion(bits...; ability_estimator = nothing, ability_tracker = nothing)
+function ItemCriterion(bits...; ability_estimator = nothing, ability_tracker = nothing, skip_expectation = false)
     @returnsome find1_instance(ItemCriterion, bits)
     @returnsome find1_type(ItemCriterion, bits) typ->typ(
         ability_estimator = ability_estimator,
         ability_tracker = ability_tracker)
-    @returnsome ExpectationBasedItemCriterion(bits...;
-        ability_estimator = ability_estimator,
-        ability_tracker = ability_tracker)
+    if !skip_expectation
+        @returnsome ExpectationBasedItemCriterion(bits...;
+            ability_estimator = ability_estimator,
+            ability_tracker = ability_tracker)
+    end
 end
 
 function StateCriterion(bits...; ability_estimator = nothing, ability_tracker = nothing)
     @returnsome find1_instance(StateCriterion, bits)
     @returnsome find1_type(StateCriterion, bits) typ->typ()
+end
+
+function ItemCategoryCriterion(bits...)
+    @returnsome find1_instance(ItemCategoryCriterion, bits)
+    @returnsome find1_type(ItemCategoryCriterion, bits) typ->typ()
+end
+
+function PointwiseItemCriterion(bits...)
+    @returnsome find1_instance(PointwiseItemCriterion, bits)
+    @returnsome find1_type(PointwiseItemCriterion, bits) typ->typ()
+end
+
+function PointwiseItemCategoryCriterion(bits...)
+    @returnsome find1_instance(PointwiseItemCategoryCriterion, bits)
+    @returnsome find1_type(PointwiseItemCategoryCriterion, bits) typ->typ()
 end
 
 function init_thread(::ItemCriterion, ::TrackedResponses)
@@ -72,13 +89,9 @@ function compute_criteria(
     compute_criteria(rule.criterion, responses)
 end
 
-function compute_pointwise_criterion(
-        ppic::PurePointwiseItemCriterion, tracked_responses, item_idx)
-    compute_pointwise_criterion(ppic, ItemResponse(tracked_responses.item_bank, item_idx))
-end
-
-struct PurePointwiseItemCriterionFunction{PointwiseItemCriterionT <: PointwiseItemCriterion}
-    item_response::ItemResponse
+function compute_criterion(
+        ppic::ItemCriterionBase, tracked_responses::TrackedResponses, item_idx, args...)
+    compute_criterion(ppic, ItemResponse(tracked_responses.item_bank, item_idx), args...)
 end
 
 function init_thread(::ItemMultiCriterion, ::TrackedResponses)
@@ -97,4 +110,19 @@ end
 function compute_multi_criterion(
         state_criterion::StateMultiCriterion, ::Nothing, tracked_responses)
     compute_multi_criterion(state_criterion, tracked_responses)
+end
+
+function get_dist_est_and_integrator(bits...)
+    # XXX: Weakness in this initialisation system is showing now
+    # This needs ot be explicitly passed dist_est and integrator, but this may
+    # be burried within a MeanAbilityEstimator
+    dist_est = DistributionAbilityEstimator(bits...)
+    integrator = AbilityIntegrator(bits...)
+    if dist_est !== nothing && integrator !== nothing
+        return (dist_est, integrator)
+    end
+    # So let's just handle this case individually for now
+    # (Is this going to cause a problem with this being picked over something more appropriate?)
+    @requiresome mean_ability_est = MeanAbilityEstimator(bits...)
+    return (mean_ability_est.dist_est, mean_ability_est.integrator)
 end

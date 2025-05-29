@@ -7,7 +7,8 @@ using PrecompileTools: @compile_workload, @setup_workload
     using Random: default_rng
     using .Aggregators: LikelihoodAbilityEstimator, MeanAbilityEstimator, GriddedAbilityTracker,
                         AbilityIntegrator
-    using .NextItemRules: catr_next_item_aliases, preallocate
+    using .NextItemRules: preallocate, ExhaustiveSearch, ItemStrategyNextItemRule,
+                          ExpectationBasedItemCriterion, AbilityVarianceStateCriterion
     using .Stateful: Stateful
 
     rng = default_rng(42)
@@ -19,7 +20,10 @@ using PrecompileTools: @compile_workload, @setup_workload
         lh_grid_tracker = GriddedAbilityTracker(lh_ability_est, integrator)
         ability_integrator = AbilityIntegrator(integrator, lh_grid_tracker)
         ability_estimator = MeanAbilityEstimator(lh_ability_est, ability_integrator)
-        next_item_rule = catr_next_item_aliases["MEPV"](ability_estimator)
+        next_item_rule = ItemStrategyNextItemRule(
+            ExhaustiveSearch(),
+            ExpectationBasedItemCriterion(ability_estimator,
+                AbilityVarianceStateCriterion(ability_estimator)))
         cat = Stateful.StatefulCatConfig(CatConfig.CatRules(;
             next_item=next_item_rule,
             termination_condition=TerminationConditions.RunForeverTerminationCondition(),

@@ -67,7 +67,7 @@ item 1-ply ahead.
 """
 struct ExpectationBasedItemCriterion{
     ResponseExpectationT <: ResponseExpectation,
-    CriterionT <: Union{StateCriterion, ItemCriterion}
+    CriterionT <: Union{StateCriterion, ItemCriterion, ItemCategoryCriterion},
 } <: ItemCriterion
     response_expectation::ResponseExpectationT
     criterion::CriterionT
@@ -75,7 +75,8 @@ end
 
 function _get_some_criterion(bits...; kwargs...)
     @returnsome StateCriterion(bits...; kwargs...)
-    @returnsome ItemCriterion(bits...; kwargs...)
+    @returnsome ItemCriterion(bits...; skip_expectation=true, kwargs...)
+    @returnsome ItemCategoryCriterion(bits...)
 end
 
 function ExpectationBasedItemCriterion(bits...;
@@ -95,12 +96,15 @@ function init_thread(::ExpectationBasedItemCriterion, responses::TrackedResponse
     Speculator(responses, 1)
 end
 
-function _generic_criterion(criterion::StateCriterion, tracked_responses, item_idx)
+function _generic_criterion(criterion::StateCriterion, tracked_responses, _item_idx, _response)
     compute_criterion(criterion, tracked_responses)
 end
 # TODO: Support init_thread for wrapped ItemCriterion
-function _generic_criterion(criterion::ItemCriterion, tracked_responses, item_idx)
+function _generic_criterion(criterion::ItemCriterion, tracked_responses, item_idx, _response)
     compute_criterion(criterion, tracked_responses, item_idx)
+end
+function _generic_criterion(criterion::ItemCategoryCriterion, tracked_responses, item_idx, response)
+    compute_criterion(criterion, tracked_responses, item_idx, response)
 end
 
 function compute_criterion(
@@ -116,7 +120,7 @@ function compute_criterion(
     for (prob, possible_response) in zip(exp_resp, possible_responses)
         replace_speculation!(speculator, SVector(item_idx), SVector(possible_response))
         res += prob *
-               _generic_criterion(item_criterion.criterion, speculator.responses, item_idx)
+               _generic_criterion(item_criterion.criterion, speculator.responses, item_idx, possible_response)
     end
     res
 end

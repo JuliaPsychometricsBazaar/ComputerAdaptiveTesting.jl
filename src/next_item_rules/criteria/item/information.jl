@@ -1,12 +1,20 @@
 # TODO: Should have Variants for point ability versus distribution ability
-struct InformationItemCriterion{AbilityEstimatorT <: PointAbilityEstimator, F} <:
+@kw_only struct InformationItemCriterion{AbilityEstimatorT <: PointAbilityEstimator, F} <:
        ItemCriterion
     ability_estimator::AbilityEstimatorT
     expected_item_information::F
 end
 
-function InformationItemCriterion(ability_estimator)
-    InformationItemCriterion(ability_estimator, expected_item_information)
+function InformationItemCriterion(ability_estimator::PointAbilityEstimator)
+    InformationItemCriterion(;
+        ability_estimator,
+        expected_item_information
+    )
+end
+
+function InformationItemCriterion(bits...)
+    @requiresome ability_estimator = PointAbilityEstimator(bits...)
+    InformationItemCriterion(ability_estimator)
 end
 
 function compute_criterion(

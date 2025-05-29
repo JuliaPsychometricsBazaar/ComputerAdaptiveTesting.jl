@@ -47,5 +47,6 @@ function (optim::AbilityOptimizer)(f::F,
         est,
         tracked_responses::TrackedResponses;
         kwargs...) where {F}
-    optim(maybe_apply_prior(f, est), AbilityLikelihood(tracked_responses); kwargs...)
+    #optim(maybe_apply_prior(f, est), AbilityLikelihood(tracked_responses); kwargs...)
+    optim(f, pdf(est, tracked_responses); kwargs...)
 end

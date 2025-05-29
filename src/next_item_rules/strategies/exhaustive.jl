@@ -30,9 +30,7 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 
 """
-@with_kw struct ExhaustiveSearch <: NextItemStrategy
-    parallel::Bool = false
-end
+struct ExhaustiveSearch <: NextItemStrategy end
 
 function best_item(
         rule::ItemStrategyNextItemRule{ExhaustiveSearch, ItemCriterionT},

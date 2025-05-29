@@ -29,21 +29,32 @@ abstract type NextItemStrategy <: CatConfigBase end
 """
 $(TYPEDEF)
 
-Abstract type for next item criteria
+Abstract base type all criteria should inherit from
 """
-abstract type ItemCriterion <: CatConfigBase end
+abstract type CriterionBase <: CatConfigBase end
+abstract type ItemCriterionBase <: CatConfigBase end
+
+abstract type ItemCriterion <: ItemCriterionBase end
 
 """
 $(TYPEDEF)
 """
-abstract type StateCriterion <: CatConfigBase end
+abstract type StateCriterion <: CriterionBase end
 
 """
 $(TYPEDEF)
 """
-abstract type PointwiseItemCriterion <: CatConfigBase end
+abstract type PointwiseItemCriterion <: ItemCriterionBase end
 
-abstract type PurePointwiseItemCriterion <: PointwiseItemCriterion end
+"""
+$(TYPEDEF)
+"""
+abstract type ItemCategoryCriterion <: ItemCriterionBase end
+
+"""
+$(TYPEDEF)
+"""
+abstract type PointwiseItemCategoryCriterion <: ItemCriterionBase end
 
 abstract type MatrixScalarizer end
 abstract type StateMultiCriterion end

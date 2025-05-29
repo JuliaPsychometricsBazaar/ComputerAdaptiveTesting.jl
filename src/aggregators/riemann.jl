@@ -26,13 +26,32 @@ function (integrator::RiemannEnumerationIntegrator)(f::F,
     return BareIntegrationResult(result)
 end
 
-function (integrator::Union{RiemannEnumerationIntegrator, FunctionIntegrator})(f::F,
-        ncomp,
-        est,
-        tracked_responses::TrackedResponses;
-        kwargs...) where {F}
-    integrator(maybe_apply_prior(f, est),
+function (integrator::RiemannEnumerationIntegrator)(
+    f::F,
+    ncomp,
+    est,
+    tracked_responses::TrackedResponses;
+    kwargs...
+) where {F}
+    integrator(
+        maybe_apply_prior(f, est),
         ncomp,
         AbilityLikelihood(tracked_responses);
-        kwargs...)
+        kwargs...
+    )
+end
+
+function (integrator::FunctionIntegrator)(
+    f::F,
+    ncomp,
+    est,
+    tracked_responses::TrackedResponses;
+    kwargs...
+) where {F}
+    integrator(
+        f,
+        ncomp,
+        pdf(est, tracked_responses);
+        kwargs...
+    )
 end

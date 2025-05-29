@@ -10,6 +10,7 @@ using StaticArrays: SVector
 using Distributions: Distribution, Normal, Distributions
 using Base.Threads
 using ForwardDiff: ForwardDiff
+using LogarithmicNumbers: Logarithmic, ULogarithmic
 
 using FittedItemBanks: AbstractItemBank, ContinuousDomain,
                        DichotomousSmoothedItemBank, DiscreteIndexableDomain,
@@ -24,12 +25,14 @@ using PsychometricsBazaarBase.ConfigTools: @requiresome, @returnsome,
                                            find1_type_sloppy
 using PsychometricsBazaarBase.Integrators: Integrators,
                                            BareIntegrationResult,
-                                           FixedGridIntegrator, IntReturnType,
+                                           FixedGridIntegrator,
+                                           IntReturnType,
                                            IntValue, Integrator,
                                            PreallocatedFixedGridIntegrator,
                                            normdenom
 using PsychometricsBazaarBase.Optimizers: OneDimOptimOptimizer, Optimizer
 using PsychometricsBazaarBase.ConstDistributions: std_normal, std_mv_normal
+import Distributions: pdf
 
 import FittedItemBanks
 import PsychometricsBazaarBase.IntegralCoeffs
@@ -38,7 +41,8 @@ export AbilityEstimator, TrackedResponses
 export AbilityTracker, NullAbilityTracker, PointAbilityTracker, GriddedAbilityTracker
 export ClosedFormNormalAbilityTracker, track!
 export response_expectation, expectation, distribution_estimator
-export PointAbilityEstimator, PriorAbilityEstimator, LikelihoodAbilityEstimator
+export PointAbilityEstimator, PriorAbilityEstimator
+export SafeLikelihoodAbilityEstimator, LikelihoodAbilityEstimator
 export ModeAbilityEstimator, MeanAbilityEstimator
 export Speculator, replace_speculation!, normdenom, maybe_tracked_ability_estimate
 export AbilityIntegrator, AbilityOptimizer
@@ -70,6 +74,10 @@ end
 abstract type DistributionAbilityEstimator <: AbilityEstimator end
 function DistributionAbilityEstimator(bits...)
     @returnsome find1_instance(DistributionAbilityEstimator, bits)
+    point_ability_estimator = find1_instance(PointAbilityEstimator, bits)
+    if point_ability_estimator !== nothing
+        return distribution_estimator(point_ability_estimator)
+    end
 end
 
 abstract type PointAbilityEstimator <: AbilityEstimator end

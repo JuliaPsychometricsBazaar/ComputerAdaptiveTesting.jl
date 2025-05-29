@@ -9,6 +9,11 @@ struct UrryItemCriterion{AbilityEstimatorT <: PointAbilityEstimator} <: ItemCrit
     ability_estimator::AbilityEstimatorT
 end
 
+function UrryItemCriterion(bits...)
+    @requiresome ability_estimator = PointAbilityEstimator(bits...)
+    UrryItemCriterion(ability_estimator)
+end
+
 # TODO: Slow + poor error handling
 function raw_difficulty(item_bank, item_idx)
     item_params(item_bank, item_idx).difficulty

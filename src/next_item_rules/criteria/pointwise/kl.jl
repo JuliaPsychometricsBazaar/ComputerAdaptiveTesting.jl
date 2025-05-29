@@ -22,10 +22,11 @@ function PosteriorExpectedKLInformationItemCriterion(bits...)
         point_estimator, distribution_estimator, integrator)
 end
 
-function compute_pointwise_criterion(
+function compute_criterion(
         item_criterion::PosteriorExpectedKLInformationItemCriterion,
         tracked_responses::TrackedResponses,
-        item_idx)
+        item_idx,
+        theta)
     theta_0 = maybe_tracked_ability_estimate(tracked_responses,
         item_criterion.point_estimator)
     item_response = ItemResponse(tracked_responses.item_bank, item_idx)
