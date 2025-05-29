@@ -8,7 +8,7 @@ module Stateful
 using DocStringExtensions
 
 using FittedItemBanks: AbstractItemBank, ResponseType, ItemResponse, resp_vec
-using ..Aggregators: TrackedResponses, Aggregators
+using ..Aggregators: TrackedResponses, Aggregators, pdf, distribution_estimator
 using ..CatConfig: CatLoopConfig, CatRules
 using ..Responses: BareResponses, Response, Responses
 using ..NextItemRules: compute_criteria, best_item
@@ -45,6 +45,7 @@ $(FUNCTIONNAME)(config::StatefulCat) -> AbstractVector{IndexT}
 Return a vector of indices of the sorted from best to worst item according to the CAT.
 """
 function ranked_items end
+function ranked_items(::StatefulCat) nothing end
 
 """
 ```julia
@@ -56,6 +57,7 @@ Returns a vector of criteria values for each item in the item bank.
 The criteria can vary, but should attempt to interoperate with ComputerAdaptiveTesting.jl.
 """
 function item_criteria end
+function item_criteria(::StatefulCat) nothing end
 
 """
 ```julia
@@ -123,6 +125,15 @@ The type of the ability estimate `AbilityT` depends on the CAT implementation
 but should attempt to interoperate with ComputerAdaptiveTesting.jl.
 """
 function get_ability end
+
+"""
+```julia
+$(FUNCTIONNAME)(config::StatefulCat, ability::AbilityT) -> Float64
+```
+
+TODO
+"""
+function likelihood end
 
 """
 ```julia
@@ -199,8 +210,12 @@ function next_item(config::StatefulCatConfig)
 end
 
 function ranked_items(config::StatefulCatConfig)
-    return sortperm(compute_criteria(
-        config.rules.next_item, config.tracked_responses[]))
+    criteria = compute_criteria(
+        config.rules.next_item, config.tracked_responses[])
+    if criteria === nothing
+        return nothing
+    end
+    return sortperm(criteria)
 end
 
 function item_criteria(config::StatefulCatConfig)
@@ -238,6 +253,10 @@ end
 
 function get_ability(config::StatefulCatConfig)
     return (config.rules.ability_estimator(config.tracked_responses[]), nothing)
+end
+
+function likelihood(config::StatefulCatConfig, ability)
+    pdf(distribution_estimator(config.rules.ability_estimator), config.tracked_responses[], ability)
 end
 
 function item_bank_size(config::StatefulCatConfig)
