@@ -37,9 +37,10 @@ include("./CatConfig.jl")
 include("./Sim.jl")
 include("./decision_tree/DecisionTree.jl")
 
-# Stateful layer and comparison
+# Stateful layer, compat, and comparison
 include("./Stateful.jl")
-include("./Comparison.jl")
+include("./Compat/Compat.jl")
+include("./Comparison/Comparison.jl")
 
 @reexport using .CatConfig: CatLoopConfig, CatRules
 @reexport using .Sim: run_cat

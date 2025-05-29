@@ -32,4 +32,5 @@ using .Dummy
     include("./smoke.jl")
     include("./dt.jl")
     include("./stateful.jl")
+    include("./compat.jl")
 end
