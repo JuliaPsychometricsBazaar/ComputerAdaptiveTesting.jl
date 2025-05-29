@@ -2,7 +2,7 @@ module TestExt
 
 using Test
 using ComputerAdaptiveTesting: Stateful
-using FittedItemBanks: AbstractItemBank, ItemResponse, resp
+using FittedItemBanks: AbstractItemBank, ItemResponse, resp_vec
 
 export test_stateful_cat_1d_dich_ib, test_stateful_cat_item_bank_1d_dich_ib
 
@@ -103,8 +103,8 @@ function test_stateful_cat_item_bank_1d_dich_ib(
     end
     for i in 1:length(item_bank)
         for point in points
-            cat_prob = Stateful.item_response_function(cat, i, true, point)
-            ib_prob = resp(ItemResponse(item_bank, i), true, point)
+            cat_prob = Stateful.item_response_functions(cat, i, point)
+            ib_prob = resp_vec(ItemResponse(item_bank, i), point)
             @test cat_prob ≈ ib_prob  rtol=margin
         end
     end
