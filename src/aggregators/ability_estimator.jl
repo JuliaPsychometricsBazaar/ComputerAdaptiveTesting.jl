@@ -11,6 +11,8 @@ function Integrators.normdenom(rett::IntReturnType,
     rett(integrator(IntegralCoeffs.one, 0, est, tracked_responses))
 end
 
+# This is not type piracy, but maybe a slightly distasteful overload
+# TODO: Fix this interface?
 function pdf(ability_est::DistributionAbilityEstimator,
         tracked_responses::TrackedResponses,
         x)
@@ -42,6 +44,53 @@ function pdf(est::PriorAbilityEstimator,
         AbilityLikelihood(tracked_responses))
 end
 
+function multiple_response_types_guard(tracked_responses)
+    if length(tracked_responses.responses.values) == 0
+        return false
+    end
+    seen_value = tracked_responses.responses.values[1]
+    for value in tracked_responses.responses.values
+        if value !== seen_value
+            return true
+        end
+    end
+    return false
+end
+
+struct GuardedAbilityEstimator{T <: DistributionAbilityEstimator, U <: DistributionAbilityEstimator, F} <: DistributionAbilityEstimator
+    est::T
+    fallback::U
+    guard::F
+end
+
+function pdf(est::GuardedAbilityEstimator,
+        tracked_responses::TrackedResponses)
+    if est.guard(tracked_responses)
+        return pdf(est.est, tracked_responses)
+    else
+        return pdf(est.fallback, tracked_responses)
+    end
+end
+
+function SafeLikelihoodAbilityEstimator(args...; kwargs...)
+    GuardedAbilityEstimator(
+        LikelihoodAbilityEstimator(),
+        PriorAbilityEstimator(args...),
+        multiple_response_types_guard
+    )
+end
+
+unlog(x) = x
+unlog(x::Logarithmic{T}) where {T} = T(x)
+unlog(x::ULogarithmic{T}) where {T} = T(x)
+unlog(x::AbstractVector{Logarithmic{T}}) where {T} = T.(x)
+unlog(x::AbstractVector{ULogarithmic{T}}) where {T} = T.(x)
+#=unlog(x::ErrorIntegrationResult{Logarithmic{T}}) where {T} = T(x)
+unlog(x::ErrorIntegrationResult{ULogarithmic{T}}) where {T} = T(x)
+unlog(x::ErrorIntegrationResult{AbstractVector{Logarithmic{T}}}) where {T} = T.(x)
+unlog(x::ErrorIntegrationResult{AbstractVector{ULogarithmic{T}}}) where {T} = T.(x)
+=#
+
 function expectation(rett::IntReturnType,
         f::F,
         ncomp,
@@ -49,7 +98,7 @@ function expectation(rett::IntReturnType,
         est::DistributionAbilityEstimator,
         tracked_responses::TrackedResponses,
         denom = normdenom(rett, integrator, est, tracked_responses)) where {F}
-    rett(integrator(f, ncomp, est, tracked_responses)) / denom
+    unlog(rett(integrator(f, ncomp, est, tracked_responses)) / denom)
 end
 
 function expectation(f::F,
