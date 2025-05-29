@@ -23,6 +23,8 @@ export CatComparisonExecutionStrategy, IncreaseItemBankSizeExecutionStrategy
 export ReplayResponsesExecutionStrategy
 export CatComparisonConfig
 
+include("./watchdog.jl")
+
 struct RandomCatComparison
     true_abilities::Array{Float64}
     rand_abilities::Array{Float64, 3}
@@ -82,8 +84,7 @@ end
 
 abstract type CatComparisonExecutionStrategy end
 
-struct CatComparisonConfig{
-    StrategyT <: CatComparisonExecutionStrategy, PhasesT <: NamedTuple}
+struct CatComparisonConfig{StrategyT <: CatComparisonExecutionStrategy, PhasesT <: NamedTuple}
     """
     A named tuple with the (named) CatRules (or compatable) to be compared
     """
@@ -102,6 +103,18 @@ struct CatComparisonConfig{
     The phases to run, optionally paired with a callback
     """
     phases::PhasesT
+    """
+    Where to sample for likelihood
+    """
+    sample_points::Union{Vector{Float64}, Nothing}
+    """
+    Skips
+    """
+    skip_callback
+    """
+    Watchdog timeout
+    """
+    timeout::Float64
 end
 
 """
@@ -109,6 +122,7 @@ end
         rules::NamedTuple{Symbol, StatefulCat},
         strategy::CatComparisonExecutionStrategy,
         phases::Union{NamedTuple{Symbol, Callable}, Tuple{Symbol}},
+        skips::Set{Tuple{Symbol, Symbol}},
         callback::Callable
     ) -> CatComparisonConfig
 
@@ -123,18 +137,24 @@ no callback is provided.
 
 The exact phases depend on the strategy used. See their individual documentation for more.
 """
-function CatComparisonConfig(; rules, strategy, phases = nothing, callback = nothing)
+function CatComparisonConfig(; rules, strategy, phases = nothing, skip_callback = ((_, _, _) -> false), sample_points = nothing, callback = nothing, timeout = Inf)
     if callback === nothing
         callback = (info; kwargs...) -> nothing
     end
     if phases === nothing
         phases = (:before_next_item, :after_next_item)
     end
-    # TODO: normalize phases into named tuple
     if !(phases isa NamedTuple)
         phases = NamedTuple((phase => callback for phase in phases))
     end
-    CatComparisonConfig(rules, strategy, phases)
+    CatComparisonConfig(
+        rules,
+        strategy,
+        phases,
+        sample_points,
+        skip_callback,
+        timeout
+    )
 end
 
 # Comparison scenarios:
@@ -158,7 +178,6 @@ end
 
 #phase_func=nothing;
 function measure_all(comparison, system, cat, phase; kwargs...)
-    @info "measure_all" phase system kwargs
     if !(phase in keys(comparison.phases))
         return
     end
@@ -273,7 +292,6 @@ function run_comparison(comparison::CatComparisonConfig{IncreaseItemBankSizeExec
                 num_items=size,
                 system_name=name
             )
-            @info "next_item" name timed_next_item.time strategy.time_limit
             if timed_next_item.time < strategy.time_limit
                 push!(next_current_cats, name => cat)
             end
@@ -300,108 +318,165 @@ end
 
 struct ReplayResponsesExecutionStrategy <: CatComparisonExecutionStrategy
     responses::BareResponses
+    time_limit::Float64
+end
+
+ReplayResponsesExecutionStrategy(responses) = ReplayResponsesExecutionStrategy(responses, Inf)
+
+function should_run(comparison, name, cat, phase)
+    return phase in keys(comparison.phases) &&
+        !comparison.skip_callback(name, cat, phase)
 end
 
 # Which questions to ask: Specified
 # Which answer to use: From response memory
 function run_comparison(comparison::CatComparisonConfig{ReplayResponsesExecutionStrategy})
     strategy = comparison.strategy
-    for (items_answered, response) in zip(
-        Iterators.countfrom(0), Iterators.flatten((strategy.responses, [nothing])))
-        for (name, cat) in pairs(comparison.rules)
-            if :before_item_criteria in comparison.phases
-                timed_item_criteria = @timed Stateful.item_criteria(cat)
+    current_cats = Dict(pairs(comparison.rules))
+    function check_time(name, timer)
+        if timer.time >= strategy.time_limit
+            if name in keys(current_cats)
+                @info "Time limit exceeded" name timer.time
+                delete!(current_cats, name)
+            end
+        end
+    end
+    watchdog = WatchdogTask(comparison.timeout)
+    start!(watchdog) do
+        for (items_answered, response) in zip(
+            Iterators.countfrom(0), Iterators.flatten((strategy.responses, [nothing])))
+            for (name, cat) in pairs(current_cats)
+                println("")
+                println("Starting $name for $items_answered")
+                flush(stdout)
+                if should_run(comparison, name, cat, :before_item_criteria)
+                    reset!(watchdog, "$name item_criteria")
+                    timed_item_criteria = @timed Stateful.item_criteria(cat)
+                    check_time(name, timed_item_criteria)
+                    measure_all(
+                        comparison,
+                        name,
+                        cat,
+                        :before_item_criteria,
+                        items_answered = items_answered,
+                        item_criteria = timed_item_criteria.value,
+                        timing = timed_item_criteria
+                    )
+                end
+                if should_run(comparison, name, cat, :before_ranked_items)
+                    reset!(watchdog, "$name ranked_items")
+                    timed_ranked_items = @timed Stateful.ranked_items(cat)
+                    check_time(name, timed_ranked_items)
+                    measure_all(
+                        comparison,
+                        name,
+                        cat,
+                        :before_ranked_items,
+                        items_answered = items_answered,
+                        ranked_items = timed_ranked_items.value,
+                        timing = timed_ranked_items
+                    )
+                end
+                if should_run(comparison, name, cat, :before_ability)
+                    reset!(watchdog, "$name get_ability")
+                    timed_get_ability = @timed Stateful.get_ability(cat)
+                    check_time(name, timed_get_ability)
+                    measure_all(
+                        comparison,
+                        name,
+                        cat,
+                        :before_ability,
+                        items_answered = items_answered,
+                        ability = timed_get_ability.value,
+                        timing = timed_get_ability
+                    )
+                end
                 measure_all(
                     comparison,
                     name,
                     cat,
-                    :before_item_criteria,
-                    items_answered = items_answered,
-                    item_criteria = timed_item_criteria.value,
-                    timing = timed_item_criteria
+                    :before_next_item,
+                    items_answered = items_answered
                 )
-            end
-            if :before_ranked_items in comparison.phases
-                timed_ranked_items = @timed Stateful.ranked_items(cat)
+                reset!(watchdog, "$name next_item")
+                timed_next_item = @timed Stateful.next_item(cat)
+                check_time(name, timed_next_item)
+                next_item = timed_next_item.value
                 measure_all(
                     comparison,
                     name,
                     cat,
-                    :before_ranked_items,
-                    items_answered = items_answered,
-                    ranked_items = timed_ranked_items.value,
-                    timing = timed_ranked_items
+                    :after_next_item,
+                    next_item = next_item,
+                    timing = timed_next_item,
+                    items_answered = items_answered
                 )
-            end
-            if :before_ability in comparison.phases
-                timed_get_ability = @timed Stateful.get_ability(cat)
-                measure_all(
-                    comparison,
-                    name,
-                    cat,
-                    :before_ability,
-                    items_answered = items_answered,
-                    ability = timed_get_ability.value,
-                    timing = timed_get_ability
-                )
-            end
-            measure_all(
-                comparison,
-                name,
-                cat,
-                :before_next_item,
-                items_answered = items_answered
-            )
-            timed_next_item = @timed Stateful.next_item(cat)
-            next_item = timed_next_item.value
-            measure_all(
-                comparison,
-                name,
-                cat,
-                :after_next_item,
-                next_item = next_item,
-                timing = timed_next_item,
-                items_answered = items_answered
-            )
-            if :after_item_criteria in comparison.phases
-                # TOOD: Combine with next_item if possible and requested?
-                timed_item_criteria = @timed Stateful.item_criteria(cat)
-                measure_all(
-                    comparison,
-                    name,
-                    cat,
-                    :after_item_criteria,
-                    items_answered = items_answered,
-                    item_criteria = timed_item_criteria.value,
-                    timing = timed_item_criteria
-                )
-            end
-            if :after_ranked_items in comparison.phases
-                timed_ranked_items = @timed Stateful.ranked_items(cat)
-                measure_all(
-                    comparison,
-                    name,
-                    cat,
-                    :after_ranked_items,
-                    items_answered = items_answered,
-                    ranked_items = timed_ranked_items.value,
-                    timing = timed_ranked_items
-                )
-            end
-            if :after_ability in comparison.phases
-                timed_get_ability = @timed Stateful.get_ability(cat)
-                measure_all(
-                    comparison,
-                    name,
-                    cat,
-                    :after_ability,
-                    items_answered = items_answered,
-                    ability = timed_get_ability.value,
-                    timing = timed_get_ability
-                )
-            end
-            if response !== nothing
-                Stateful.add_response!(cat, response.index, response.value)
+                if should_run(comparison, name, cat, :after_item_criteria)
+                    # TOOD: Combine with next_item if possible and requested?
+                    reset!(watchdog, "$name item_criteria")
+                    timed_item_criteria = @timed Stateful.item_criteria(cat)
+                    check_time(name, timed_item_criteria)
+                    if timed_item_criteria.value !== nothing
+                        measure_all(
+                            comparison,
+                            name,
+                            cat,
+                            :after_item_criteria,
+                            items_answered = items_answered,
+                            item_criteria = timed_item_criteria.value,
+                            timing = timed_item_criteria
+                        )
+                    end
+                end
+                if should_run(comparison, name, cat, :after_ranked_items)
+                    reset!(watchdog, "$name ranked_items")
+                    timed_ranked_items = @timed Stateful.ranked_items(cat)
+                    check_time(name, timed_ranked_items)
+                    if timed_ranked_items.value !== nothing
+                        measure_all(
+                            comparison,
+                            name,
+                            cat,
+                            :after_ranked_items,
+                            items_answered = items_answered,
+                            ranked_items = timed_ranked_items.value,
+                            timing = timed_ranked_items
+                        )
+                    end
+                end
+                if should_run(comparison, name, cat, :after_likelihood)
+                    reset!(watchdog, "$name likelihood")
+                    timed_likelihood = @timed Stateful.likelihood.(Ref(cat), comparison.sample_points)
+                    check_time(name, timed_likelihood)
+                    measure_all(
+                        comparison,
+                        name,
+                        cat,
+                        :after_likelihood,
+                        items_answered = items_answered,
+                        sample_points = comparison.sample_points,
+                        likelihood = timed_likelihood.value,
+                        timing = timed_likelihood
+                    )
+
+                end
+                if should_run(comparison, name, cat, :after_ability)
+                    reset!(watchdog, "$name get_ability")
+                    timed_get_ability = @timed Stateful.get_ability(cat)
+                    check_time(name, timed_get_ability)
+                    measure_all(
+                        comparison,
+                        name,
+                        cat,
+                        :after_ability,
+                        items_answered = items_answered,
+                        ability = timed_get_ability.value,
+                        timing = timed_get_ability
+                    )
+                end
+                if response !== nothing
+                    Stateful.add_response!(cat, response.index, response.value)
+                end
             end
         end
     end
