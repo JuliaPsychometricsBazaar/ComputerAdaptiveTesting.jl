@@ -39,6 +39,7 @@ export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, init_thread
 export NextItemRule, ItemStrategyNextItemRule
 export UrryItemCriterion, InformationItemCriterion
 export RandomNextItemRule
+export PiecewiseNextItemRule, MemoryNextItemRule, FixedFirstItemNextItemRule
 export ExhaustiveSearch
 export catr_next_item_aliases
 export preallocate
@@ -60,6 +61,7 @@ include("./prelude/preallocate.jl")
 
 # Selection strategies
 include("./strategies/random.jl")
+include("./strategies/sequential.jl")
 include("./strategies/exhaustive.jl")
 
 # Combinators
