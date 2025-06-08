@@ -34,7 +34,7 @@ include("./TerminationConditions.jl")
 
 # Combining / running
 include("./CatConfig.jl")
-include("./Sim.jl")
+include("./sim/Sim.jl")
 include("./decision_tree/DecisionTree.jl")
 
 # Stateful layer, compat, and comparison

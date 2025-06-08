@@ -5,7 +5,17 @@ using StatsBase
 using FittedItemBanks: AbstractItemBank, ResponseType
 using ..Responses
 using ..CatConfig: CatLoopConfig, CatRules
-using ..Aggregators: TrackedResponses, add_response!, Aggregators
+using ..Aggregators: TrackedResponses,
+                     add_response!,
+                     Aggregators,
+                     AbilityIntegrator,
+                     AbilityEstimator,
+                     LikelihoodAbilityEstimator,
+                     PriorAbilityEstimator,
+                     ModeAbilityEstimator,
+                     MeanAbilityEstimator,
+                     LikelihoodAbilityEstimator,
+                     RiemannEnumerationIntegrator
 using ..NextItemRules: compute_criteria, best_item
 
 export run_cat, prompt_response, auto_responder
