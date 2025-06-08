@@ -94,14 +94,16 @@ function expected_item_information(ir::ItemResponse, θ::Vector)
     return -sum(eachslice(hess, dims=1) .* exp_resp)
 end
 
+expected_item_information(ir::ItemResponse, _, θ::Vector) = expected_item_information(ir, θ)
+
 function known_item_information(ir::ItemResponse, resp_value, θ)
     -ForwardDiff.hessian(θ -> log_resp(ir, resp_value, θ), θ)
 end
 
-function responses_information(item_bank::AbstractItemBank, responses::BareResponses, θ)
+function responses_information(item_bank::AbstractItemBank, responses::BareResponses, θ; information_func=known_item_information)
     d = domdims(item_bank)
     reduce(.+,
-        (known_item_information(ItemResponse(item_bank, resp_idx), resp_value > 0, θ)
+        (information_func(ItemResponse(item_bank, resp_idx), resp_value > 0, θ)
         for (resp_idx, resp_value)
         in zip(responses.indices, responses.values)); init = zeros(d, d))
 end
