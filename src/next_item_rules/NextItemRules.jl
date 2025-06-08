@@ -65,6 +65,7 @@ include("./prelude/preallocate.jl")
 
 # Selection strategies
 include("./strategies/random.jl")
+include("./strategies/randomesque.jl")
 include("./strategies/sequential.jl")
 include("./strategies/exhaustive.jl")
 
