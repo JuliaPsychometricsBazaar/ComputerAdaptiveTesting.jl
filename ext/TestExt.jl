@@ -110,4 +110,24 @@ function test_stateful_cat_item_bank_1d_dich_ib(
     end
 end
 
+function test_ability(
+    cat1::Stateful.StatefulCat,
+    cat2::Stateful.StatefulCat,
+    item_bank_length;
+    margin=0.01
+)
+    if item_bank_length < 4
+        error("Item bank length must be at least 4.")
+    end
+    for cat in (cat1, cat2)
+        Stateful.add_response!(cat, 1, false)
+        Stateful.add_response!(cat, 2, true)
+        Stateful.add_response!(cat, 3, false)
+        Stateful.add_response!(cat, 4, true)
+    end
+    ability1 = Stateful.get_ability(cat1)
+    ability2 = Stateful.get_ability(cat2)
+    @test ability1[1] ≈ ability2[1]  rtol=margin
+end
+
 end
