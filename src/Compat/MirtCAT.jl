@@ -71,9 +71,9 @@ to randomly select items, and 'seq' for selecting items sequentially
 =#
 
 const ability_estimator_aliases = Dict(
-    "MAP" => (; optimizer, kwargs...) -> ModeAbilityEstimator(PriorAbilityEstimator(), optimizer),
-    "ML" => (; optimizer, kwargs...) -> ModeAbilityEstimator(SafeLikelihoodAbilityEstimator(), optimizer),
-    "EAP" => (; integrator, kwargs...) -> MeanAbilityEstimator(PriorAbilityEstimator(), integrator),
+    "MAP" => (; optimizer, ncomp, kwargs...) -> ModeAbilityEstimator(PriorAbilityEstimator(; ncomp=ncomp), optimizer),
+    "ML" => (; optimizer, ncomp, kwargs...) -> ModeAbilityEstimator(SafeLikelihoodAbilityEstimator(; ncomp=ncomp), optimizer),
+    "EAP" => (; integrator, ncomp, kwargs...) -> MeanAbilityEstimator(PriorAbilityEstimator(; ncomp=ncomp), integrator),
 # "WLE" for weighted likelihood estimation
 # "EAPsum" for the expected a-posteriori for each sum score
 )
@@ -116,19 +116,34 @@ function setup_optimizer(lo=-6.0, hi=6.0)
     # https://stats.stackexchange.com/questions/272880/algorithm-used-in-nlm-function-in-r
     # So just use Newton() with defaults for now
     # Except then we can't have box constraints so I suppose IPNewton
-    Optimizers.OneDimOptimOptimizer(lo, hi, Optimizers.IPNewton())
+    if lo isa AbstractVector && hi isa AbstractVector
+        Optimizers.MultiDimOptimOptimizer(lo, hi, Optimizers.IPNewton())
+    else
+        Optimizers.OneDimOptimOptimizer(lo, hi, Optimizers.IPNewton())
+    end
 end
 
 function assemble_rules(;
     criteria = "MI",
     method = "MAP",
-    start_item = 1
+    start_item = 1,
+    ncomp = 0
 )
-    integrator = setup_integrator()
-    optimizer = setup_optimizer()
-    ability_estimator = ability_estimator_aliases[method](; integrator, optimizer)
-    posterior_ability_estimator = PriorAbilityEstimator()
-    @info "assemble rules" criteria
+    if ncomp == 0
+        lo = -6.0
+        hi = 6.0
+        pts = mirtcat_quadpts(1)
+        theta_lim = 20.0
+    else
+        lo = fill(-6.0, ncomp)
+        hi = fill(6.0, ncomp)
+        pts = mirtcat_quadpts(ncomp)
+        theta_lim = fill(20.0, ncomp)
+    end
+    integrator = setup_integrator(lo, hi, pts)
+    optimizer = setup_optimizer(-theta_lim, theta_lim)
+    ability_estimator = ability_estimator_aliases[method](; integrator, optimizer, ncomp)
+    posterior_ability_estimator = PriorAbilityEstimator(; ncomp)
     raw_next_item = next_item_aliases[criteria](ability_estimator, posterior_ability_estimator, integrator, optimizer)
     next_item = FixedFirstItemNextItemRule(start_item, raw_next_item)
     CatRules(;
