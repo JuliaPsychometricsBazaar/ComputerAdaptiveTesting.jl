@@ -49,8 +49,8 @@ const next_item_aliases = Dict(
         distribution_estimator(posterior_ability_estimator),
         integrator
     )),
-    "Drule" => _next_item_helper((; bits, ability_estimator, rest...) -> DRuleItemCriteron(ability_estimator)),
-    "Trule" => _next_item_helper((; bits, ability_estimator, rest...) -> TRuleItemCriteron(ability_estimator))
+    "Drule" => _next_item_helper((; bits, ability_estimator, rest...) -> DRuleItemCriterion(ability_estimator)),
+    "Trule" => _next_item_helper((; bits, ability_estimator, rest...) -> TRuleItemCriterion(ability_estimator))
 )
 
 # 'IKLP' as well as 'IKL' for the integration based Kullback-Leibler criteria with and without the prior density weight,
