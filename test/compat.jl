@@ -31,8 +31,7 @@
     )
 
     @testset "CatJL" begin
-        log_item_bank = LogItemBank(item_bank)
-        tracked_responses = TrackedResponses(half_responses, log_item_bank, NullAbilityTracker())
+        tracked_responses = TrackedResponses(half_responses, item_bank, NullAbilityTracker())
         for method in ("EAP", "MAP", "ML")
             @testset "Ability estimation $method" begin
                 rules = Compat.MirtCAT.assemble_rules(;
