@@ -32,9 +32,9 @@ $(TYPEDEF)
 Abstract base type all criteria should inherit from
 """
 abstract type CriterionBase <: CatConfigBase end
-abstract type ItemCriterionBase <: CatConfigBase end
+abstract type SubItemCriterionBase <: CatConfigBase end
 
-abstract type ItemCriterion <: ItemCriterionBase end
+abstract type ItemCriterion <: CatConfigBase end
 
 """
 $(TYPEDEF)
@@ -44,17 +44,17 @@ abstract type StateCriterion <: CriterionBase end
 """
 $(TYPEDEF)
 """
-abstract type PointwiseItemCriterion <: ItemCriterionBase end
+abstract type PointwiseItemCriterion <: SubItemCriterionBase end
 
 """
 $(TYPEDEF)
 """
-abstract type ItemCategoryCriterion <: ItemCriterionBase end
+abstract type ItemCategoryCriterion <: SubItemCriterionBase end
 
 """
 $(TYPEDEF)
 """
-abstract type PointwiseItemCategoryCriterion <: ItemCriterionBase end
+abstract type PointwiseItemCategoryCriterion <: SubItemCriterionBase end
 
 abstract type MatrixScalarizer end
 abstract type StateMultiCriterion end

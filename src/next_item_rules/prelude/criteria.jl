@@ -90,7 +90,7 @@ function compute_criteria(
 end
 
 function compute_criterion(
-        ppic::ItemCriterionBase, tracked_responses::TrackedResponses, item_idx, args...)
+        ppic::SubItemCriterionBase, tracked_responses::TrackedResponses, item_idx, args...)
     compute_criterion(ppic, ItemResponse(tracked_responses.item_bank, item_idx), args...)
 end
 
