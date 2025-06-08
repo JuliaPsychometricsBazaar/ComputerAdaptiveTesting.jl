@@ -91,7 +91,7 @@ function expected_item_information(ir::ItemResponse, θ::Vector)
     exp_resp = resp_vec(ir, θ)
     n = domdims(ir.item_bank)
     hess = vector_hessian(θ -> log_resp_vec(ir, θ), θ, n)
-    -dropdims(sum((exp_resp .* (@view hess[2, :, :])), dims = 1), dims = 1)
+    return -sum(eachslice(hess, dims=1) .* exp_resp)
 end
 
 function known_item_information(ir::ItemResponse, resp_value, θ)
