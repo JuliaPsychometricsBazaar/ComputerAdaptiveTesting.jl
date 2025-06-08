@@ -96,7 +96,7 @@ function test_stateful_cat_item_bank_1d_dich_ib(
     cat::Stateful.StatefulCat,
     item_bank::AbstractItemBank,
     points=[-.78, 0.0, .78],
-    margin=0.05,
+    margin=0.01,
 )
     if length(item_bank) != Stateful.item_bank_size(cat)
         error("Item bank length does not match the cat's item bank size.")
