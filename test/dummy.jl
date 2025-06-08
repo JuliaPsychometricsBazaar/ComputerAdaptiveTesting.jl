@@ -34,7 +34,7 @@ const ability_estimators_1d = [
     ((:integrator,),
         (stuff) -> MeanAbilityEstimator(LikelihoodAbilityEstimator(), stuff.integrator)),
     ((:optimizer,),
-        (stuff) -> ModeAbilityEstimator(LikelihoodAbilityEstimator(), stuff.optimizer))
+        (stuff) -> ModeAbilityEstimator(SafeLikelihoodAbilityEstimator(), stuff.optimizer))
 ]
 const criteria_1d = [
     ((:integrator, :est),

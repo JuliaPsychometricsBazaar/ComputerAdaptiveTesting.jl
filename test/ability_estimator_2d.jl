@@ -67,7 +67,7 @@ mle_mode_2d = ModeAbilityEstimator(lh_est_2d, optimizer_2d)
         # Item closer to the current estimate (1, 1)
         close_item = 5
         # Item further from the current estimate
-        far_item = 6
+        far_item = 7
 
         close_info = compute_criterion(
             information_criterion, tracked_responses_2d, close_item)
