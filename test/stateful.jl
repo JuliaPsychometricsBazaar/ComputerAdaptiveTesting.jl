@@ -7,7 +7,6 @@
     using ComputerAdaptiveTesting.NextItemRules: RandomNextItemRule
     using ComputerAdaptiveTesting: Stateful
     using ComputerAdaptiveTesting: require_testext
-    using ResumableFunctions
     using Test: @test, @testset
 
     include("./dummy.jl")

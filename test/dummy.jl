@@ -10,7 +10,6 @@ using PsychometricsBazaarBase.Integrators
 using PsychometricsBazaarBase.Optimizers
 using Optim
 using Random
-using ResumableFunctions
 
 struct DummyAbilityEstimator <: AbilityEstimator
     val::Any
@@ -24,7 +23,7 @@ const optimizers_1d = [
     FunctionOptimizer(OneDimOptimOptimizer(-6.0, 6.0, NelderMead()))
 ]
 const integrators_1d = [
-    FunctionIntegrator(QuadGKIntegrator(-6, 6, 5)),
+    FunctionIntegrator(QuadGKIntegrator(lo=-6.0, hi=6.0, order=5)),
     FunctionIntegrator(FixedGKIntegrator(-6, 6, 80))
 ]
 const ability_estimators_1d = [
@@ -46,47 +45,39 @@ const criteria_1d = [
     ((), (stuff) -> RandomNextItemRule())
 ]
 
-@resumable function _get_stuffs(needed)
+function _get_stuffs(needed)
     if :est in needed
-        for (extra_needed, mk_est) in ability_estimators_1d
+        return (
+            (; stuff..., est = mk_est(stuff))
+            for (extra_needed, mk_est) in ability_estimators_1d
             for stuff in _get_stuffs(setdiff(needed, Set((:est,))) ∪ extra_needed)
-                x = (; stuff..., est = mk_est(stuff))
-                @yield x
-            end
-        end
-        return
+        )
     end
     if :integrator in needed
-        for new_integrator in integrators_1d
+        return (
+            (; stuff..., integrator = new_integrator)
+            for new_integrator in integrators_1d
             for stuff in _get_stuffs(setdiff(needed, Set((:integrator,))))
-                x = (; stuff..., integrator = new_integrator)
-                @yield x
-            end
-        end
-        return
+        )
     end
     if :optimizer in needed
-        pop!(needed, :optimizer)
-        for new_optimizer in optimizers_1d
+        return (
+            (; stuff..., optimizer = new_optimizer)
+            for new_optimizer in optimizers_1d
             for stuff in _get_stuffs(setdiff(needed, Set((:optimizer,))))
-                x = (; stuff..., optimizer = new_optimizer)
-                @yield x
-            end
-        end
-        return
+        )
     end
-    x = NamedTuple()
-    @yield x
-    return
+    return [NamedTuple()]
 end
 
-@resumable function get_stuffs(needed)
-    add_dummy_est = !(:est in needed)
-    for stuff in _get_stuffs(needed)
-        if add_dummy_est
-            stuff = (; stuff..., est = DummyAbilityEstimator(0.0))
-        end
-        @yield stuff
+function get_stuffs(needed)
+    if !(:est in needed)
+        return (
+            (; stuff..., est = DummyAbilityEstimator(0.0))
+            for stuff in _get_stuffs(needed)
+        )
+    else
+        return _get_stuffs(needed)
     end
 end
 

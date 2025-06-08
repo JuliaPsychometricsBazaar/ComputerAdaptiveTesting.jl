@@ -17,7 +17,6 @@ using Distributions
 using Distributions: ZeroMeanIsoNormal, Zeros, ScalMat
 using Optim
 using Random
-using ResumableFunctions
 
 using Test
 

@@ -11,7 +11,6 @@
     using ComputerAdaptiveTesting.ItemBanks: LogItemBank
     using ComputerAdaptiveTesting.NextItemRules: best_item
     using ComputerAdaptiveTesting: Compat
-    using ResumableFunctions
     using Test: @test, @testset
 
     #include("./dummy.jl")
