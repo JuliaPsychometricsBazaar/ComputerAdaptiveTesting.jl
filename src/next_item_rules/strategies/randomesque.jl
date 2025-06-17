@@ -10,7 +10,7 @@ function randomesque(
     k::Int
 )
     objective_state = init_thread(objective, responses)
-    heap = BinaryHeap{Node{Int, Float64}}(o = FastMax)
+    heap = BinaryHeap{Node{Int, Float64}}(FastMax)
     sizehint!(heap, k)
     for item_idx in eachindex(items)
         if (findfirst(idx -> idx == item_idx, responses.responses.indices) !== nothing)
@@ -36,6 +36,7 @@ end
 $(TYPEDEF)
 $(TYPEDFIELDS)
 
+http://dx.doi.org/10.1207/s15324818ame0204_6
 """
 struct RandomesqueStrategy <: NextItemStrategy
     rng::AbstractRNG
@@ -49,5 +50,5 @@ function best_item(
     responses::TrackedResponses,
     items
 ) where {ItemCriterionT <: ItemCriterion}
-    randomesque(rule.rng, rule.criterion, responses, items, rule.k)[1]
+    randomesque(rule.strategy.rng, rule.criterion, responses, items, rule.strategy.k)[1]
 end
