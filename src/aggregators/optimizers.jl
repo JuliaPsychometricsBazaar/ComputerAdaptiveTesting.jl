@@ -48,7 +48,7 @@ function (optim::EnumerationOptimizer)(f::F,
         ability_likelihood.item_bank;
         lo = lo,
         hi = hi) do (x, prob)
-        # @inline 
+        # @inline
         fprob = f(x) * prob
         if fprob >= cur_max[]
             cur_argmax[] = x
