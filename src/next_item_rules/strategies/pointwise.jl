@@ -17,5 +17,5 @@ function best_item(rule::PointwiseNextItemRule, responses::TrackedResponses, ite
 end
 
 function PointwiseFirstNextItemRule(criterion, points, rule)
-    PiecewiseNextItemRule((length(points),), (PointwiseNextItemRule(criterion, points), rule))
+    FixedRuleSequencer((length(points),), (PointwiseNextItemRule(criterion, points), rule))
 end

@@ -47,7 +47,7 @@ export RawEmpiricalInformationPointwiseItemCategoryCriterion
 export EmpiricalInformationPointwiseItemCategoryCriterion
 export TotalItemInformation
 export RandomNextItemRule
-export PiecewiseNextItemRule, MemoryNextItemRule, FixedFirstItemNextItemRule
+export FixedRuleSequencer, MemoryNextItemRule, FixedFirstItemNextItemRule
 export ExhaustiveSearch, RandomesqueStrategy
 export preallocate
 export compute_criteria, compute_criterion, compute_multi_criterion

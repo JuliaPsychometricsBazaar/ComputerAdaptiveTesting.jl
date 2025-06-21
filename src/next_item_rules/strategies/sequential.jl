@@ -2,11 +2,8 @@
 $(TYPEDEF)
 $(TYPEDFIELDS)
 
-This is the most basic rule for choosing the next item in a CAT. It simply
-picks a random item from the set of items that have not yet been
-administered.
 """
-@kwdef struct PiecewiseNextItemRule{RulesT} <: NextItemRule
+@kwdef struct FixedRuleSequencer{RulesT} <: NextItemRule
     # Tuple of Ints
     breaks::Tuple{Int}
     # Tuple of NextItemRules
@@ -15,7 +12,7 @@ end
 
 #tuple_len(::NTuple{N, Any}) where {N} = Val{N}()
 
-function current_rule(rule::PiecewiseNextItemRule, responses::TrackedResponses)
+function current_rule(rule::FixedRuleSequencer, responses::TrackedResponses)
     for brk in 1:length(rule.breaks)
         if length(responses) < rule.breaks[brk]
             return rule.rules[brk]
@@ -24,11 +21,11 @@ function current_rule(rule::PiecewiseNextItemRule, responses::TrackedResponses)
     return rule.rules[end]
 end
 
-function best_item(rule::PiecewiseNextItemRule, responses::TrackedResponses, items)
+function best_item(rule::FixedRuleSequencer, responses::TrackedResponses, items)
     return best_item(current_rule(rule, responses), responses, items)
 end
 
-function compute_criteria(rule::PiecewiseNextItemRule, responses::TrackedResponses)
+function compute_criteria(rule::FixedRuleSequencer, responses::TrackedResponses)
     return compute_criteria(current_rule(rule, responses), responses)
 end
 
@@ -47,5 +44,5 @@ function best_item(rule::MemoryNextItemRule, responses::TrackedResponses, _items
 end
 
 function FixedFirstItemNextItemRule(item_idx::Int, rule::NextItemRule)
-    PiecewiseNextItemRule((1,), (MemoryNextItemRule((item_idx,)), rule))
+    FixedRuleSequencer((1,), (MemoryNextItemRule((item_idx,)), rule))
 end
