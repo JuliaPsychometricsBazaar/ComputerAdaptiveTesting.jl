@@ -41,9 +41,8 @@ end
 
 function show(io::IO, ::MIME"text/plain", rule::GreedyForcedContentBalancer)
     indent_io = indent(io, 2)
-    println(io, "Greedy + forced content balancer")
+    println(io, "Greedy + forced content balancing")
     println(indent_io, "Target ratio: " * join(rule.targets, ", "))
-    print(indent_io, "Using rule: ")
     show(indent_io, MIME("text/plain"), rule.inner_rule)
 end
 

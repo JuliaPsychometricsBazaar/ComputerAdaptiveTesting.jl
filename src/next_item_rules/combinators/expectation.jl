@@ -39,6 +39,14 @@ function Aggregators.response_expectation(
         item_idx)
 end
 
+function show(io::IO, ::MIME"text/plain", point_response_expectation::PointResponseExpectation)
+    println(io, "Expected response at point ability estimate")
+    indent_io = indent(io, 2)
+    print(indent_io, "Ability estimator: ")
+    summary(indent_io, point_response_expectation.ability_estimator)
+    println(io)
+end
+
 struct DistributionResponseExpectation{
     DistributionAbilityEstimatorT <: DistributionAbilityEstimator,
     AbilityIntegratorT <: AbilityIntegrator
@@ -123,4 +131,13 @@ function compute_criterion(
                _generic_criterion(item_criterion.criterion, speculator.responses, item_idx, possible_response)
     end
     res
+end
+
+function show(io::IO, ::MIME"text/plain", item_criterion::ExpectationBasedItemCriterion)
+    println(io, "Optimize an state/item/item-category criterion based on an expected response")
+    indent_io = indent(io, 2)
+    print(indent_io, "Expected response obtained by: ")
+    show(indent_io, MIME"text/plain"(), item_criterion.response_expectation)
+    print(indent_io, "Criterion: ")
+    show(indent_io, MIME"text/plain"(), item_criterion.criterion)
 end

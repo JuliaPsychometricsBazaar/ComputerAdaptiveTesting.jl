@@ -29,6 +29,17 @@ function compute_criteria(rule::FixedRuleSequencer, responses::TrackedResponses)
     return compute_criteria(current_rule(rule, responses), responses)
 end
 
+function show(io::IO, ::MIME"text/plain", rule::FixedRuleSequencer)
+    indent_io = indent(io, 2)
+    println(io, "Fixed rule sequencing:")
+    print(indent_io, "Firstly: ")
+    show(indent_io, MIME("text/plain"), rule.rules[1])
+    for (responses, rule) in zip(rule.breaks, rule.rules[2:end])
+        print(indent_io, "After $responses responses: ")
+        show(indent_io, MIME("text/plain"), rule)
+    end
+end
+
 """
 """
 @kwdef struct MemoryNextItemRule{MemoryT} <: NextItemRule
@@ -41,6 +52,11 @@ function best_item(rule::MemoryNextItemRule, responses::TrackedResponses, _items
     # 1. Could run out of `item_idxs`
     # 2. Could return an item not in `items`
     # TODO: Add some basic error checking -- can only panic
+end
+
+function show(io::IO, ::MIME"text/plain", rule::MemoryNextItemRule)
+    item_list = join(rule.item_idxs, ", ")
+    println(io, "Present the items indexed: $item_list")
 end
 
 function FixedFirstItemNextItemRule(item_idx::Int, rule::NextItemRule)

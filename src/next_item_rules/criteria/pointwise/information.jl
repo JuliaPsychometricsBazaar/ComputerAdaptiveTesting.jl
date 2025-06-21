@@ -22,6 +22,10 @@ function compute_criterion_vec(
     -actual
 end
 
+function show(io::IO, ::MIME"text/plain", ::ObservedInformationPointwiseItemCategoryCriterion)
+    println(io, "Observed pointwise item-category information")
+end
+
 """
 See EmpiricalInformationPointwiseItemCategoryCriterion for more details.
 """
@@ -44,6 +48,11 @@ function compute_criterion_vec(
 )
     actual = ForwardDiff.derivative(ability -> resp_vec(ir, ability), ability) .^ 2 ./ resp_vec(ir, ability)
     -actual
+end
+
+
+function show(io::IO, ::MIME"text/plain", ::RawEmpiricalInformationPointwiseItemCategoryCriterion)
+    println(io, "Raw empirical pointwise item-category information")
 end
 
 """
@@ -95,6 +104,10 @@ function compute_criterion_vec(
     -actual
 end
 
+function show(io::IO, ::MIME"text/plain", ::EmpiricalInformationPointwiseItemCategoryCriterion)
+    println(io, "Empirical pointwise item-category information")
+end
+
 #=
 """
 This implements Fisher information as a pointwise item criterion.
@@ -116,4 +129,17 @@ function compute_criterion(
     ability
 )
     sum(compute_criterion_vec(tii.pcic, ir, ability))
+end
+
+function show(io::IO, ::MIME"text/plain", rule::TotalItemInformation)
+    if rule.pcic isa ObservedInformationPointwiseItemCategoryCriterion
+        println(io, "Observed pointwise item information")
+    elseif rule.pcic isa RawEmpiricalInformationPointwiseItemCategoryCriterion
+        println(io, "Raw empirical pointwise item information")
+    elseif rule.pcic isa EmpiricalInformationPointwiseItemCategoryCriterion
+        println(io, "Empirical pointwise item information")
+    else
+        print(io, "Total ")
+        show(io, MIME("text/plain"), rule.pcic)
+    end
 end

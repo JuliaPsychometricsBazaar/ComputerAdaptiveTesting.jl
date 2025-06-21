@@ -16,6 +16,16 @@ function best_item(rule::PointwiseNextItemRule, responses::TrackedResponses, ite
     return idx
 end
 
+function show(io::IO, ::MIME"text/plain", rule::PointwiseNextItemRule)
+    println(io, "Optimize a pointwise criterion at specified points")
+    indent_io = indent(io, 2)
+    points_desc = join(rule.points, ", ")
+    println(indent_io, "Points: $points_desc")
+    print(indent_io, "Criterion: ")
+    show(indent_io, MIME("text/plain"), rule.criterion)
+end
+
+
 function PointwiseFirstNextItemRule(criterion, points, rule)
     FixedRuleSequencer((length(points),), (PointwiseNextItemRule(criterion, points), rule))
 end

@@ -10,6 +10,22 @@ function (optim::FunctionOptimizer)(f::F,
     optim.optim(comp_f)
 end
 
+function show(io::IO, ::MIME"text/plain", optim::FunctionOptimizer)
+    indent_io = indent(io, 2)
+    if optim.optim isa OneDimOptimOptimizer || optim.optim isa MultiDimOptimOptimizer || optim.optim isa NativeOneDimOptimOptimizer
+        inner = optim.optim
+        println(io, "Optimizer:")
+        if optim.optim isa NativeOneDimOptimOptimizer
+            name = typeof(inner.method).name.name
+        else
+            name = typeof(inner.optim).name.name
+        end
+        print(indent_io, "Method: ", name)
+        print(indent_io, "Lo: ", inner.lo)
+        print(indent_io, "Hi: ", inner.hi)
+    end
+end
+
 #=
 """
 Argmax + max over the ability likihood given a set of responses with a given

@@ -33,6 +33,7 @@ using PsychometricsBazaarBase.Integrators: Integrators,
 using PsychometricsBazaarBase.Optimizers: OneDimOptimOptimizer, Optimizer
 using PsychometricsBazaarBase.ConstDistributions: std_normal, std_mv_normal
 import Distributions: pdf
+import Base: show
 
 import FittedItemBanks
 import PsychometricsBazaarBase.IntegralCoeffs

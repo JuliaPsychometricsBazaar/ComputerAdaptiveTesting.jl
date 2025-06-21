@@ -212,6 +212,15 @@ function ModeAbilityEstimator(bits...)
     ModeAbilityEstimator(dist_est, optimizer)
 end
 
+function show(io::IO, ::MIME"text/plain", ability_estimator::ModeAbilityEstimator)
+    println(io, "Estimate ability using its mode")
+    indent_io = indent(io, 2; skip_first=true)
+    print(indent_io, "Distribution estimator ")
+    show(indent_io, ability_estimator.dist_est)
+    print(indent_io, "Optimizer: ")
+    show(indent_io, ability_estimator.optim)
+end
+
 struct MeanAbilityEstimator{
     DistEst <: DistributionAbilityEstimator,
     IntegratorT <: AbilityIntegrator

@@ -68,6 +68,15 @@ function compute_criterion(
         denom)
 end
 
+function show(io::IO, ::MIME"text/plain", criterion::AbilityVarianceStateCriterion)
+    println(io, "Minimise variance of ability estimate")
+    indent_io = indent(io, 2)
+    print(indent_io, "Distribution estimator: ")
+    show(indent_io, MIME"text/plain"(), criterion.dist_est)
+    print(indent_io, "Integrator: ")
+    show(indent_io, MIME"text/plain"(), criterion.integrator)
+end
+
 struct AbilityCovarianceStateMultiCriterion{
     DistEstT <: DistributionAbilityEstimator,
     IntegratorT <: AbilityIntegrator
