@@ -67,7 +67,7 @@ recorder = CatRecorder(xs,
     abilities)
 for testee_idx in axes(responses, 2)
     @debug "Running for testee" testee_idx
-    tracked_responses, θ = run_cat(CatLoopConfig(rules = rules,
+    tracked_responses, θ = run_cat(CatLoop(rules = rules,
             get_response = auto_responder(@view responses[:, testee_idx]),
             new_response_callback = (tracked_responses, terminating) -> recorder(tracked_responses,
                 testee_idx,

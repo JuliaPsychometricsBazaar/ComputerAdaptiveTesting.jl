@@ -13,7 +13,7 @@ The configuration of a CAT is built up as a tree of configuration structs.
 These structs are all subtypes of `CatConfigBase`.
 
 ```@docs; canonical=false
-ComputerAdaptiveTesting.CatConfig.CatConfigBase
+ComputerAdaptiveTesting.ConfigBase.CatConfigBase
 ```
 
 The constructors for the configuration structs in this package tend to have
@@ -59,7 +59,7 @@ next item selection rule, and the stopping rule. `CatRules` has explicit and
 implicit constructors.
 
 ```@docs; canonical=false
-ComputerAdaptiveTesting.CatConfig.CatRules
+ComputerAdaptiveTesting.CatRules
 ```
 
 ### Next item selection with `NextItemRule`

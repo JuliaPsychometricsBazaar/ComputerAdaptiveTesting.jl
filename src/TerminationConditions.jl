@@ -8,7 +8,7 @@ using PsychometricsBazaarBase.ConfigTools: @returnsome, find1_instance
 using FittedItemBanks
 
 export TerminationCondition,
-       FixedItemsTerminationCondition, SimpleFunctionTerminationCondition
+       LengthTerminationCondition, SimpleFunctionTerminationCondition
 export RunForeverTerminationCondition
 
 """
@@ -24,13 +24,16 @@ end
 $(TYPEDEF)
 $(TYPEDFIELDS)
 """
-struct FixedItemsTerminationCondition{} <: TerminationCondition
+struct LengthTerminationCondition{} <: TerminationCondition
     num_items::Int64
 end
-function (condition::FixedItemsTerminationCondition)(responses::TrackedResponses,
+function (condition::LengthTerminationCondition)(responses::TrackedResponses,
         items::AbstractItemBank)
     length(responses) >= condition.num_items
 end
+
+# Alias for old name
+const FixedItemsTerminationCondition = LengthTerminationCondition
 
 struct SimpleFunctionTerminationCondition{F} <: TerminationCondition
     func::F

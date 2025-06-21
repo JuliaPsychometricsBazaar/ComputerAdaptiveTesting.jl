@@ -33,4 +33,4 @@ Stateful.StatefulCatConfig
 
 ## Usage
 
-Just as [CatLoopConfig](@ref) can wrap [CatRules](@ref), you can also use it with any implementor of [Stateful.StatefulCat](@ref), and run using [Sim.run_cat](@ref).
+Just as [CatLoop](@ref) can wrap [CatRules](@ref), you can also use it with any implementor of [Stateful.StatefulCat](@ref), and run using [Sim.run_cat](@ref).

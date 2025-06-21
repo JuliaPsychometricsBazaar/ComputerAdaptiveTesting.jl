@@ -57,7 +57,7 @@ xs = range(-2.5, 2.5, length = points)
 raw_estimator = LikelihoodAbilityEstimator()
 recorder = CatRecorder(xs, responses, integrator, raw_estimator, ability_estimator)
 for testee_idx in axes(responses, 2)
-    tracked_responses, θ = run_cat(CatLoopConfig(rules = rules,
+    tracked_responses, θ = run_cat(CatLoop(rules = rules,
             get_response = auto_responder(@view responses[:, testee_idx]),
             new_response_callback = (tracked_responses, terminating) -> recorder(tracked_responses,
                 testee_idx,

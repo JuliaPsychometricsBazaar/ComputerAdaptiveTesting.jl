@@ -1,9 +1,9 @@
 import ComputerAdaptiveTesting: Sim
 
 """
-Run a given CatLoopConfig with a MaterializedDecisionTree
+Run a given CatLoop with a MaterializedDecisionTree
 """
-function Sim.run_cat(cat_config::Sim.CatLoopConfig{RulesT},
+function Sim.run_cat(cat_config::Sim.CatLoop{RulesT},
         item_bank::AbstractItemBank;
         ib_labels = nothing) where {RulesT <: MaterializedDecisionTree}
     (; rules, get_response, new_response_callback) = cat_config

@@ -63,7 +63,7 @@ function run_vocab_iq_cat()
         println("Got ability estimate: $ability ± $var")
         println("")
     end
-    loop_config = CatLoopConfig(rules = rules,
+    loop_config = CatLoop(rules = rules,
         get_response = get_response,
         new_response_callback = new_response_callback)
     run_cat(loop_config, item_bank)

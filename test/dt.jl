@@ -21,7 +21,7 @@ get_response = auto_responder(@view true_responses[:, 1])
         termination_condition = termination_condition,
         ability_estimator = ability_estimator
     )
-    cat_loop_config = CatLoopConfig(
+    cat_loop_config = CatLoop(
         rules = cat_rules,
         get_response = get_response
     )
@@ -33,7 +33,7 @@ get_response = auto_responder(@view true_responses[:, 1])
         ability_estimator = ability_estimator
     )
     dt_materialized = generate_dt_cat(dt_generation_config, item_bank)
-    dt_loop_config = CatLoopConfig(
+    dt_loop_config = CatLoop(
         rules = dt_materialized,
         get_response = get_response
     )
@@ -45,7 +45,7 @@ get_response = auto_responder(@view true_responses[:, 1])
     tempdir = mktempdir()
     save_mmap(tempdir, dt_materialized)
     dt_rt = load_mmap(tempdir)
-    dt_rt_loop_config = CatLoopConfig(
+    dt_rt_loop_config = CatLoop(
         rules = dt_rt,
         get_response = get_response
     )

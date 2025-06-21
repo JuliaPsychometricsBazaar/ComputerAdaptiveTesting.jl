@@ -9,10 +9,10 @@ using DocStringExtensions
 
 using FittedItemBanks: AbstractItemBank, ResponseType, ItemResponse, resp_vec
 using ..Aggregators: TrackedResponses, Aggregators, pdf, distribution_estimator
-using ..CatConfig: CatLoopConfig, CatRules
+using ..Rules: CatRules
 using ..Responses: BareResponses, Response, Responses
 using ..NextItemRules: compute_criteria, best_item
-using ..Sim: Sim, item_label
+using ..Sim: CatLoop, Sim, item_label
 
 export StatefulCat, StatefulCatConfig
 public next_item, ranked_items, item_criteria
@@ -156,7 +156,7 @@ model backing the CAT.
 function item_response_functions end
 
 ## Running the CAT
-function Sim.run_cat(cat_config::CatLoopConfig{RulesT},
+function Sim.run_cat(cat_config::CatLoop{RulesT},
         ib_labels = nothing) where {RulesT <: StatefulCat}
     (; stateful_cat, get_response, new_response_callback) = cat_config
     while true

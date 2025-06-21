@@ -1,15 +1,17 @@
-module CatConfig
+module Rules
 
-export CatRules, CatLoopConfig
+export CatRules
 
 using DocStringExtensions
 using PsychometricsBazaarBase.Parameters
+using PsychometricsBazaarBase.IndentWrappers: indent
 
 using ..Aggregators: AbilityEstimator, AbilityTracker, ConsAbilityTracker,
                      NullAbilityTracker
 using ..NextItemRules: NextItemRule
 using ..TerminationConditions: TerminationCondition
 using ..ConfigBase
+import Base: show
 
 """
 $(TYPEDEF)
@@ -19,7 +21,7 @@ Configuration of the rules for a CAT. This all includes all the basic rules for
 the CAT's operation, but not the item bank, nor any of the interactivity hooks
 needed to actually run the CAT.
 
-This may be more a more convenient layer to integrate than CatLoopConfig if you
+This may be more a more convenient layer to integrate than CatLoop if you
 want to write your own CAT loop rather than using hooks.
 
     $(FUNCTIONNAME)(; next_item=..., termination_condition=..., ability_estimator=..., ability_tracker=...)
@@ -79,6 +81,16 @@ function CatRules(bits...)
         ability_tracker = collect_trackers(next_item, ability_tracker))
 end
 
+function show(io::IO, ::MIME"text/plain", rules::CatRules)
+    indent_io = indent(io, 2)
+    println(io, "Next item rule:")
+    show(indent_io, MIME"text/plain"(), rules.next_item)
+    println(io, "Termination condition:")
+    show(indent_io, MIME"text/plain"(), rules.termination_condition)
+    println(io, "Ability estimator:")
+    show(indent_io, MIME"text/plain"(), rules.ability_estimator)
+end
+
 function _find_ability_estimator_and_tracker(bits...)
     ability_estimator = AbilityEstimator(bits...)
     ability_tracker = AbilityTracker(bits...; ability_estimator = ability_estimator)
@@ -111,35 +123,6 @@ function collect_trackers(next_item_rule::NextItemRule, ability_tracker::Ability
     else
         rest
     end
-end
-
-"""
-```julia
-struct $(FUNCTIONNAME)
-$(FUNCTIONNAME)(; rules=..., get_response=..., new_response_callback=...)
-```
-$(TYPEDFIELDS)
-
-Configuration for a simulatable CAT.
-"""
-@with_kw struct CatLoopConfig{CatEngineT} <: CatConfigBase
-    """
-    An object which implements the CAT engine.
-    Implementations exist for:
-      * [CatRules](@ref)
-      * [Stateful.StatefulCat](@ref ComputerAdaptiveTesting.Stateful.StatefulCat)
-    """
-    rules::CatEngineT # e.g. CatRules
-    """
-    The function `(index, label) -> Int8`` which obtains the testee's response for
-    a given question, e.g. by prompting or simulation from data.
-    """
-    get_response::Any
-    """
-    A callback called each time there is a new responses.
-    If provided, it is passed `(responses::TrackedResponses, terminating)`.
-    """
-    new_response_callback = nothing
 end
 
 end

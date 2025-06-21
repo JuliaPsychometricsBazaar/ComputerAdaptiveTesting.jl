@@ -7,7 +7,7 @@ using ComputerAdaptiveTesting.Aggregators: AbilityIntegrator,
                                            MeanAbilityEstimator,
                                            PriorAbilityEstimator
 using ComputerAdaptiveTesting.TerminationConditions: RunForeverTerminationCondition
-using ComputerAdaptiveTesting.CatConfig: CatRules
+using ComputerAdaptiveTesting.Rules: CatRules
 using ComputerAdaptiveTesting.NextItemRules
 using PsychometricsBazaarBase: Integrators, Optimizers
 

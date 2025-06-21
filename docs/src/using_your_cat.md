@@ -9,10 +9,10 @@ a number of ways you can use it.
 This section covers a few.
 See also the [Examples](@ref demo-page).
 
-When you've set up your CAT using [CatRules](@ref), you can wrap it in a [CatLoopConfig](@ref) and run it with [run_cat](@ref).
+When you've set up your CAT using [CatRules](@ref), you can wrap it in a [CatLoop](@ref) and run it with [run_cat](@ref).
 
 ```@docs; canonical=false
-CatLoopConfig
+CatLoop
 run_cat
 ```
 

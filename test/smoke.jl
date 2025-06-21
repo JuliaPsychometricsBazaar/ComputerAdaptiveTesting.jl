@@ -28,7 +28,7 @@ using .Dummy
         )
         for testee_idx in axes(true_responses, 2)
             responses, ability = run_cat(
-                CatLoopConfig(
+                CatLoop(
                     rules = rules,
                     get_response = auto_responder(@view true_responses[:, testee_idx])
                 ),

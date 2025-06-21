@@ -10,6 +10,7 @@ using PrecompileTools: @compile_workload, @setup_workload
     using .NextItemRules: preallocate, ExhaustiveSearch, ItemStrategyNextItemRule,
                           ExpectationBasedItemCriterion, AbilityVarianceStateCriterion
     using .Stateful: Stateful
+    using .ComputerAdaptiveTesting: CatRules
 
     rng = default_rng(42)
     spec = SimpleItemBankSpec(StdModel2PL(), OneDimContinuousDomain(), BooleanResponse())
@@ -24,7 +25,7 @@ using PrecompileTools: @compile_workload, @setup_workload
             ExhaustiveSearch(),
             ExpectationBasedItemCriterion(ability_estimator,
                 AbilityVarianceStateCriterion(ability_estimator)))
-        cat = Stateful.StatefulCatConfig(CatConfig.CatRules(;
+        cat = Stateful.StatefulCatConfig(CatRules(;
             next_item=next_item_rule,
             termination_condition=TerminationConditions.RunForeverTerminationCondition(),
             ability_estimator=ability_estimator
