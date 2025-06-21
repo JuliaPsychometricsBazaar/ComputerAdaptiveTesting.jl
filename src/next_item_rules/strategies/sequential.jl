@@ -41,6 +41,9 @@ function show(io::IO, ::MIME"text/plain", rule::FixedRuleSequencer)
 end
 
 """
+$(TYPEDEF)
+$(TYPEDFIELDS)
+
 """
 @kwdef struct MemoryNextItemRule{MemoryT} <: NextItemRule
     item_idxs::MemoryT
@@ -51,6 +54,7 @@ function best_item(rule::MemoryNextItemRule, responses::TrackedResponses, _items
     # XXX: A few problems with this:
     # 1. Could run out of `item_idxs`
     # 2. Could return an item not in `items`
+    # 3: Will not work if this is sequenced after items have already been administered
     # TODO: Add some basic error checking -- can only panic
 end
 
