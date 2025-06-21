@@ -34,7 +34,7 @@ integrator_2d = AbilityIntegrator(MultiDimFixedGKIntegrator([-6.0, -6.0], [6.0, 
 optimizer_2d = AbilityOptimizer(MultiDimOptimOptimizer(
     [-6.0, -6.0], [6.0, 6.0], NelderMead()))
 lh_est_2d = LikelihoodAbilityEstimator()
-pa_est_2d = PriorAbilityEstimator(MvNormal([1.0, 1.0], ScalMat(2, 0.2)))
+pa_est_2d = PosteriorAbilityEstimator(MvNormal([1.0, 1.0], ScalMat(2, 0.2)))
 eap_2d = MeanAbilityEstimator(pa_est_2d, integrator_2d)
 map_2d = ModeAbilityEstimator(pa_est_2d, optimizer_2d)
 mle_mean_2d = MeanAbilityEstimator(lh_est_2d, integrator_2d)

@@ -20,7 +20,7 @@ function get_ability_estimator(multidim)
         integrator = FixedGKIntegrator(-6.0, 6.0)
         dist = Normal()
     end
-    return PriorAbilityEstimator(dist, integrator)
+    return PosteriorAbilityEstimator(dist, integrator)
 end
 
 function prepare_empty(item_bank, actual_responses, ability_tracker)

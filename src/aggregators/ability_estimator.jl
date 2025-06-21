@@ -26,19 +26,19 @@ function pdf(::LikelihoodAbilityEstimator,
     AbilityLikelihood(tracked_responses)
 end
 
-struct PriorAbilityEstimator{PriorT <: Distribution} <: DistributionAbilityEstimator
+struct PosteriorAbilityEstimator{PriorT <: Distribution} <: DistributionAbilityEstimator
     prior::PriorT
 end
 
-function PriorAbilityEstimator(; ncomp = 0)
+function PosteriorAbilityEstimator(; ncomp = 0)
     if ncomp == 0
-        return PriorAbilityEstimator(std_normal)
+        return PosteriorAbilityEstimator(std_normal)
     else
-        return PriorAbilityEstimator(std_mv_normal(ncomp))
+        return PosteriorAbilityEstimator(std_mv_normal(ncomp))
     end
 end
 
-function pdf(est::PriorAbilityEstimator,
+function pdf(est::PosteriorAbilityEstimator,
         tracked_responses::TrackedResponses)
     IntegralCoeffs.PriorApply(IntegralCoeffs.Prior(est.prior),
         AbilityLikelihood(tracked_responses))
@@ -75,7 +75,7 @@ end
 function SafeLikelihoodAbilityEstimator(args...; kwargs...)
     GuardedAbilityEstimator(
         LikelihoodAbilityEstimator(),
-        PriorAbilityEstimator(args...),
+        PosteriorAbilityEstimator(args...),
         multiple_response_types_guard
     )
 end
@@ -289,7 +289,7 @@ function (est::MeanAbilityEstimator{AbilityEstimatorT, RiemannEnumerationIntegra
         tracked_responses)
 end
 
-function maybe_apply_prior(f::F, est::PriorAbilityEstimator) where {F}
+function maybe_apply_prior(f::F, est::PosteriorAbilityEstimator) where {F}
     IntegralCoeffs.PriorApply(IntegralCoeffs.Prior(est.prior), f)
 end
 

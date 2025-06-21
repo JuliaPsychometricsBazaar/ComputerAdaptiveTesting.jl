@@ -5,7 +5,7 @@ using ComputerAdaptiveTesting.Aggregators: AbilityIntegrator,
                                            DistributionAbilityEstimator,
                                            ModeAbilityEstimator,
                                            MeanAbilityEstimator,
-                                           PriorAbilityEstimator
+                                           PosteriorAbilityEstimator
 using ComputerAdaptiveTesting.TerminationConditions: RunForeverTerminationCondition
 using ComputerAdaptiveTesting.Rules: CatRules
 using ComputerAdaptiveTesting.NextItemRules
@@ -51,9 +51,9 @@ const next_item_aliases = _next_item_aliases()
 
 function _ability_estimator_aliases()
     res = Dict{String, Any}()
-    res["BM"] = (; optimizer, kwargs...) -> ModeAbilityEstimator(PriorAbilityEstimator(), optimizer)
+    res["BM"] = (; optimizer, kwargs...) -> ModeAbilityEstimator(PosteriorAbilityEstimator(), optimizer)
     res["ML"] = (; optimizer, kwargs...) -> ModeAbilityEstimator(LikelihoodAbilityEstimator(), optimizer)
-    res["EAP"] = (; integrator, kwargs...) -> MeanAbilityEstimator(PriorAbilityEstimator(), integrator)
+    res["EAP"] = (; integrator, kwargs...) -> MeanAbilityEstimator(PosteriorAbilityEstimator(), integrator)
     #res["WL"]
     #res["ROB"]
     return res
@@ -97,7 +97,7 @@ function assemble_rules(;
     integrator = setup_integrator()
     optimizer = setup_optimizer()
     ability_estimator = ability_estimator_aliases[method](; integrator, optimizer)
-    posterior_ability_estimator = PriorAbilityEstimator()
+    posterior_ability_estimator = PosteriorAbilityEstimator()
     raw_next_item = next_item_aliases[criterion](ability_estimator, integrator, optimizer; posterior_ability_estimator=posterior_ability_estimator)
     next_item = FixedFirstItemNextItemRule(start_item, raw_next_item)
     CatRules(;

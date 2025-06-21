@@ -22,7 +22,7 @@ using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.Sim: auto_responder
 using ComputerAdaptiveTesting.NextItemRules: DRuleItemCriterion
 using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
-using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator,
+using ComputerAdaptiveTesting.Aggregators: PosteriorAbilityEstimator,
     MeanAbilityEstimator, LikelihoodAbilityEstimator
 using FittedItemBanks
 import PsychometricsBazaarBase.IntegralCoeffs
@@ -49,7 +49,7 @@ using ComputerAdaptiveTesting.Responses: BooleanResponse
 # CatRecorder collects information which can be used to draw different types of plots.
 max_questions = 9
 integrator = CubaIntegrator([-6.0, -6.0], [6.0, 6.0], CubaVegas(); rtol = 1e-2)
-ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(dims)),
+ability_estimator = MeanAbilityEstimator(PosteriorAbilityEstimator(std_mv_normal(dims)),
     integrator)
 rules = CatRules(ability_estimator,
     DRuleItemCriterion(ability_estimator),

@@ -2,7 +2,7 @@ mutable struct ClosedFormNormalAbilityTracker <: AbilityTracker
     cur_ability::VarNormal
 end
 
-function ClosedFormNormalAbilityTracker(prior_ability_estimator::PriorAbilityEstimator)
+function ClosedFormNormalAbilityTracker(prior_ability_estimator::PosteriorAbilityEstimator)
     @warn "ClosedFormNormalAbilityTracker is based on equations from Liden 1998 / Owen 1975, but these appear to give poor results"
     prior = prior_ability_estimator.prior
     if !(prior isa Normal)

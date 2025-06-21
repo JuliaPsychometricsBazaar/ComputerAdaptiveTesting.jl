@@ -28,9 +28,9 @@ const integrators_1d = [
 ]
 const ability_estimators_1d = [
     ((:integrator,),
-        (stuff) -> MeanAbilityEstimator(PriorAbilityEstimator(std_normal), stuff.integrator)),
+        (stuff) -> MeanAbilityEstimator(PosteriorAbilityEstimator(std_normal), stuff.integrator)),
     ((:optimizer,),
-        (stuff) -> ModeAbilityEstimator(PriorAbilityEstimator(std_normal), stuff.optimizer)),
+        (stuff) -> ModeAbilityEstimator(PosteriorAbilityEstimator(std_normal), stuff.optimizer)),
     ((:integrator,),
         (stuff) -> MeanAbilityEstimator(LikelihoodAbilityEstimator(), stuff.integrator)),
     ((:optimizer,),

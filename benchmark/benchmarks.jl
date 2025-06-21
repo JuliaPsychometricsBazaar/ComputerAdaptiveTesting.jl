@@ -30,7 +30,7 @@ function prepare_4pls(group)
     integrator = even_grid(-6.0, 6.0, mirtcat_quadpts(1))
     optimizer = AbilityOptimizer(OneDimOptimOptimizer(-6.0, 6.0, NelderMead()))
 
-    dist_ability_estimator = PriorAbilityEstimator()
+    dist_ability_estimator = PosteriorAbilityEstimator()
     ability_estimators = [
         ("mean", MeanAbilityEstimator(dist_ability_estimator, integrator)),
         ("mode", ModeAbilityEstimator(dist_ability_estimator, optimizer))

@@ -22,7 +22,7 @@ using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.Sim: auto_responder
 using ComputerAdaptiveTesting.NextItemRules: AbilityVarianceStateCriterion
 using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
-using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator,
+using ComputerAdaptiveTesting.Aggregators: PosteriorAbilityEstimator,
     MeanAbilityEstimator, LikelihoodAbilityEstimator
 using FittedItemBanks
 using ComputerAdaptiveTesting.Responses: BooleanResponse
@@ -46,7 +46,7 @@ using FittedItemBanks.DummyData: dummy_full, std_normal, SimpleItemBankSpec, Std
 # CatRecorder collects information which can be used to draw different types of plots.
 max_questions = 99
 integrator = FixedGKIntegrator(-6, 6, 80)
-dist_ability_est = PriorAbilityEstimator(std_normal)
+dist_ability_est = PosteriorAbilityEstimator(std_normal)
 ability_estimator = MeanAbilityEstimator(dist_ability_est, integrator)
 rules = CatRules(ability_estimator,
     AbilityVarianceStateCriterion(dist_ability_est, integrator),

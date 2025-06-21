@@ -42,7 +42,7 @@ export AbilityEstimator, TrackedResponses
 export AbilityTracker, NullAbilityTracker, PointAbilityTracker, GriddedAbilityTracker
 export ClosedFormNormalAbilityTracker, track!
 export response_expectation, expectation, distribution_estimator
-export PointAbilityEstimator, PriorAbilityEstimator
+export PointAbilityEstimator, PosteriorAbilityEstimator
 export SafeLikelihoodAbilityEstimator, LikelihoodAbilityEstimator
 export ModeAbilityEstimator, MeanAbilityEstimator
 export Speculator, replace_speculation!, normdenom, maybe_tracked_ability_estimate

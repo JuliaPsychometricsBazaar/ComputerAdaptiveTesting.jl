@@ -5,7 +5,7 @@ using ComputerAdaptiveTesting.Aggregators: SafeLikelihoodAbilityEstimator,
                                            DistributionAbilityEstimator,
                                            ModeAbilityEstimator,
                                            MeanAbilityEstimator,
-                                           PriorAbilityEstimator,
+                                           PosteriorAbilityEstimator,
                                            AbilityEstimator,
                                            distribution_estimator
 using ComputerAdaptiveTesting.TerminationConditions: RunForeverTerminationCondition
@@ -71,9 +71,9 @@ to randomly select items, and 'seq' for selecting items sequentially
 =#
 
 const ability_estimator_aliases = Dict(
-    "MAP" => (; optimizer, ncomp, kwargs...) -> ModeAbilityEstimator(PriorAbilityEstimator(; ncomp=ncomp), optimizer),
+    "MAP" => (; optimizer, ncomp, kwargs...) -> ModeAbilityEstimator(PosteriorAbilityEstimator(; ncomp=ncomp), optimizer),
     "ML" => (; optimizer, ncomp, kwargs...) -> ModeAbilityEstimator(SafeLikelihoodAbilityEstimator(; ncomp=ncomp), optimizer),
-    "EAP" => (; integrator, ncomp, kwargs...) -> MeanAbilityEstimator(PriorAbilityEstimator(; ncomp=ncomp), integrator),
+    "EAP" => (; integrator, ncomp, kwargs...) -> MeanAbilityEstimator(PosteriorAbilityEstimator(; ncomp=ncomp), integrator),
 # "WLE" for weighted likelihood estimation
 # "EAPsum" for the expected a-posteriori for each sum score
 )
@@ -143,7 +143,7 @@ function assemble_rules(;
     integrator = setup_integrator(lo, hi, pts)
     optimizer = setup_optimizer(-theta_lim, theta_lim)
     ability_estimator = ability_estimator_aliases[method](; integrator, optimizer, ncomp)
-    posterior_ability_estimator = PriorAbilityEstimator(; ncomp)
+    posterior_ability_estimator = PosteriorAbilityEstimator(; ncomp)
     raw_next_item = next_item_aliases[criteria](ability_estimator, posterior_ability_estimator, integrator, optimizer)
     next_item = FixedFirstItemNextItemRule(start_item, raw_next_item)
     CatRules(;
