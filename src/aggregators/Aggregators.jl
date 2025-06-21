@@ -71,6 +71,9 @@ function AbilityEstimator(::ContinuousDomain, bits...)
         integrator)
 end
 
+# Mark as a scalar for broadcasting
+Base.broadcastable(ir::AbilityEstimator) = Ref(ir)
+
 abstract type DistributionAbilityEstimator <: AbilityEstimator end
 function DistributionAbilityEstimator(bits...)
     @returnsome find1_instance(DistributionAbilityEstimator, bits)
@@ -170,6 +173,9 @@ end
 function TrackedResponses(responses, item_bank)
     TrackedResponses(responses, item_bank, NullAbilityTracker())
 end
+
+# Mark as a scalar for broadcasting
+Base.broadcastable(ir::TrackedResponses) = Ref(ir)
 
 function Responses.AbilityLikelihood(tracked_responses::TrackedResponses{
         BareResponsesT,
