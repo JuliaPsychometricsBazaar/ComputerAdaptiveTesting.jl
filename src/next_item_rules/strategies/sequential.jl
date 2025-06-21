@@ -6,10 +6,10 @@ This is the most basic rule for choosing the next item in a CAT. It simply
 picks a random item from the set of items that have not yet been
 administered.
 """
-@kwdef struct PiecewiseNextItemRule{BreaksT, RulesT} <: NextItemRule
+@kwdef struct PiecewiseNextItemRule{RulesT} <: NextItemRule
     # Tuple of Ints
-    breaks::BreaksT
-    # Types of NextItemRules
+    breaks::Tuple{Int}
+    # Tuple of NextItemRules
     rules::RulesT
 end
 

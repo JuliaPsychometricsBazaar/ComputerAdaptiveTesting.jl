@@ -21,10 +21,11 @@ using PsychometricsBazaarBase.ConfigTools: @requiresome, @returnsome,
                                            find1_instance, find1_type
 using PsychometricsBazaarBase.Integrators: Integrator, intval
 using PsychometricsBazaarBase: Integrators
+using PsychometricsBazaarBase.IndentWrappers: indent
 import PsychometricsBazaarBase.IntegralCoeffs
 using FittedItemBanks: AbstractItemBank, DiscreteDomain, DomainType,
                        ItemResponse, OneDimContinuousDomain, domdims, item_params,
-                       resp, resp_vec, responses
+                       resp, resp_vec, responses, subset_view
 using ..Aggregators
 using ..Aggregators: covariance_matrix, FunctionProduct
 
@@ -34,6 +35,7 @@ using Base.Order
 using StaticArrays: SVector
 using ConstructionBase: constructorof
 import ForwardDiff
+import Base: show
 
 export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, init_thread
 export NextItemRule, ItemStrategyNextItemRule
@@ -46,7 +48,7 @@ export EmpiricalInformationPointwiseItemCategoryCriterion
 export TotalItemInformation
 export RandomNextItemRule
 export PiecewiseNextItemRule, MemoryNextItemRule, FixedFirstItemNextItemRule
-export ExhaustiveSearch
+export ExhaustiveSearch, RandomesqueStrategy
 export preallocate
 export compute_criteria, compute_criterion, compute_multi_criterion
 export best_item
@@ -68,6 +70,8 @@ include("./strategies/random.jl")
 include("./strategies/randomesque.jl")
 include("./strategies/sequential.jl")
 include("./strategies/exhaustive.jl")
+include("./strategies/pointwise.jl")
+include("./strategies/balance.jl")
 
 # Combinators
 include("./combinators/expectation.jl")

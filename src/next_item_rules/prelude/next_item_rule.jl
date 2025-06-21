@@ -53,6 +53,13 @@ function best_item(rule::NextItemRule, tracked_responses::TrackedResponses)
     best_item(rule, tracked_responses, tracked_responses.item_bank)
 end
 
+function Base.show(io::IO, ::MIME"text/plain", next_item_rule::ItemStrategyNextItemRule)
+    println(io, "Strategy:")
+    show(indent_io, MIME"text/plain"(), rules.strategy)
+    println(io, "Item criterion:")
+    show(indent_io, MIME"text/plain"(), rules.criterion)
+end
+
 # Default implementation
 function compute_criteria(::NextItemRule, ::TrackedResponses)
     nothing
