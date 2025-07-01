@@ -30,8 +30,9 @@ using PsychometricsBazaarBase.Integrators: Integrators,
                                            IntValue, Integrator,
                                            PreallocatedFixedGridIntegrator,
                                            normdenom
-using PsychometricsBazaarBase.Optimizers: OneDimOptimOptimizer, Optimizer
+using PsychometricsBazaarBase.Optimizers: OneDimOptimOptimizer, Optimizer, Optimizers
 using PsychometricsBazaarBase.ConstDistributions: std_normal, std_mv_normal
+using PsychometricsBazaarBase.IndentWrappers: indent
 import Distributions: pdf
 import Base: show
 
@@ -207,6 +208,10 @@ function (integrator::FunctionIntegrator{IntegratorT})(f::F,
     # TODO: Make integration range configurable
     # TODO: Make integration technique configurable
     integrator.integrator(FunctionProduct(f, lh_function), ncomp)
+end
+
+function show(io::IO, ::MIME"text/plain", responses::FunctionIntegrator)
+    show(io, MIME("text/plain"), responses.integrator)
 end
 
 # Defaults

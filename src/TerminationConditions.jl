@@ -6,6 +6,7 @@ using ..Aggregators: TrackedResponses
 using ..ConfigBase
 using PsychometricsBazaarBase.ConfigTools: @returnsome, find1_instance
 using FittedItemBanks
+import Base: show
 
 export TerminationCondition,
        LengthTerminationCondition, SimpleFunctionTerminationCondition
@@ -30,6 +31,10 @@ end
 function (condition::LengthTerminationCondition)(responses::TrackedResponses,
         items::AbstractItemBank)
     length(responses) >= condition.num_items
+end
+
+function show(io::IO, ::MIME"text/plain", condition::LengthTerminationCondition)
+    println(io, "Terminate test after administering $(condition.num_items) items")
 end
 
 # Alias for old name

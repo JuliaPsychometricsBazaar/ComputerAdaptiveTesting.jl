@@ -56,9 +56,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", rule::ItemStrategyNextItemRule)
     println(io, "Pick optimal item criterion according to strategy")
     indent_io = indent(io, 2)
-    print(indent_io, "Strategy: ")
     show(indent_io, MIME"text/plain"(), rule.strategy)
-    print(indent_io, "Item criterion: ")
     show(indent_io, MIME"text/plain"(), rule.criterion)
 end
 

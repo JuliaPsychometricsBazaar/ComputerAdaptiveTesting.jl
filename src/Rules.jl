@@ -82,13 +82,14 @@ function CatRules(bits...)
 end
 
 function show(io::IO, ::MIME"text/plain", rules::CatRules)
-    indent_io = indent(io, 2)
-    println(io, "Next item rule:")
-    show(indent_io, MIME"text/plain"(), rules.next_item)
-    println(io, "Termination condition:")
-    show(indent_io, MIME"text/plain"(), rules.termination_condition)
-    println(io, "Ability estimator:")
-    show(indent_io, MIME"text/plain"(), rules.ability_estimator)
+    print(io, "Next item rule: ")
+    show(io, MIME("text/plain"), rules.next_item)
+    println(io)
+    print(io, "Termination condition: ")
+    show(io, MIME("text/plain"), rules.termination_condition)
+    println(io)
+    print(io, "Ability estimator: ")
+    show(io, MIME("text/plain"), rules.ability_estimator)
 end
 
 function _find_ability_estimator_and_tracker(bits...)

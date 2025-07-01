@@ -26,6 +26,10 @@ function pdf(::LikelihoodAbilityEstimator,
     AbilityLikelihood(tracked_responses)
 end
 
+function show(io::IO, ::MIME"text/plain", ability_estimator::LikelihoodAbilityEstimator)
+    println(io, "Ability likelihood distribution")
+end
+
 struct PosteriorAbilityEstimator{PriorT <: Distribution} <: DistributionAbilityEstimator
     prior::PriorT
 end
@@ -55,6 +59,14 @@ function multiple_response_types_guard(tracked_responses)
         end
     end
     return false
+end
+
+function show(io::IO, ::MIME"text/plain", ability_estimator::PosteriorAbilityEstimator)
+    println(io, "Ability posterior distribution")
+    indent_io = indent(io, 2)
+    print(indent_io, "Prior: ")
+    show(indent_io, MIME("text/plain"), ability_estimator.prior)
+    println(io)
 end
 
 struct GuardedAbilityEstimator{T <: DistributionAbilityEstimator, U <: DistributionAbilityEstimator, F} <: DistributionAbilityEstimator
@@ -214,11 +226,9 @@ end
 
 function show(io::IO, ::MIME"text/plain", ability_estimator::ModeAbilityEstimator)
     println(io, "Estimate ability using its mode")
-    indent_io = indent(io, 2; skip_first=true)
-    print(indent_io, "Distribution estimator ")
-    show(indent_io, ability_estimator.dist_est)
-    print(indent_io, "Optimizer: ")
-    show(indent_io, ability_estimator.optim)
+    indent_io = indent(io, 2)
+    show(indent_io, MIME("text/plain"), ability_estimator.dist_est)
+    show(indent_io, MIME("text/plain"), ability_estimator.optim)
 end
 
 struct MeanAbilityEstimator{
@@ -234,6 +244,14 @@ function MeanAbilityEstimator(bits...)
     @requiresome dist_est = DistributionAbilityEstimator(bits...)
     @requiresome integrator = AbilityIntegrator(bits...)
     MeanAbilityEstimator(dist_est, integrator)
+end
+
+function show(io::IO, ::MIME"text/plain", ability_estimator::MeanAbilityEstimator)
+    println(io, "Estimate ability using its mean")
+    indent_io = indent(io, 2)
+    show(indent_io, MIME("text/plain"), ability_estimator.dist_est)
+    print(indent_io, "Integrator: ")
+    show(indent_io, MIME("text/plain"), ability_estimator.integrator)
 end
 
 function distribution_estimator(dist_est::DistributionAbilityEstimator)::DistributionAbilityEstimator

@@ -21,7 +21,6 @@ function show(io::IO, ::MIME"text/plain", rule::PointwiseNextItemRule)
     indent_io = indent(io, 2)
     points_desc = join(rule.points, ", ")
     println(indent_io, "Points: $points_desc")
-    print(indent_io, "Criterion: ")
     show(indent_io, MIME("text/plain"), rule.criterion)
 end
 
