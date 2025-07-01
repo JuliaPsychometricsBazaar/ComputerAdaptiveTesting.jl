@@ -1,11 +1,13 @@
 module Sim
 
+using DataFrames: DataFrame
 using ElasticArrays
 using ElasticArrays: sizehint_lastdim!
 using DocStringExtensions
 using StatsBase
 using FittedItemBanks: AbstractItemBank, ResponseType, ItemResponse
 using PsychometricsBazaarBase.Integrators
+using PsychometricsBazaarBase.IndentWrappers: indent
 using ..ConfigBase
 using ..Responses
 using ..Rules: CatRules

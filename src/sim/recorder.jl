@@ -20,10 +20,17 @@ Base.@kwdef mutable struct CatRecording{LikelihoodsT <: NamedTuple}
     #likelihoods::Matrix{Float64}
     #raw_likelihoods::Matrix{Float64}
     data::LikelihoodsT
-    item_responses::Vector{Float64}
     item_index::Vector{Int}
     item_correctness::Vector{Bool}
     rules_description::Union{Nothing, String} = nothing
+end
+
+function Base.getproperty(obj::CatRecording, sym::Symbol)
+    if hasfield(CatRecording, sym)
+        return getfield(obj, sym)
+    else
+        return getproperty(obj.data, sym)
+    end
 end
 
 Base.@kwdef struct CatRecorder{RequestsT <: NamedTuple, LikelihoodsT <: NamedTuple}
@@ -40,10 +47,23 @@ function CatRecording(
 )
     CatRecording(;
         data=data,
-        item_responses=empty_capacity(Float64, expected_responses),
         item_index=empty_capacity(Int, expected_responses),
         item_correctness=empty_capacity(Bool, expected_responses)
     )
+end
+
+function prepare_dataframe(recording::CatRecording)
+    cols::Vector{Pair{String, Vector{Any}}} = [
+        "Item" => recording.item_index,
+        "Response" => recording.item_correctness,
+    ]
+    for (name, value) in pairs(recording.data)
+        #@show name value.type keys(value) size(value.data)
+        if value.data isa AbstractVector
+            push!(cols, String(name) => value.data)
+        end
+    end
+    return DataFrame(cols)
 end
 
 function show(io::IO, ::MIME"text/plain", recording::CatRecording)
@@ -52,16 +72,21 @@ function show(io::IO, ::MIME"text/plain", recording::CatRecording)
         println(io, "  Unknown CAT configuration")
     else
         println(io, "  CAT configuration:")
-        for line in split(recording.rules_description, "\n")
+        for line in split(strip(recording.rules_description, '\n'), "\n")
             println(io, "    ", line)
         end
     end
-    println(io, "  item_responses: ", length(recording.item_responses))
-    println(io, "  item_index: ", length(recording.item_index))
-    println(io, "  item_correctness: ", length(recording.item_correctness))
-    for (name, data) in pairs(recording.data)
-        println(io, "  $name: ", size(data.data))
+    println(io)
+    println(io, "  Recorded information:")
+    df = prepare_dataframe(recording)
+    buf = IOBuffer()
+    show(buf, MIME("text/plain"), df; summary=false, eltypes=false, rowlabel=:Number)
+    seekstart(buf)
+    for line in eachline(buf)
+        println(io, "    ", line)
     end
+    #println(io)
+    #println(io, "  Final information:")
 end
 
 #=
@@ -226,11 +251,16 @@ function CatRecorder(
 end
 =#
 
+function name_to_label(name)
+    titlecase(join(split(String(name), "_"), " "))
+end
+
 function CatRecorder(dims::Int, expected_responses::Int; requests...)
     out = []
     sizehint!(out, length(requests))
     for (name, request) in pairs(requests)
-        if request.type == :ability_value
+        extra = (;)
+        if request.type in (:ability, :ability_stddev)
             data = empty_capacity(Float64, expected_responses)
         elseif request.type == :ability_distribution
             if dims == 0
@@ -238,10 +268,13 @@ function CatRecorder(dims::Int, expected_responses::Int; requests...)
             else
                 data = empty_capacity(Float64, dims, length(request.points), expected_responses)
             end
+            extra = (; points = request.points)
         end
         push!(out, (name => (;
+            label=haskey(request, :label) ? request.label : name_to_label(name),
             type=request.type,
-            data=data,
+            data,
+            extra...
         )))
     end
     return CatRecorder(;
@@ -332,11 +365,10 @@ function service_requests!(
 )
     out = recorder.recording.data
     for (name, request) in pairs(recorder.requests)
-        if request.type == :ability_value
+        if request.type in (:ability, :ability_stddev)
             push!(out[name].data, request.estimator(tracked_responses))
         elseif request.type == :ability_distribution
             likelihood_sample = sample_likelihood(tracked_responses, request.points, request.estimator, request.integrator)
-            @info "pushing" name size(out[name].data) size(likelihood_sample)
             elastic_push!(out[name].data, likelihood_sample)
         end
     end
