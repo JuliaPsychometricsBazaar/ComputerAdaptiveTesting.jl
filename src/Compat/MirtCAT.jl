@@ -10,7 +10,7 @@ using ComputerAdaptiveTesting.Aggregators: SafeLikelihoodAbilityEstimator,
                                            distribution_estimator
 using ComputerAdaptiveTesting.TerminationConditions: RunForeverTerminationCondition
 using ComputerAdaptiveTesting.NextItemRules
-using ComputerAdaptiveTesting: CatRules
+using ComputerAdaptiveTesting.Rules: CatRules
 using PsychometricsBazaarBase: Integrators, Optimizers
 
 public next_item_aliases, ability_estimator_aliases, assemble_rules
