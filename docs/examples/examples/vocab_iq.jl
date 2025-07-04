@@ -42,8 +42,8 @@ function run_vocab_iq_cat()
     ability_estimator = ModeAbilityEstimator(dist_ability_est, optimizer)
     @info "run_cat" ability_estimator
     rules = CatRules(ability_estimator,
-        AbilityVarianceStateCriterion(dist_ability_est, ability_integrator),
-        FixedItemsTerminationCondition(45))
+        AbilityVariance(dist_ability_est, ability_integrator),
+        FixedLength(45))
     function get_response(response_idx, response_name)
         params = item_params(item_bank, response_idx)
         println("Parameters for next question: $params")

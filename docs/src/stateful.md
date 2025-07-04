@@ -28,7 +28,7 @@ Stateful.get_ability
 There is an implementation in terms of [CatRules](@ref):
 
 ```@docs
-Stateful.StatefulCatConfig
+Stateful.StatefulCatRules
 ```
 
 ## Usage

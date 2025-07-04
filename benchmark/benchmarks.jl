@@ -38,10 +38,10 @@ function prepare_4pls(group)
     response_idxs = sample(rng, 1:20, 10)
 
     for (est_nick, ability_estimator) in ability_estimators
-        next_item_rule = ItemStrategyNextItemRule(
+        next_item_rule = ItemCriterionRule(
             ExhaustiveSearch(),
             ExpectationBasedItemCriterion(PointResponseExpectation(ability_estimator),
-                AbilityVarianceStateCriterion(
+                AbilityVariance(
                     integrator, distribution_estimator(ability_estimator)))
         )
         next_item_rule = preallocate(next_item_rule)

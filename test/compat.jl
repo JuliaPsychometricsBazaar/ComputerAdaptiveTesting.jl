@@ -3,7 +3,7 @@
     using FittedItemBanks: OneDimContinuousDomain, SimpleItemBankSpec, StdModel3PL,
                         BooleanResponse
     using ComputerAdaptiveTesting.Aggregators: TrackedResponses, NullAbilityTracker
-    using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
+    using ComputerAdaptiveTesting.TerminationConditions: FixedLength
     using ComputerAdaptiveTesting.NextItemRules: RandomNextItemRule
     using ComputerAdaptiveTesting.Responses: BareResponses, ResponseType
     using ComputerAdaptiveTesting: Stateful

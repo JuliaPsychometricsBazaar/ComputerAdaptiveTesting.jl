@@ -22,7 +22,7 @@ using .Dummy
 
     function test1d(ability_estimator, bits...)
         rules = CatRules(
-            FixedItemsTerminationCondition(2),
+            FixedLength(2),
             ability_estimator,
             bits...
         )

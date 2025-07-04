@@ -72,7 +72,7 @@ mle_mode_1d = ModeAbilityEstimator(lh_est_1d, optimizer_1d)
         )
     end
 
-    ability_variance_state_criterion = AbilityVarianceStateCriterion(
+    ability_variance_state_criterion = AbilityVariance(
         lh_est_1d, integrator_1d)
     ability_variance_item_criterion = ExpectationBasedItemCriterion(
         mle_mean_1d,

@@ -5,7 +5,7 @@ $(TYPEDFIELDS)
 This `StateCriterion` returns the variance of the ability estimate given a set
 of responses.
 """
-struct AbilityVarianceStateCriterion{
+struct AbilityVariance{
     DistEst <: DistributionAbilityEstimator,
     IntegratorT <: AbilityIntegrator
 } <: StateCriterion
@@ -14,15 +14,15 @@ struct AbilityVarianceStateCriterion{
     skip_zero::Bool
 end
 
-function AbilityVarianceStateCriterion(bits...)
+function AbilityVariance(bits...)
     skip_zero = false
-    @returnsome find1_instance(AbilityVarianceStateCriterion, bits)
+    @returnsome find1_instance(AbilityVariance, bits)
     @requiresome dist_est_integrator_pair = get_dist_est_and_integrator(bits...)
     (dist_est, integrator) = dist_est_integrator_pair
-    return AbilityVarianceStateCriterion(dist_est, integrator, skip_zero)
+    return AbilityVariance(dist_est, integrator, skip_zero)
 end
 
-function compute_criterion(criterion::AbilityVarianceStateCriterion,
+function compute_criterion(criterion::AbilityVariance,
         tracked_responses::TrackedResponses)::Float64
     # XXX: Not sure if the estimator should come from somewhere else here
     denom = normdenom(criterion.integrator,
@@ -35,7 +35,7 @@ function compute_criterion(criterion::AbilityVarianceStateCriterion,
         criterion, DomainType(tracked_responses.item_bank), tracked_responses, denom)
 end
 
-function compute_criterion(criterion::AbilityVarianceStateCriterion,
+function compute_criterion(criterion::AbilityVariance,
         ::Union{OneDimContinuousDomain, DiscreteDomain},
         tracked_responses::TrackedResponses,
         denom)::Float64
@@ -48,7 +48,7 @@ function compute_criterion(criterion::AbilityVarianceStateCriterion,
 end
 
 function compute_criterion(
-        criterion::AbilityVarianceStateCriterion,
+        criterion::AbilityVariance,
         ::Vector,
         tracked_responses::TrackedResponses,
         denom
@@ -68,7 +68,7 @@ function compute_criterion(
         denom)
 end
 
-function show(io::IO, ::MIME"text/plain", criterion::AbilityVarianceStateCriterion)
+function show(io::IO, ::MIME"text/plain", criterion::AbilityVariance)
     println(io, "Minimise variance of ability estimate")
     indent_io = indent(io, 2)
     show(indent_io, MIME("text/plain"), criterion.dist_est)

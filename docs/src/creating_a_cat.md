@@ -79,13 +79,13 @@ ComputerAdaptiveTesting.NextItemRules.RandomNextItemRule
 
 Other rules are created by combining a `ItemCriterion` -- which somehow rates
 items according to how good they are -- with a `NextItemStrategy` using an
-`ItemStrategyNextItemRule`, which acts as an adapter. The default
+`ItemCriterionRule`, which acts as an adapter. The default
 `NextItemStrategy` (and currently only) is `ExhaustiveSearch`. When using
 the implicit constructors, `ItemCriterion` can therefore be used directly
 without wrapping in any place an NextItemRule is expected.
 
 ```@docs; canonical=false
-ComputerAdaptiveTesting.NextItemRules.ItemStrategyNextItemRule
+ComputerAdaptiveTesting.NextItemRules.ItemCriterionRule
 ```
 
 ```@docs; canonical=false
@@ -114,17 +114,17 @@ takes a `ResponseExpectation`: either `PointResponseExpectation` or
 good a particular state is in terms getting a good estimate of the test takers
 ability. They look one ply ahead to get the expected value of the
 ``StateCriterion`` after selecting the given item. The
-`AbilityVarianceStateCriterion` looks at the variance of the ability ``\theta``
+`AbilityVariance` looks at the variance of the ability ``\theta``
 estimate at that state.
 
 ### Stopping rules with `TerminationCondition`
 
-Currently the only `TerminationCondition` is `FixedItemsTerminationCondition`, which ends the test after a fixed number of items.
+Currently the only `TerminationCondition` is `FixedLength`, which ends the test after a fixed number of items.
 
 ```@docs; canonical=false
 ComputerAdaptiveTesting.TerminationConditions.TerminationCondition
 ```
 
 ```@docs; canonical=false
-ComputerAdaptiveTesting.TerminationConditions.FixedItemsTerminationCondition
+ComputerAdaptiveTesting.TerminationConditions.FixedLength
 ```

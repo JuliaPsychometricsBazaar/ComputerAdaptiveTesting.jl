@@ -63,6 +63,6 @@ function show(io::IO, ::MIME"text/plain", rule::MemoryNextItemRule)
     println(io, "Present the items indexed: $item_list")
 end
 
-function FixedFirstItemNextItemRule(item_idx::Int, rule::NextItemRule)
+function FixedFirstItem(item_idx::Int, rule::NextItemRule)
     FixedRuleSequencer((1,), (MemoryNextItemRule((item_idx,)), rule))
 end

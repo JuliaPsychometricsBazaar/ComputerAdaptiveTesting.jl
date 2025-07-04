@@ -8,7 +8,7 @@ using ComputerAdaptiveTesting.Aggregators: SafeLikelihoodAbilityEstimator,
                                            PosteriorAbilityEstimator,
                                            AbilityEstimator,
                                            distribution_estimator
-using ComputerAdaptiveTesting.TerminationConditions: RunForeverTerminationCondition
+using ComputerAdaptiveTesting.TerminationConditions: RunForever
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.Rules: CatRules
 using PsychometricsBazaarBase: Integrators, Optimizers
@@ -23,7 +23,7 @@ function _next_item_helper(item_criterion_callback)
             optimizer,
         ]
         item_criterion = item_criterion_callback(; bits, ability_estimator, posterior_ability_estimator, integrator, optimizer)
-        return ItemStrategyNextItemRule(ExhaustiveSearch(), item_criterion)
+        return ItemCriterionRule(ExhaustiveSearch(), item_criterion)
     end
     return _helper
 end
@@ -34,7 +34,7 @@ const next_item_aliases = Dict(
     # 'MEPV' for minimum expected posterior variance
     "MEPV" => _next_item_helper((; bits, ability_estimator, posterior_ability_estimator, integrator, rest...) -> ExpectationBasedItemCriterion(
         ability_estimator,
-        AbilityVarianceStateCriterion(posterior_ability_estimator, integrator))),
+        AbilityVariance(posterior_ability_estimator, integrator))),
     "MEI" => _next_item_helper((; bits, ability_estimator, rest...) -> ExpectationBasedItemCriterion(
         ability_estimator,
         PointItemCategoryCriterion(EmpiricalInformationPointwiseItemCategoryCriterion(), ability_estimator)
@@ -145,11 +145,11 @@ function assemble_rules(;
     ability_estimator = ability_estimator_aliases[method](; integrator, optimizer, ncomp)
     posterior_ability_estimator = PosteriorAbilityEstimator(; ncomp)
     raw_next_item = next_item_aliases[criteria](ability_estimator, posterior_ability_estimator, integrator, optimizer)
-    next_item = FixedFirstItemNextItemRule(start_item, raw_next_item)
+    next_item = FixedFirstItem(start_item, raw_next_item)
     CatRules(;
         next_item,
         ability_estimator,
-        termination_condition = RunForeverTerminationCondition(),
+        termination_condition = RunForever(),
     )
 end
 

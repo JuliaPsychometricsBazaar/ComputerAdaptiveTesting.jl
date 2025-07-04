@@ -38,7 +38,7 @@ const ability_estimators_1d = [
 ]
 const criteria_1d = [
     ((:integrator, :est),
-        (stuff) -> AbilityVarianceStateCriterion(
+        (stuff) -> AbilityVariance(
             distribution_estimator(stuff.est), stuff.integrator)),
     ((:est,), (stuff) -> InformationItemCriterion(stuff.est)),
     ((:est,), (stuff) -> UrryItemCriterion(stuff.est)),

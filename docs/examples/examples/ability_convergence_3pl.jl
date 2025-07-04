@@ -20,8 +20,8 @@ using Distributions: Normal, cdf
 using AlgebraOfGraphics
 using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.Sim: auto_responder
-using ComputerAdaptiveTesting.NextItemRules: AbilityVarianceStateCriterion
-using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
+using ComputerAdaptiveTesting.NextItemRules: AbilityVariance
+using ComputerAdaptiveTesting.TerminationConditions: FixedLength
 using ComputerAdaptiveTesting.Aggregators: PosteriorAbilityEstimator,
     MeanAbilityEstimator, LikelihoodAbilityEstimator
 using FittedItemBanks
@@ -49,8 +49,8 @@ integrator = FixedGKIntegrator(-6, 6, 80)
 dist_ability_est = PosteriorAbilityEstimator(std_normal)
 ability_estimator = MeanAbilityEstimator(dist_ability_est, integrator)
 rules = CatRules(ability_estimator,
-    AbilityVarianceStateCriterion(dist_ability_est, integrator),
-    FixedItemsTerminationCondition(max_questions))
+    AbilityVariance(dist_ability_est, integrator),
+    FixedLength(max_questions))
 
 points = 500
 xs = range(-2.5, 2.5, length = points)

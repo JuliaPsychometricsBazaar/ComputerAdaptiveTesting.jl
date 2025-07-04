@@ -9,8 +9,8 @@ using FittedItemBanks
 import Base: show
 
 export TerminationCondition,
-       LengthTerminationCondition, SimpleFunctionTerminationCondition
-export RunForeverTerminationCondition
+       FixedLength, SimpleFunctionTerminationCondition
+export RunForever
 
 """
 $(TYPEDEF)
@@ -25,20 +25,17 @@ end
 $(TYPEDEF)
 $(TYPEDFIELDS)
 """
-struct LengthTerminationCondition{} <: TerminationCondition
+struct FixedLength{} <: TerminationCondition
     num_items::Int64
 end
-function (condition::LengthTerminationCondition)(responses::TrackedResponses,
+function (condition::FixedLength)(responses::TrackedResponses,
         items::AbstractItemBank)
     length(responses) >= condition.num_items
 end
 
-function show(io::IO, ::MIME"text/plain", condition::LengthTerminationCondition)
+function show(io::IO, ::MIME"text/plain", condition::FixedLength)
     println(io, "Terminate test after administering $(condition.num_items) items")
 end
-
-# Alias for old name
-const FixedItemsTerminationCondition = LengthTerminationCondition
 
 struct SimpleFunctionTerminationCondition{F} <: TerminationCondition
     func::F
@@ -48,8 +45,8 @@ function (condition::SimpleFunctionTerminationCondition)(responses::TrackedRespo
     condition.func(responses, items)
 end
 
-struct RunForeverTerminationCondition <: TerminationCondition end
-function (condition::RunForeverTerminationCondition)(::TrackedResponses, ::AbstractItemBank)
+struct RunForever <: TerminationCondition end
+function (condition::RunForever)(::TrackedResponses, ::AbstractItemBank)
     return false
 end
 

@@ -6,7 +6,7 @@ using ComputerAdaptiveTesting.Aggregators: AbilityIntegrator,
                                            ModeAbilityEstimator,
                                            MeanAbilityEstimator,
                                            PosteriorAbilityEstimator
-using ComputerAdaptiveTesting.TerminationConditions: RunForeverTerminationCondition
+using ComputerAdaptiveTesting.TerminationConditions: RunForever
 using ComputerAdaptiveTesting.Rules: CatRules
 using ComputerAdaptiveTesting.NextItemRules
 using PsychometricsBazaarBase: Integrators, Optimizers
@@ -19,15 +19,15 @@ function _next_item_aliases()
         "MFI" => InformationItemCriterion,
         "bOpt" => UrryItemCriterion,
     )
-        res[nick] = (bits...; kwargs...) -> ItemStrategyNextItemRule(
+        res[nick] = (bits...; kwargs...) -> ItemCriterionRule(
             ExhaustiveSearch(),
             mk_item_criterion(bits...))
     end
-    res["MEPV"] = (bits...; posterior_ability_estimator, kwargs...) -> ItemStrategyNextItemRule(
+    res["MEPV"] = (bits...; posterior_ability_estimator, kwargs...) -> ItemCriterionRule(
         ExhaustiveSearch(),
         ExpectationBasedItemCriterion(bits...,
-            AbilityVarianceStateCriterion(posterior_ability_estimator, AbilityIntegrator(bits...))))
-    res["MEI"] = (bits...; kwargs...) -> ItemStrategyNextItemRule(
+            AbilityVariance(posterior_ability_estimator, AbilityIntegrator(bits...))))
+    res["MEI"] = (bits...; kwargs...) -> ItemCriterionRule(
         ExhaustiveSearch(),
         ExpectationBasedItemCriterion(bits...,
             InformationItemCriterion(bits...)))
@@ -64,7 +64,7 @@ const ability_estimator_aliases = _ability_estimator_aliases()
 #=
         for (resp_exp, resp_exp_nick) in resp_exp_nick_pairs
             next_item_rule = NextItemRule(
-                ExpectationBasedItemCriterion(resp_exp, AbilityVarianceStateCriterion(numtools.integrator, distribution_estimator(abil_est)))
+                ExpectationBasedItemCriterion(resp_exp, AbilityVariance(numtools.integrator, distribution_estimator(abil_est)))
             )
             next_item_rule = preallocate(next_item_rule)
             est_next_item_rule_pairs[Symbol("$(abil_est_str)_mepv_$(resp_exp_nick)")] = (abil_est, next_item_rule)
@@ -99,10 +99,10 @@ function assemble_rules(;
     ability_estimator = ability_estimator_aliases[method](; integrator, optimizer)
     posterior_ability_estimator = PosteriorAbilityEstimator()
     raw_next_item = next_item_aliases[criterion](ability_estimator, integrator, optimizer; posterior_ability_estimator=posterior_ability_estimator)
-    next_item = FixedFirstItemNextItemRule(start_item, raw_next_item)
+    next_item = FixedFirstItem(start_item, raw_next_item)
     CatRules(;
         next_item,
-        termination_condition = RunForeverTerminationCondition(),
+        termination_condition = RunForever(),
         ability_estimator,
         #ability_tracker::AbilityTrackerT = NullAbilityTracker()
     )

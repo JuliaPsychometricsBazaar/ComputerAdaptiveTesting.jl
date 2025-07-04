@@ -21,7 +21,7 @@ using AlgebraOfGraphics
 using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.Sim: auto_responder
 using ComputerAdaptiveTesting.NextItemRules: DRuleItemCriterion
-using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
+using ComputerAdaptiveTesting.TerminationConditions: FixedLength
 using ComputerAdaptiveTesting.Aggregators: PosteriorAbilityEstimator,
     MeanAbilityEstimator, LikelihoodAbilityEstimator
 using FittedItemBanks
@@ -53,7 +53,7 @@ ability_estimator = MeanAbilityEstimator(PosteriorAbilityEstimator(std_mv_normal
     integrator)
 rules = CatRules(ability_estimator,
     DRuleItemCriterion(ability_estimator),
-    FixedItemsTerminationCondition(max_questions))
+    FixedLength(max_questions))
 
 # XXX: We shouldn't need to specify xs here since the distributions are not used -- rework
 points = 3

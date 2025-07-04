@@ -37,8 +37,8 @@ using ConstructionBase: constructorof
 import ForwardDiff
 import Base: show
 
-export ExpectationBasedItemCriterion, AbilityVarianceStateCriterion, init_thread
-export NextItemRule, ItemStrategyNextItemRule
+export ExpectationBasedItemCriterion, AbilityVariance, init_thread
+export NextItemRule, ItemCriterionRule
 export UrryItemCriterion, InformationItemCriterion
 export LikelihoodWeightedItemCriterion, PointItemCriterion
 export LikelihoodWeightedItemCategoryCriterion, PointItemCategoryCriterion
@@ -47,7 +47,7 @@ export RawEmpiricalInformationPointwiseItemCategoryCriterion
 export EmpiricalInformationPointwiseItemCategoryCriterion
 export TotalItemInformation
 export RandomNextItemRule
-export FixedRuleSequencer, MemoryNextItemRule, FixedFirstItemNextItemRule
+export FixedRuleSequencer, MemoryNextItemRule, FixedFirstItem
 export ExhaustiveSearch, RandomesqueStrategy
 export preallocate
 export compute_criteria, compute_criterion, compute_multi_criterion

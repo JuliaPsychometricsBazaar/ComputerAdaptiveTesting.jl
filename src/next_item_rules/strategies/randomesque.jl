@@ -46,7 +46,7 @@ end
 RandomesqueStrategy(k::Int) = RandomesqueStrategy(Xoshiro(), k)
 
 function best_item(
-    rule::ItemStrategyNextItemRule{RandomesqueStrategy, ItemCriterionT},
+    rule::ItemCriterionRule{RandomesqueStrategy, ItemCriterionT},
     responses::TrackedResponses,
     items
 ) where {ItemCriterionT <: ItemCriterion}

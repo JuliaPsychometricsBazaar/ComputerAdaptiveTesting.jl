@@ -42,7 +42,7 @@ $(TYPEDFIELDS)
 struct ExhaustiveSearch <: NextItemStrategy end
 
 function best_item(
-        rule::ItemStrategyNextItemRule{ExhaustiveSearch, ItemCriterionT},
+        rule::ItemCriterionRule{ExhaustiveSearch, ItemCriterionT},
         responses::TrackedResponses,
         items
 ) where {ItemCriterionT <: ItemCriterion}

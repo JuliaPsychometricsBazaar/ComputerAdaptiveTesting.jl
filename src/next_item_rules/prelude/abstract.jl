@@ -6,21 +6,21 @@ Abstract base type for all item selection rules. All descendants of this type
 are expected to implement the interface
 `(::NextItemRule)(responses::TrackedResponses, items::AbstractItemBank)::Int`.
 
-In practice, all adaptive rules in this package use `ItemStrategyNextItemRule`.
+In practice, all adaptive rules in this package use `ItemCriterionRule`.
 
     $(FUNCTIONNAME)(bits...; ability_estimator=nothing, parallel=true)
 
 Implicit constructor for $(FUNCTIONNAME). Uses any given `NextItemRule` or
-delegates to `ItemStrategyNextItemRule` the default instance.
+delegates to `ItemCriterionRule` the default instance.
 """
 abstract type NextItemRule <: CatConfigBase end
 
 """
 $(TYPEDEF)
 
-Abstract type for next item strategies, tightly coupled with `ItemStrategyNextItemRule`.
+Abstract type for next item strategies, tightly coupled with `ItemCriterionRule`.
 All descendants of this type are expected to implement the interface
-`(rule::ItemStrategyNextItemRule{::NextItemStrategy, ::ItemCriterion})(responses::TrackedResponses,
+`(rule::ItemCriterionRule{::NextItemStrategy, ::ItemCriterion})(responses::TrackedResponses,
         items) where {ItemCriterionT <: }
 `(strategy::NextItemStrategy)(; parallel=true)::NextItemStrategy`
 """

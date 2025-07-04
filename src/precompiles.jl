@@ -7,8 +7,8 @@ using PrecompileTools: @compile_workload, @setup_workload
     using Random: default_rng
     using .Aggregators: LikelihoodAbilityEstimator, MeanAbilityEstimator, GriddedAbilityTracker,
                         AbilityIntegrator
-    using .NextItemRules: preallocate, ExhaustiveSearch, ItemStrategyNextItemRule,
-                          ExpectationBasedItemCriterion, AbilityVarianceStateCriterion
+    using .NextItemRules: preallocate, ExhaustiveSearch, ItemCriterionRule,
+                          ExpectationBasedItemCriterion, AbilityVariance
     using .Stateful: Stateful
     using .ComputerAdaptiveTesting: CatRules
 
@@ -21,13 +21,13 @@ using PrecompileTools: @compile_workload, @setup_workload
         lh_grid_tracker = GriddedAbilityTracker(lh_ability_est, integrator)
         ability_integrator = AbilityIntegrator(integrator, lh_grid_tracker)
         ability_estimator = MeanAbilityEstimator(lh_ability_est, ability_integrator)
-        next_item_rule = ItemStrategyNextItemRule(
+        next_item_rule = ItemCriterionRule(
             ExhaustiveSearch(),
             ExpectationBasedItemCriterion(ability_estimator,
-                AbilityVarianceStateCriterion(ability_estimator)))
-        cat = Stateful.StatefulCatConfig(CatRules(;
+                AbilityVariance(ability_estimator)))
+        cat = Stateful.StatefulCatRules(CatRules(;
             next_item=next_item_rule,
-            termination_condition=TerminationConditions.RunForeverTerminationCondition(),
+            termination_condition=TerminationConditions.RunForever(),
             ability_estimator=ability_estimator
         ), item_bank)
         Stateful.add_response!(cat, 1, 0)

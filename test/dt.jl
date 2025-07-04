@@ -9,12 +9,12 @@ ability_estimator = MeanAbilityEstimator(LikelihoodAbilityEstimator(), integrato
 get_response = auto_responder(@view true_responses[:, 1])
 
 @testset "decision tree round trip" begin
-    next_item_rule = ItemStrategyNextItemRule(
-        AbilityVarianceStateCriterion(
+    next_item_rule = ItemCriterionRule(
+        AbilityVariance(
             distribution_estimator(ability_estimator), integrator),
         ability_estimator = ability_estimator
     )
-    termination_condition = FixedItemsTerminationCondition(4)
+    termination_condition = FixedLength(4)
 
     cat_rules = CatRules(
         next_item = next_item_rule,
