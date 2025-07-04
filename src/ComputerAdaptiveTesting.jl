@@ -13,9 +13,6 @@ export Stateful, Comparison
 # Extension modules
 public require_testext
 
-# Vendored dependencies
-include("./vendor/PushVectors.jl")
-
 # Config base
 include("./ConfigBase.jl")
 

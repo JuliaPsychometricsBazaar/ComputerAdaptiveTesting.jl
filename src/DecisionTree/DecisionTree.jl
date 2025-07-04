@@ -3,7 +3,6 @@ module DecisionTree
 using Mmap: mmap
 
 using ComputerAdaptiveTesting.ConfigBase: CatConfigBase
-using ComputerAdaptiveTesting.PushVectors
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.Aggregators
 using ComputerAdaptiveTesting.Responses: BareResponses, Response, add_response!, pop_response!
@@ -18,15 +17,19 @@ end
 Base.@kwdef mutable struct TreePosition
     max_depth::UInt
     cur_depth::UInt
-    todo::PushVector{AgendaItem, Vector{AgendaItem}}
+    todo::Vector{AgendaItem}
     parent_ability::Float64
 end
 
 function TreePosition(max_depth)
-    TreePosition(max_depth = max_depth,
+    todo = Vector{AgendaItem}()
+    sizehint!(todo, max_depth)
+    TreePosition(;
+        max_depth,
         cur_depth = 0,
-        todo = PushVector{AgendaItem}(max_depth),
-        parent_ability = 0.0)
+        todo,
+        parent_ability = 0.0
+    )
 end
 
 function next!(state::TreePosition, responses, item_bank, question, ability)
