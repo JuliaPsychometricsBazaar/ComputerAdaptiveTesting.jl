@@ -8,8 +8,7 @@ using PsychometricsBazaarBase.ConfigTools: @returnsome, find1_instance
 using FittedItemBanks
 import Base: show
 
-export TerminationCondition,
-       FixedLength, SimpleFunctionTerminationCondition
+export TerminationCondition, FixedLength, TerminationTest
 export RunForever
 
 """
@@ -37,12 +36,12 @@ function show(io::IO, ::MIME"text/plain", condition::FixedLength)
     println(io, "Terminate test after administering $(condition.num_items) items")
 end
 
-struct SimpleFunctionTerminationCondition{F} <: TerminationCondition
-    func::F
+struct TerminationTest{F} <: TerminationCondition
+    condition::F
 end
-function (condition::SimpleFunctionTerminationCondition)(responses::TrackedResponses,
+function (condition::TerminationTest)(responses::TrackedResponses,
         items::AbstractItemBank)
-    condition.func(responses, items)
+    condition.condition(responses, items)
 end
 
 struct RunForever <: TerminationCondition end
