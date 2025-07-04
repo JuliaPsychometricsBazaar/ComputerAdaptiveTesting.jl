@@ -23,19 +23,19 @@ include("./ConfigBase.jl")
 include("./Responses.jl")
 
 # Near base
-include("./aggregators/Aggregators.jl")
+include("./Aggregators/Aggregators.jl")
 
 # Extra item banks
 include("./logitembank.jl")
 
 # Stages
-include("./next_item_rules/NextItemRules.jl")
+include("./NextItemRules/NextItemRules.jl")
 include("./TerminationConditions.jl")
 
 # Combining / running
 include("./Rules.jl")
-include("./sim/Sim.jl")
-include("./decision_tree/DecisionTree.jl")
+include("./Sim/Sim.jl")
+include("./DecisionTree/DecisionTree.jl")
 
 # Stateful layer, compat, and comparison
 include("./Stateful.jl")
