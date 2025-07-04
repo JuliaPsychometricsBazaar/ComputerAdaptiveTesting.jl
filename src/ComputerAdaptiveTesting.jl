@@ -5,16 +5,13 @@ include("./hacks.jl")
 using Reexport: Reexport, @reexport
 
 # Modules
-export ConfigBase, Responses, Aggregators
+export Responses, Aggregators
 export NextItemRules, TerminationConditions
-export CatConfig, Sim, DecisionTree
+export Sim, DecisionTree
 export Stateful, Comparison
 
 # Extension modules
 public require_testext
-
-# Vendored dependencies
-include("./vendor/PushVectors.jl")
 
 # Config base
 include("./ConfigBase.jl")
@@ -23,26 +20,27 @@ include("./ConfigBase.jl")
 include("./Responses.jl")
 
 # Near base
-include("./aggregators/Aggregators.jl")
+include("./Aggregators/Aggregators.jl")
 
 # Extra item banks
 include("./logitembank.jl")
 
 # Stages
-include("./next_item_rules/NextItemRules.jl")
+include("./NextItemRules/NextItemRules.jl")
 include("./TerminationConditions.jl")
 
 # Combining / running
-include("./CatConfig.jl")
-include("./Sim.jl")
-include("./decision_tree/DecisionTree.jl")
+include("./Rules.jl")
+include("./Sim/Sim.jl")
+include("./DecisionTree/DecisionTree.jl")
 
-# Stateful layer and comparison
+# Stateful layer, compat, and comparison
 include("./Stateful.jl")
-include("./Comparison.jl")
+include("./Compat/Compat.jl")
+include("./Comparison/Comparison.jl")
 
-@reexport using .CatConfig: CatLoopConfig, CatRules
-@reexport using .Sim: run_cat
+@reexport using .Rules: CatRules
+@reexport using .Sim: CatLoop, run_cat
 @reexport using .NextItemRules: preallocate
 
 include("./precompiles.jl")

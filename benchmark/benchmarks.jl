@@ -8,7 +8,6 @@ using FittedItemBanks.DummyData: dummy_full, SimpleItemBankSpec, StdModel4PL
 using ComputerAdaptiveTesting.Aggregators
 using PsychometricsBazaarBase.Optimizers
 using PsychometricsBazaarBase.Integrators: even_grid
-using ComputerAdaptiveTesting.NextItemRules: mirtcat_quadpts
 using ComputerAdaptiveTesting.NextItemRules: ExpectationBasedItemCriterion,
                                              PointResponseExpectation
 using ComputerAdaptiveTesting.NextItemRules
@@ -27,10 +26,10 @@ function prepare_4pls(group)
         num_questions = 20,
         num_testees = 1
     )
-    integrator = even_grid(-6.0, 6.0, mirtcat_quadpts(1))
+    integrator = even_grid(-6.0, 6.0, 121)
     optimizer = AbilityOptimizer(OneDimOptimOptimizer(-6.0, 6.0, NelderMead()))
 
-    dist_ability_estimator = PriorAbilityEstimator()
+    dist_ability_estimator = PosteriorAbilityEstimator()
     ability_estimators = [
         ("mean", MeanAbilityEstimator(dist_ability_estimator, integrator)),
         ("mode", ModeAbilityEstimator(dist_ability_estimator, optimizer))
@@ -38,10 +37,10 @@ function prepare_4pls(group)
     response_idxs = sample(rng, 1:20, 10)
 
     for (est_nick, ability_estimator) in ability_estimators
-        next_item_rule = ItemStrategyNextItemRule(
+        next_item_rule = ItemCriterionRule(
             ExhaustiveSearch(),
             ExpectationBasedItemCriterion(PointResponseExpectation(ability_estimator),
-                AbilityVarianceStateCriterion(
+                AbilityVariance(
                     integrator, distribution_estimator(ability_estimator)))
         )
         next_item_rule = preallocate(next_item_rule)

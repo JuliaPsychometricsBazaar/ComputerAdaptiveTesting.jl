@@ -7,14 +7,14 @@ module Stateful
 
 using DocStringExtensions
 
-using FittedItemBanks: AbstractItemBank, ResponseType, ItemResponse, resp
-using ..Aggregators: TrackedResponses, Aggregators
-using ..CatConfig: CatLoopConfig, CatRules
+using FittedItemBanks: AbstractItemBank, ResponseType, ItemResponse, resp_vec
+using ..Aggregators: TrackedResponses, Aggregators, pdf, distribution_estimator
+using ..Rules: CatRules
 using ..Responses: BareResponses, Response, Responses
 using ..NextItemRules: compute_criteria, best_item
-using ..Sim: Sim, item_label
+using ..Sim: CatLoop, Sim, item_label
 
-export StatefulCat, StatefulCatConfig
+export StatefulCat, StatefulCatRules
 public next_item, ranked_items, item_criteria
 public add_response!, rollback!, reset!, get_responses, get_ability
 
@@ -45,6 +45,7 @@ $(FUNCTIONNAME)(config::StatefulCat) -> AbstractVector{IndexT}
 Return a vector of indices of the sorted from best to worst item according to the CAT.
 """
 function ranked_items end
+function ranked_items(::StatefulCat) nothing end
 
 """
 ```julia
@@ -56,6 +57,7 @@ Returns a vector of criteria values for each item in the item bank.
 The criteria can vary, but should attempt to interoperate with ComputerAdaptiveTesting.jl.
 """
 function item_criteria end
+function item_criteria(::StatefulCat) nothing end
 
 """
 ```julia
@@ -126,6 +128,15 @@ function get_ability end
 
 """
 ```julia
+$(FUNCTIONNAME)(config::StatefulCat, ability::AbilityT) -> Float64
+```
+
+TODO
+"""
+function likelihood end
+
+"""
+```julia
 $(FUNCTIONNAME)(config::StatefulCat)
 ````
 
@@ -135,16 +146,17 @@ function item_bank_size end
 
 """
 ```julia
-$(FUNCTIONNAME)(config::StatefulCat, index::IndexT, response::ResponseT, ability::AbilityT) -> Float
+$(FUNCTIONNAME)(config::StatefulCat, index::IndexT, ability::AbilityT) -> AbstractVector{Float}
 ````
 
-Return the probability of a `response` to item at `index` for someone with
-a certain `ability` according to the IRT model backing the CAT.
+Return the vector of probability of different responses to item at
+`index` for someone with a certain `ability` according to the IRT
+model backing the CAT.
 """
-function item_response_function end
+function item_response_functions end
 
 ## Running the CAT
-function Sim.run_cat(cat_config::CatLoopConfig{RulesT},
+function Sim.run_cat(cat_config::CatLoop{RulesT},
         ib_labels = nothing) where {RulesT <: StatefulCat}
     (; stateful_cat, get_response, new_response_callback) = cat_config
     while true
@@ -178,51 +190,57 @@ $(TYPEDSIGNATURES)
 This is a the `StatefulCat` implementation in terms of `CatRules`.
 It is also the de-facto standard for the behavior of the interface.
 """
-struct StatefulCatConfig{TrackedResponsesT <: TrackedResponses} <: StatefulCat
+struct StatefulCatRules{TrackedResponsesT <: TrackedResponses} <: StatefulCat
     rules::CatRules
     tracked_responses::Ref{TrackedResponsesT}
 end
 
-function StatefulCatConfig(rules::CatRules, item_bank::AbstractItemBank)
+function StatefulCatRules(rules::CatRules, item_bank::AbstractItemBank)
     bare_responses = BareResponses(ResponseType(item_bank))
     tracked_responses = TrackedResponses(
         bare_responses,
         item_bank,
         rules.ability_tracker
     )
-    return StatefulCatConfig(rules, Ref(tracked_responses))
+    return StatefulCatRules(rules, Ref(tracked_responses))
 end
 
-function next_item(config::StatefulCatConfig)
+StatefulCat(rules::CatRules, item_bank::AbstractItemBank) = StatefulCatRules(rules, item_bank)
+
+function next_item(config::StatefulCatRules)
     return best_item(config.rules.next_item, config.tracked_responses[])
 end
 
-function ranked_items(config::StatefulCatConfig)
-    return sortperm(compute_criteria(
-        config.rules.next_item, config.tracked_responses[]))
+function ranked_items(config::StatefulCatRules)
+    criteria = compute_criteria(
+        config.rules.next_item, config.tracked_responses[])
+    if criteria === nothing
+        return nothing
+    end
+    return sortperm(criteria)
 end
 
-function item_criteria(config::StatefulCatConfig)
+function item_criteria(config::StatefulCatRules)
     return compute_criteria(
         config.rules.next_item, config.tracked_responses[])
 end
 
-function add_response!(config::StatefulCatConfig, index, response)
+function add_response!(config::StatefulCatRules, index, response)
     tracked_responses = config.tracked_responses[]
     Responses.add_response!(
         tracked_responses, Response(
             ResponseType(tracked_responses.item_bank), index, response))
 end
 
-function rollback!(config::StatefulCatConfig)
+function rollback!(config::StatefulCatRules)
     Responses.pop_response!(config.tracked_responses[])
 end
 
-function reset!(config::StatefulCatConfig)
+function reset!(config::StatefulCatRules)
     empty!(config.tracked_responses[])
 end
 
-function set_item_bank!(config::StatefulCatConfig, item_bank)
+function set_item_bank!(config::StatefulCatRules, item_bank)
     bare_responses = BareResponses(ResponseType(item_bank))
     config.tracked_responses[] = TrackedResponses(
         bare_responses,
@@ -231,22 +249,26 @@ function set_item_bank!(config::StatefulCatConfig, item_bank)
     )
 end
 
-function get_responses(config::StatefulCatConfig)
+function get_responses(config::StatefulCatRules)
     return config.tracked_responses[].responses
 end
 
-function get_ability(config::StatefulCatConfig)
+function get_ability(config::StatefulCatRules)
     return (config.rules.ability_estimator(config.tracked_responses[]), nothing)
 end
 
-function item_bank_size(config::StatefulCatConfig)
+function likelihood(config::StatefulCatRules, ability)
+    pdf(distribution_estimator(config.rules.ability_estimator), config.tracked_responses[], ability)
+end
+
+function item_bank_size(config::StatefulCatRules)
     return length(config.tracked_responses[].item_bank)
 end
 
-function item_response_function(config::StatefulCatConfig, index, response, ability)
+function item_response_functions(config::StatefulCatRules, index, ability)
     item_bank = config.tracked_responses[].item_bank
     item_response = ItemResponse(item_bank, index)
-    return resp(item_response, response, ability)
+    return resp_vec(item_response, ability)
 end
 
 ## TODO: Implementation for MaterializedDecisionTree

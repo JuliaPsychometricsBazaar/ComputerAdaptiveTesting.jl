@@ -2,12 +2,9 @@
 *.jl.cov
 *.jl.mem
 Manifest.toml
-!/docs/Manifest.toml
-!/test/Manifest.toml
 !/binder/Manifest.toml
-/attic/
+attic/
 /.vscode/
-/docs/attic/
 /docs/build/
 /docs/.CondaPkg/
 /docs/LocalPreferences.toml

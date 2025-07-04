@@ -3,11 +3,10 @@
     using FittedItemBanks.DummyData: dummy_full
     using FittedItemBanks: OneDimContinuousDomain, SimpleItemBankSpec, StdModel3PL,
                         BooleanResponse
-    using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
+    using ComputerAdaptiveTesting.TerminationConditions: FixedLength
     using ComputerAdaptiveTesting.NextItemRules: RandomNextItemRule
     using ComputerAdaptiveTesting: Stateful
     using ComputerAdaptiveTesting: require_testext
-    using ResumableFunctions
     using Test: @test, @testset
 
     include("./dummy.jl")
@@ -24,15 +23,15 @@
         num_testees = 2
     )
 
-    @testset "StatefulCatConfig basic usage" begin
+    @testset "StatefulCatRules basic usage" begin
         rules = CatRules(
-            FixedItemsTerminationCondition(2),
+            FixedLength(2),
             Dummy.DummyAbilityEstimator(0.0),
             RandomNextItemRule()
         )
 
         # Initialize config
-        cat_config = Stateful.StatefulCatConfig(rules, item_bank)
+        cat_config = Stateful.StatefulCatRules(rules, item_bank)
 
         # Test initialization state
         @test isempty(Stateful.get_responses(cat_config))
@@ -54,11 +53,11 @@
 
     @testset "Stateful next item selection" begin
         rules = CatRules(
-            FixedItemsTerminationCondition(2),
+            FixedLength(2),
             Dummy.DummyAbilityEstimator(0.0),
             RandomNextItemRule()
         )
-        cat_config = Stateful.StatefulCatConfig(rules, item_bank)
+        cat_config = Stateful.StatefulCatRules(rules, item_bank)
 
         # Test first item selection
         first_item = Stateful.next_item(cat_config)
@@ -73,13 +72,13 @@
 
     @testset "Standard interface tests" begin
         rules = CatRules(
-            FixedItemsTerminationCondition(2),
+            FixedLength(2),
             Dummy.DummyAbilityEstimator(0.0),
             RandomNextItemRule()
         )
 
         # Initialize config
-        cat_config = Stateful.StatefulCatConfig(rules, item_bank)
+        cat_config = Stateful.StatefulCatRules(rules, item_bank)
 
         # Run the standard interface tests
         TestExt = require_testext()

@@ -6,10 +6,10 @@ using ..Aggregators: TrackedResponses
 using ..ConfigBase
 using PsychometricsBazaarBase.ConfigTools: @returnsome, find1_instance
 using FittedItemBanks
+import Base: show
 
-export TerminationCondition,
-       FixedItemsTerminationCondition, SimpleFunctionTerminationCondition
-export RunForeverTerminationCondition
+export TerminationCondition, FixedLength, TerminationTest
+export RunForever
 
 """
 $(TYPEDEF)
@@ -24,24 +24,28 @@ end
 $(TYPEDEF)
 $(TYPEDFIELDS)
 """
-struct FixedItemsTerminationCondition{} <: TerminationCondition
+struct FixedLength{} <: TerminationCondition
     num_items::Int64
 end
-function (condition::FixedItemsTerminationCondition)(responses::TrackedResponses,
+function (condition::FixedLength)(responses::TrackedResponses,
         items::AbstractItemBank)
     length(responses) >= condition.num_items
 end
 
-struct SimpleFunctionTerminationCondition{F} <: TerminationCondition
-    func::F
-end
-function (condition::SimpleFunctionTerminationCondition)(responses::TrackedResponses,
-        items::AbstractItemBank)
-    condition.func(responses, items)
+function show(io::IO, ::MIME"text/plain", condition::FixedLength)
+    println(io, "Terminate test after administering $(condition.num_items) items")
 end
 
-struct RunForeverTerminationCondition <: TerminationCondition end
-function (condition::RunForeverTerminationCondition)(::TrackedResponses, ::AbstractItemBank)
+struct TerminationTest{F} <: TerminationCondition
+    condition::F
+end
+function (condition::TerminationTest)(responses::TrackedResponses,
+        items::AbstractItemBank)
+    condition.condition(responses, items)
+end
+
+struct RunForever <: TerminationCondition end
+function (condition::RunForever)(::TrackedResponses, ::AbstractItemBank)
     return false
 end
 

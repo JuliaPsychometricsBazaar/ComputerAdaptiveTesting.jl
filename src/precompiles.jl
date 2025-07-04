@@ -7,8 +7,10 @@ using PrecompileTools: @compile_workload, @setup_workload
     using Random: default_rng
     using .Aggregators: LikelihoodAbilityEstimator, MeanAbilityEstimator, GriddedAbilityTracker,
                         AbilityIntegrator
-    using .NextItemRules: catr_next_item_aliases, preallocate
+    using .NextItemRules: preallocate, ExhaustiveSearch, ItemCriterionRule,
+                          ExpectationBasedItemCriterion, AbilityVariance
     using .Stateful: Stateful
+    using .ComputerAdaptiveTesting: CatRules
 
     rng = default_rng(42)
     spec = SimpleItemBankSpec(StdModel2PL(), OneDimContinuousDomain(), BooleanResponse())
@@ -19,10 +21,13 @@ using PrecompileTools: @compile_workload, @setup_workload
         lh_grid_tracker = GriddedAbilityTracker(lh_ability_est, integrator)
         ability_integrator = AbilityIntegrator(integrator, lh_grid_tracker)
         ability_estimator = MeanAbilityEstimator(lh_ability_est, ability_integrator)
-        next_item_rule = catr_next_item_aliases["MEPV"](ability_estimator)
-        cat = Stateful.StatefulCatConfig(CatConfig.CatRules(;
+        next_item_rule = ItemCriterionRule(
+            ExhaustiveSearch(),
+            ExpectationBasedItemCriterion(ability_estimator,
+                AbilityVariance(ability_estimator)))
+        cat = Stateful.StatefulCatRules(CatRules(;
             next_item=next_item_rule,
-            termination_condition=TerminationConditions.RunForeverTerminationCondition(),
+            termination_condition=TerminationConditions.RunForever(),
             ability_estimator=ability_estimator
         ), item_bank)
         Stateful.add_response!(cat, 1, 0)

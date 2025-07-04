@@ -1,5 +1,17 @@
 #(item_bank, abilities, responses) = dummy_full(Random.default_rng(42), SimpleItemBankSpec(StdModel4PL(), VectorContinuousDomain(), BooleanResponse()), 2; num_questions=100, num_testees=3)
 
+using Random
+using ComputerAdaptiveTesting
+using ComputerAdaptiveTesting.Aggregators
+using ComputerAdaptiveTesting.TerminationConditions
+using ComputerAdaptiveTesting.Sim
+using FittedItemBanks
+using FittedItemBanks.DummyData: dummy_full, SimpleItemBankSpec, StdModel3PL,
+                                 VectorContinuousDomain, BooleanResponse, std_normal
+
+include("./dummy.jl")
+using .Dummy
+
 @testset "Smoke test 1d" begin
     (item_bank, abilities, true_responses) = dummy_full(
         Random.default_rng(42),
@@ -10,13 +22,13 @@
 
     function test1d(ability_estimator, bits...)
         rules = CatRules(
-            FixedItemsTerminationCondition(2),
+            FixedLength(2),
             ability_estimator,
             bits...
         )
         for testee_idx in axes(true_responses, 2)
             responses, ability = run_cat(
-                CatLoopConfig(
+                CatLoop(
                     rules = rules,
                     get_response = auto_responder(@view true_responses[:, testee_idx])
                 ),

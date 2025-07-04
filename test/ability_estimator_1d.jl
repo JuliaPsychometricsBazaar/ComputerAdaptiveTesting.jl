@@ -32,7 +32,7 @@ tracked_responses_1d = TrackedResponses(responses_1d, item_bank_1d, NullAbilityT
 integrator_1d = AbilityIntegrator(FixedGKIntegrator(-6.0, 6.0, 61))
 optimizer_1d = AbilityOptimizer(OneDimOptimOptimizer(-6.0, 6.0, NelderMead()))
 lh_est_1d = LikelihoodAbilityEstimator()
-pa_est_1d = PriorAbilityEstimator(Normal(1.0, 0.2))
+pa_est_1d = PosteriorAbilityEstimator(Normal(1.0, 0.2))
 eap_1d = MeanAbilityEstimator(pa_est_1d, integrator_1d)
 map_1d = ModeAbilityEstimator(pa_est_1d, optimizer_1d)
 mle_mean_1d = MeanAbilityEstimator(lh_est_1d, integrator_1d)
@@ -72,7 +72,7 @@ mle_mode_1d = ModeAbilityEstimator(lh_est_1d, optimizer_1d)
         )
     end
 
-    ability_variance_state_criterion = AbilityVarianceStateCriterion(
+    ability_variance_state_criterion = AbilityVariance(
         lh_est_1d, integrator_1d)
     ability_variance_item_criterion = ExpectationBasedItemCriterion(
         mle_mean_1d,
