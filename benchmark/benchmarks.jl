@@ -8,7 +8,6 @@ using FittedItemBanks.DummyData: dummy_full, SimpleItemBankSpec, StdModel4PL
 using ComputerAdaptiveTesting.Aggregators
 using PsychometricsBazaarBase.Optimizers
 using PsychometricsBazaarBase.Integrators: even_grid
-using ComputerAdaptiveTesting.NextItemRules: mirtcat_quadpts
 using ComputerAdaptiveTesting.NextItemRules: ExpectationBasedItemCriterion,
                                              PointResponseExpectation
 using ComputerAdaptiveTesting.NextItemRules
@@ -27,7 +26,7 @@ function prepare_4pls(group)
         num_questions = 20,
         num_testees = 1
     )
-    integrator = even_grid(-6.0, 6.0, mirtcat_quadpts(1))
+    integrator = even_grid(-6.0, 6.0, 121)
     optimizer = AbilityOptimizer(OneDimOptimOptimizer(-6.0, 6.0, NelderMead()))
 
     dist_ability_estimator = PosteriorAbilityEstimator()
