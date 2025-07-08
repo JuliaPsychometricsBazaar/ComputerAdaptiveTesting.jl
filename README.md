@@ -1,8 +1,8 @@
 # ComputerAdaptiveTesting
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://frankier.github.io/ComputerAdaptiveTesting.jl/stable)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://frankier.github.io/ComputerAdaptiveTesting.jl/dev)
-[![Build Status](https://github.com/frankier/ComputerAdaptiveTesting.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/frankier/ComputerAdaptiveTesting.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliapsychometricsbazaar.github.io/ComputerAdaptiveTesting.jl/stable/)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliapsychometricsbazaar.github.io/ComputerAdaptiveTesting.jl/dev/)
+[![Build Status](https://github.com/JuliaPsychometricsBazaar/ComputerAdaptiveTesting.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/JuliaPsychometricsBazaar/ComputerAdaptiveTesting.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 ## What is it?
 
