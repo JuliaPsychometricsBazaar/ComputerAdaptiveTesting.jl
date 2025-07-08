@@ -34,6 +34,9 @@ Abstract base type all criteria should inherit from
 abstract type CriterionBase <: CatConfigBase end
 abstract type SubItemCriterionBase <: CatConfigBase end
 
+"""
+$(TYPEDEF)
+"""
 abstract type ItemCriterion <: CatConfigBase end
 
 """
