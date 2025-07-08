@@ -7,8 +7,8 @@ using AlgebraOfGraphics
 using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.Sim: auto_responder
 using ComputerAdaptiveTesting.NextItemRules: DRuleItemCriterion
-using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
-using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator,
+using ComputerAdaptiveTesting.TerminationConditions: FixedLength
+using ComputerAdaptiveTesting.Aggregators: PosteriorAbilityEstimator,
     MeanAbilityEstimator, LikelihoodAbilityEstimator
 using FittedItemBanks
 import PsychometricsBazaarBase.IntegralCoeffs
@@ -24,11 +24,11 @@ using ComputerAdaptiveTesting.Responses: BooleanResponse</code></pre><p>TODO: pa
     num_questions = 10,
     num_testees = 2)</code></pre><p>Simulate a CAT for each testee and record it using CatRecorder. CatRecorder collects information which can be used to draw different types of plots.</p><pre><code class="language-julia hljs">max_questions = 9
 integrator = CubaIntegrator([-6.0, -6.0], [6.0, 6.0], CubaVegas(); rtol = 1e-2)
-ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(dims)),
+ability_estimator = MeanAbilityEstimator(PosteriorAbilityEstimator(std_mv_normal(dims)),
     integrator)
 rules = CatRules(ability_estimator,
     DRuleItemCriterion(ability_estimator),
-    FixedItemsTerminationCondition(max_questions))</code></pre><p>XXX: We shouldn&#39;t need to specify xs here since the distributions are not used – rework</p><pre><code class="language-julia hljs">points = 3
+    FixedLength(max_questions))</code></pre><p>XXX: We shouldn&#39;t need to specify xs here since the distributions are not used – rework</p><pre><code class="language-julia hljs">points = 3
 xs = repeat(range(-2.5, 2.5, length = points)&#39;, dims, 1)
 raw_estimator = LikelihoodAbilityEstimator()
 recorder = CatRecorder(xs,
@@ -39,7 +39,7 @@ recorder = CatRecorder(xs,
     abilities)
 for testee_idx in axes(responses, 2)
     @debug &quot;Running for testee&quot; testee_idx
-    tracked_responses, θ = run_cat(CatLoopConfig(rules = rules,
+    tracked_responses, θ = run_cat(CatLoop(rules = rules,
             get_response = auto_responder(@view responses[:, testee_idx]),
             new_response_callback = (tracked_responses, terminating) -&gt; recorder(tracked_responses,
                 testee_idx,
@@ -49,4 +49,4 @@ for testee_idx in axes(responses, 2)
     abs_err = sum(abs.(θ .- true_θ))
     @info &quot;convergence&quot; true_θ θ abs_err
 end</code></pre><p>Make a plot showing how the estimated value converges during the CAT.</p><pre><code class="language-julia hljs">conv_lines_fig = ability_convergence_lines(recorder; abilities = abilities)
-conv_lines_fig</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/JuliaDocs/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.10.1 on <span class="colophon-date" title="Friday 18 April 2025 06:26">Friday 18 April 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+conv_lines_fig</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/JuliaDocs/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.13.0 on <span class="colophon-date" title="Tuesday 8 July 2025 11:48">Tuesday 8 July 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

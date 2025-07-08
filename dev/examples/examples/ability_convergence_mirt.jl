@@ -6,8 +6,8 @@ using AlgebraOfGraphics
 using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.Sim: auto_responder
 using ComputerAdaptiveTesting.NextItemRules: DRuleItemCriterion
-using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
-using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator,
+using ComputerAdaptiveTesting.TerminationConditions: FixedLength
+using ComputerAdaptiveTesting.Aggregators: PosteriorAbilityEstimator,
     MeanAbilityEstimator, LikelihoodAbilityEstimator
 using FittedItemBanks
 import PsychometricsBazaarBase.IntegralCoeffs
@@ -29,11 +29,11 @@ using ComputerAdaptiveTesting.Responses: BooleanResponse
 
 max_questions = 9
 integrator = CubaIntegrator([-6.0, -6.0], [6.0, 6.0], CubaVegas(); rtol = 1e-2)
-ability_estimator = MeanAbilityEstimator(PriorAbilityEstimator(std_mv_normal(dims)),
+ability_estimator = MeanAbilityEstimator(PosteriorAbilityEstimator(std_mv_normal(dims)),
     integrator)
 rules = CatRules(ability_estimator,
     DRuleItemCriterion(ability_estimator),
-    FixedItemsTerminationCondition(max_questions))
+    FixedLength(max_questions))
 
 points = 3
 xs = repeat(range(-2.5, 2.5, length = points)', dims, 1)
@@ -46,7 +46,7 @@ recorder = CatRecorder(xs,
     abilities)
 for testee_idx in axes(responses, 2)
     @debug "Running for testee" testee_idx
-    tracked_responses, θ = run_cat(CatLoopConfig(rules = rules,
+    tracked_responses, θ = run_cat(CatLoop(rules = rules,
             get_response = auto_responder(@view responses[:, testee_idx]),
             new_response_callback = (tracked_responses, terminating) -> recorder(tracked_responses,
                 testee_idx,

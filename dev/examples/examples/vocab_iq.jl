@@ -22,13 +22,13 @@ function run_vocab_iq_cat()
     item_bank, labels = get_item_bank()
     integrator = FixedGKIntegrator(-6, 6, 61)
     ability_integrator = AbilityIntegrator(integrator)
-    dist_ability_est = PriorAbilityEstimator(std_normal)
+    dist_ability_est = PosteriorAbilityEstimator(std_normal)
     optimizer = AbilityOptimizer(OneDimOptimOptimizer(-6.0, 6.0, NelderMead()))
     ability_estimator = ModeAbilityEstimator(dist_ability_est, optimizer)
     @info "run_cat" ability_estimator
     rules = CatRules(ability_estimator,
-        AbilityVarianceStateCriterion(dist_ability_est, ability_integrator),
-        FixedItemsTerminationCondition(45))
+        AbilityVariance(dist_ability_est, ability_integrator),
+        FixedLength(45))
     function get_response(response_idx, response_name)
         params = item_params(item_bank, response_idx)
         println("Parameters for next question: $params")
@@ -48,7 +48,7 @@ function run_vocab_iq_cat()
         println("Got ability estimate: $ability ± $var")
         println("")
     end
-    loop_config = CatLoopConfig(rules = rules,
+    loop_config = CatLoop(rules = rules,
         get_response = get_response,
         new_response_callback = new_response_callback)
     run_cat(loop_config, item_bank)

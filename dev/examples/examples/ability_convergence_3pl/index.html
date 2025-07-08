@@ -6,9 +6,9 @@ using Distributions: Normal, cdf
 using AlgebraOfGraphics
 using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.Sim: auto_responder
-using ComputerAdaptiveTesting.NextItemRules: AbilityVarianceStateCriterion
-using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
-using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator,
+using ComputerAdaptiveTesting.NextItemRules: AbilityVariance
+using ComputerAdaptiveTesting.TerminationConditions: FixedLength
+using ComputerAdaptiveTesting.Aggregators: PosteriorAbilityEstimator,
     MeanAbilityEstimator, LikelihoodAbilityEstimator
 using FittedItemBanks
 using ComputerAdaptiveTesting.Responses: BooleanResponse
@@ -23,18 +23,18 @@ using AdaptiveTestPlots
     num_questions = 100,
     num_testees = 3)</code></pre><p>Simulate a CAT for each testee and record it using CatRecorder. CatRecorder collects information which can be used to draw different types of plots.</p><pre><code class="language-julia hljs">max_questions = 99
 integrator = FixedGKIntegrator(-6, 6, 80)
-dist_ability_est = PriorAbilityEstimator(std_normal)
+dist_ability_est = PosteriorAbilityEstimator(std_normal)
 ability_estimator = MeanAbilityEstimator(dist_ability_est, integrator)
 rules = CatRules(ability_estimator,
-    AbilityVarianceStateCriterion(dist_ability_est, integrator),
-    FixedItemsTerminationCondition(max_questions))
+    AbilityVariance(dist_ability_est, integrator),
+    FixedLength(max_questions))
 
 points = 500
 xs = range(-2.5, 2.5, length = points)
 raw_estimator = LikelihoodAbilityEstimator()
 recorder = CatRecorder(xs, responses, integrator, raw_estimator, ability_estimator)
 for testee_idx in axes(responses, 2)
-    tracked_responses, θ = run_cat(CatLoopConfig(rules = rules,
+    tracked_responses, θ = run_cat(CatLoop(rules = rules,
             get_response = auto_responder(@view responses[:, testee_idx]),
             new_response_callback = (tracked_responses, terminating) -&gt; recorder(tracked_responses,
                 testee_idx,
@@ -44,4 +44,4 @@ for testee_idx in axes(responses, 2)
     abs_err = abs(θ - true_θ)
 end</code></pre><p>Make a plot showing how the estimated value evolves during the CAT. We also plot the &#39;true&#39; values used to generate the responses.</p><pre><code class="language-julia hljs">conv_lines_fig = ability_evolution_lines(recorder; abilities = abilities)
 conv_lines_fig</code></pre><p>Make an interactive plot, showing how the distribution of the ability likelihood evolves.</p><pre><code class="language-julia hljs">conv_dist_fig = lh_evolution_interactive(recorder; abilities = abilities)
-conv_dist_fig</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/JuliaDocs/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.10.1 on <span class="colophon-date" title="Friday 18 April 2025 06:26">Friday 18 April 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+conv_dist_fig</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/JuliaDocs/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.13.0 on <span class="colophon-date" title="Tuesday 8 July 2025 11:48">Tuesday 8 July 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

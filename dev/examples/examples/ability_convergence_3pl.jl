@@ -5,9 +5,9 @@ using Distributions: Normal, cdf
 using AlgebraOfGraphics
 using ComputerAdaptiveTesting
 using ComputerAdaptiveTesting.Sim: auto_responder
-using ComputerAdaptiveTesting.NextItemRules: AbilityVarianceStateCriterion
-using ComputerAdaptiveTesting.TerminationConditions: FixedItemsTerminationCondition
-using ComputerAdaptiveTesting.Aggregators: PriorAbilityEstimator,
+using ComputerAdaptiveTesting.NextItemRules: AbilityVariance
+using ComputerAdaptiveTesting.TerminationConditions: FixedLength
+using ComputerAdaptiveTesting.Aggregators: PosteriorAbilityEstimator,
     MeanAbilityEstimator, LikelihoodAbilityEstimator
 using FittedItemBanks
 using ComputerAdaptiveTesting.Responses: BooleanResponse
@@ -26,18 +26,18 @@ using FittedItemBanks.DummyData: dummy_full, std_normal, SimpleItemBankSpec, Std
 
 max_questions = 99
 integrator = FixedGKIntegrator(-6, 6, 80)
-dist_ability_est = PriorAbilityEstimator(std_normal)
+dist_ability_est = PosteriorAbilityEstimator(std_normal)
 ability_estimator = MeanAbilityEstimator(dist_ability_est, integrator)
 rules = CatRules(ability_estimator,
-    AbilityVarianceStateCriterion(dist_ability_est, integrator),
-    FixedItemsTerminationCondition(max_questions))
+    AbilityVariance(dist_ability_est, integrator),
+    FixedLength(max_questions))
 
 points = 500
 xs = range(-2.5, 2.5, length = points)
 raw_estimator = LikelihoodAbilityEstimator()
 recorder = CatRecorder(xs, responses, integrator, raw_estimator, ability_estimator)
 for testee_idx in axes(responses, 2)
-    tracked_responses, θ = run_cat(CatLoopConfig(rules = rules,
+    tracked_responses, θ = run_cat(CatLoop(rules = rules,
             get_response = auto_responder(@view responses[:, testee_idx]),
             new_response_callback = (tracked_responses, terminating) -> recorder(tracked_responses,
                 testee_idx,
