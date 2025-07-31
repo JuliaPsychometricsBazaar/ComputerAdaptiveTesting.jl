@@ -14,3 +14,4 @@ attic/
 /full/Project.toml
 .CondaPkg/
 LocalPreferences.toml
+/.claude/settings.local.json
