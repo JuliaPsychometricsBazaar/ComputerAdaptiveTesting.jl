@@ -1,0 +1,77 @@
+{
+  "name": "ComputerAdaptiveTesting.jl Dev Environment",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "TZ": "${localEnv:TZ:America/Los_Angeles}",
+      "JULIA_VERSION": "1.11",
+      "GIT_DELTA_VERSION": "0.18.2",
+      "ZSH_IN_DOCKER_VERSION": "1.2.0"
+    }
+  },
+  "runArgs": [
+    "--cap-add=NET_ADMIN",
+    "--cap-add=NET_RAW"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "julialang.language-julia",
+        "ms-vscode.vscode-json",
+        "streetsidesoftware.code-spell-checker",
+        "ms-vscode.test-adapter-converter",
+        "ms-vscode.vscode-markdown",
+        "davidanson.vscode-markdownlint",
+        "ms-toolsai.jupyter",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "julia.executablePath": "/usr/local/julia/bin/julia",
+        "julia.enableTelemetry": false,
+        "julia.symbolCacheDownload": true,
+        "julia.enableCrashReporter": false,
+        "julia.lint.run": true,
+        "julia.lint.missingRefDoc": "all",
+        "julia.lint.disabledDirs": ["test"],
+        "julia.format.indent": 4,
+        "editor.formatOnSave": true,
+        "editor.rulers": [92],
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          },
+          "zsh": {
+            "path": "zsh"
+          }
+        }
+      }
+    }
+  },
+  "remoteUser": "julia",
+  "mounts": [
+    "source=computeradaptivetesting-julia-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+    "source=computeradaptivetesting-julia-depot-${devcontainerId},target=/home/julia/.julia,type=volume"
+  ],
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace",
+  "containerEnv": {
+    "JULIA_DEPOT_PATH": "/home/julia/.julia",
+    "DEVCONTAINER": "true"
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "forwardPorts": [8000, 8888],
+  "portsAttributes": {
+    "8000": {
+      "label": "Development Server",
+      "onAutoForward": "notify"
+    },
+    "8888": {
+      "label": "Jupyter",
+      "onAutoForward": "notify"
+    }
+  }
+}
