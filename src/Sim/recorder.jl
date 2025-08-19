@@ -255,14 +255,24 @@ function name_to_label(name)
     titlecase(join(split(String(name), "_"), " "))
 end
 
+function hasallkeys(haystack, needles...)
+    return all(n in keys(haystack) for n in needles)
+end
+
 function CatRecorder(dims::Int, expected_responses::Int; requests...)
     out = []
     sizehint!(out, length(requests))
     for (name, request) in pairs(requests)
         extra = (;)
+        if !haskey(request, :type)
+            error("Must provide `type` for $name.")
+        end
         if request.type in (:ability, :ability_stddev)
             data = empty_capacity(Float64, expected_responses)
         elseif request.type == :ability_distribution
+            if !hasallkeys(request, :points, :estimator, :integrator)
+                error("Must provide `points`, `estimator`, and `integrator` for $name.")
+            end
             if dims == 0
                 data = empty_capacity(Float64, length(request.points), expected_responses)
             else

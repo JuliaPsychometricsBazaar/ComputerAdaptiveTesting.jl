@@ -52,6 +52,7 @@ export FunctionOptimizer, FunctionIntegrator
 export DistributionAbilityEstimator
 export variance, variance_given_mean, mean_1d
 export RiemannEnumerationIntegrator
+export get_integrator
 # export EnumerationOptimizer
 
 # Basic types
@@ -198,6 +199,10 @@ end
 
 struct FunctionIntegrator{IntegratorT <: Integrator} <: AbilityIntegrator
     integrator::IntegratorT
+end
+
+function get_integrator(integrator::FunctionIntegrator)
+    return integrator.integrator
 end
 
 function (integrator::FunctionIntegrator{IntegratorT})(f::F,

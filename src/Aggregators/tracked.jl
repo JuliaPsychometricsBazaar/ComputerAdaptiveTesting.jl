@@ -20,6 +20,10 @@ struct TrackedLikelihoodIntegrator{IntegratorT <: Integrator} <: AbilityIntegrat
     tracker::GriddedAbilityTracker
 end
 
+function get_integrator(integrator::TrackedLikelihoodIntegrator)
+    return integrator.integrator
+end
+
 function (integrator::TrackedLikelihoodIntegrator{IntegratorT})(f::F,
         ncomp) where {F, IntegratorT}
     integrator.integrator(FunctionArgProduct(f), integrator.tracker.cur_ability, ncomp)
