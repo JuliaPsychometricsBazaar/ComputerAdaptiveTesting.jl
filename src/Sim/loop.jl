@@ -27,6 +27,15 @@ struct CatLoop{CatEngineT} <: CatConfigBase
     new_response_callback
 end
 
+function show(io::IO, ::MIME"text/plain", rules::CatLoop)
+    print(io, "Next item rule: ")
+    show(io, MIME("text/plain"), rules.next_item)
+    print(io, "Termination condition: ")
+    show(io, MIME("text/plain"), rules.termination_condition)
+    print(io, "Ability estimator: ")
+    show(io, MIME("text/plain"), rules.ability_estimator)
+end
+
 function CatLoop(;
     rules,
     get_response,
