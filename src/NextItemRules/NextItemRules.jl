@@ -56,7 +56,7 @@ export PointResponseExpectation, DistributionResponseExpectation
 export MatrixScalarizer, DeterminantScalarizer, TraceScalarizer
 export AbilityCovarianceStateMultiCriterion, StateMultiCriterion, ItemMultiCriterion
 export InformationMatrixCriteria
-export ScalarizedStateCriteron, ScalarizedItemCriteron
+export ScalarizedStateCriterion, ScalarizedItemCriterion
 export DRuleItemCriterion, TRuleItemCriterion
 
 # Prelude
