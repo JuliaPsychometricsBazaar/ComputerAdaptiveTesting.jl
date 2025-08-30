@@ -20,6 +20,7 @@ using FittedItemBanks: AbstractItemBank, ContinuousDomain,
 using ..Responses
 using ..Responses: concrete_response_type, function_xs, function_ys, Responses
 using ..ConfigBase
+using PsychometricsBazaarBase: power_summary
 using PsychometricsBazaarBase.ConfigTools: @requiresome, @returnsome,
                                            find1_instance, find1_type,
                                            find1_type_sloppy

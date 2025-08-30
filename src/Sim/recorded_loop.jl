@@ -191,3 +191,8 @@ function run_cat(loop::RecordedCatLoop; ib_labels = nothing)
     end
     run_cat(loop, loop.item_bank; ib_labels=ib_labels)
 end
+
+function show(io::IO, ::MIME"text/plain", loop::RecordedCatLoop)
+    println(io, "Recorded Computer-Adaptive Test:")
+    power_summary(io, loop.recorder.recording; skip_first_line=true)
+end

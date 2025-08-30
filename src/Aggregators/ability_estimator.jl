@@ -65,7 +65,7 @@ function show(io::IO, ::MIME"text/plain", ability_estimator::PosteriorAbilityEst
     println(io, "Ability posterior distribution")
     indent_io = indent(io, 2)
     print(indent_io, "Prior: ")
-    show(indent_io, MIME("text/plain"), ability_estimator.prior)
+    power_summary(indent_io, ability_estimator.prior)
     println(io)
 end
 

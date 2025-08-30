@@ -22,7 +22,8 @@ Base.@kwdef mutable struct CatRecording{LikelihoodsT <: NamedTuple}
     data::LikelihoodsT
     item_index::Vector{Int}
     item_correctness::Vector{Bool}
-    rules_description::Union{Nothing, String} = nothing
+    rules_description::Union{Nothing, IOBuffer} = nothing
+    item_bank_description::Union{Nothing, IOBuffer} = nothing
 end
 
 function Base.getproperty(obj::CatRecording, sym::Symbol)
@@ -67,26 +68,33 @@ function prepare_dataframe(recording::CatRecording)
 end
 
 function show(io::IO, ::MIME"text/plain", recording::CatRecording)
-    println(io, "Recording of a Computer-Adaptive Test")
-    if recording.rules_description === nothing
-        println(io, "  Unknown CAT configuration")
-    else
-        println(io, "  CAT configuration:")
-        for line in split(strip(recording.rules_description, '\n'), "\n")
-            println(io, "    ", line)
-        end
+    power_summary(io, recording; include_cat_config = :always)
+end
+
+function power_summary(io::IO, recording::CatRecording; include_cat_config = :always, skip_first_line=false, kwargs...)
+    if !skip_first_line
+        println(io, "Recording of a Computer-Adaptive Test")
     end
-    println(io)
+    if recording.rules_description === nothing && include_cat_config == :always
+        println(io, "  Unknown CAT configuration")
+    elseif include_cat_config != :never # :available or :always
+        println(io, "  CAT configuration:")
+        write(indent(io, 4), recording.rules_description)
+        seekstart(recording.rules_description)
+        println(io)
+    end
+    if recording.item_bank_description === nothing
+        println(io, "  Unknown item bank")
+    else
+        println(io, "  Item bank:")
+        write(indent(io, 4), recording.item_bank_description)
+        seekstart(recording.item_bank_description)
+        println(io)
+    end
     println(io, "  Recorded information:")
     df = prepare_dataframe(recording)
-    buf = IOBuffer()
-    show(buf, MIME("text/plain"), df; summary=false, eltypes=false, rowlabel=:Number)
-    seekstart(buf)
-    for line in eachline(buf)
-        println(io, "    ", line)
-    end
-    #println(io)
-    #println(io, "  Final information:")
+    buf = show_into_buf(df; summary = false, eltypes = false, rowlabel = :Number)
+    write(indent(io, 4), buf)
 end
 
 #=
@@ -130,6 +138,18 @@ function record!(recording::CatRecording, responses; data...)
     item_correct = responses.values[end] > 0
     push!(recording.item_index, item_index)
     push!(recording.item_correctness, item_correct)
+end
+
+function Base.empty!(recording::CatRecording)
+    empty!(recording.item_index)
+    empty!(recording.item_correctness)
+    for (name, value) in pairs(recording.data)
+        if value.data isa AbstractVector
+            empty!(value.data)
+        elseif value.data isa ElasticArray
+            resize_lastdim!(value.data, 0)
+        end
+    end
 end
 
 #=
@@ -404,6 +424,27 @@ function record!(recorder::CatRecorder, tracked_responses)
     record!(recorder.recording, tracked_responses.responses)
 end
 
-function catrecorder_callback(recoder::CatRecorder)
-    return (tracked_responses, _) -> record!(recoder, tracked_responses)
+function recorder_response_callback(recorder::CatRecorder)
+    return (tracked_responses, _) -> record!(recorder, tracked_responses)
+end
+
+function recorder_init_callback(recorder::CatRecorder)
+    return function (cat_loop, item_bank)
+        empty!(recorder.recording)
+        if showable(MIME("text/plain"), cat_loop.rules)
+            recorder.recording.rules_description = power_summary_into_buf(cat_loop.rules; toplevel=false)
+        end
+        if showable(MIME("text/plain"), item_bank)
+            recorder.recording.item_bank_description = power_summary_into_buf(item_bank)
+        end
+    end
+end
+
+function show(io::IO, ::MIME"text/plain", recorder::CatRecorder)
+    indent_io = indent(io, 4)
+    println(io, "Computer-Adaptive Test Recorder")
+    println(io, "  Requests:")
+    show(indent_io, MIME"text/plain", recorder.requests)
+    println(io, "  Recording:")
+    show(indent_io, MIME"text/plain", recorder.recording)
 end
