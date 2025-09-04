@@ -44,13 +44,13 @@ function run_cat(loop::CatLoop{RulesT},
         item_bank::AbstractItemBank;
         ib_labels = nothing) where {RulesT <: CatRules}
     (; rules, get_response, new_response_callback, init_callback) = loop
-    if init_callback !== nothing
-        init_callback(loop, item_bank)
-    end
     (; next_item, termination_condition, ability_estimator, ability_tracker) = rules
     responses = TrackedResponses(BareResponses(ResponseType(item_bank)),
         item_bank,
         ability_tracker)
+    if init_callback !== nothing
+        init_callback(loop, responses)
+    end
     while true
         local next_index
         @debug begin

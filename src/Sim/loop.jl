@@ -27,14 +27,14 @@ struct CatLoop{CatEngineT} <: CatConfigBase
     new_response_callback::Any
     """
     A callback called each time a CAT is run
-    If provided, it is passed `(item_bank::AbstractItemBank)`.
+    If provided, it is passed `(loop::CatLoop, responses::TrackedResponses)`.
     """
     init_callback::Any
 end
 
-function show(io::IO, ::MIME"text/plain", rules::CatLoop)
+function power_summary(io::IO, rules::CatLoop)
     print(io, "Computer-Adaptive Test Loop based on ")
-    show(io, MIME("text/plain"), rules.rules)
+    power_summary(io, rules.rules)
 end
 
 function collate_cat_callbacks(callbacks...)

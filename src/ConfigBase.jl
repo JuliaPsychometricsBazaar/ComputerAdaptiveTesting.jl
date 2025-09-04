@@ -10,6 +10,8 @@ $(TYPEDEF)
 """
 abstract type CatConfigBase end
 
+show(io::IO, ::MIME"text/plain", obj::CatConfigBase) = power_summary(io, obj)
+
 function walk(f, x::CatConfigBase, lens = identity)
     f(x, lens)
     for fieldname in fieldnames(typeof(x))

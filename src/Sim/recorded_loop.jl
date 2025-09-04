@@ -52,6 +52,21 @@ function _find_ability_variance(rules)
     return nothing
 end
 
+struct StdDevEstimator
+    ability_variance::AbilityVariance
+end
+
+function (est::StdDevEstimator)(tracked_responses::TrackedResponses)
+    sqrt(compute_criterion(est.ability_variance, tracked_responses))
+end
+
+function power_summary(io::IO, est::StdDevEstimator)
+    println(io, "Standard deviation based on variance estimate")
+    power_summary(io, est.ability_variance; skip_first_line=true)
+end
+
+show(io::IO, ::MIME"text/html", est::StdDevEstimator) = power_summary(io, est)
+
 function enrich_recorder_requests(old_requests, rules)
     requests = Dict()
     for (k, v) in pairs(old_requests)
@@ -71,7 +86,11 @@ function enrich_recorder_requests(old_requests, rules)
                 if type == :ability
                     new_v[:estimator] = rules.ability_estimator
                 elseif type == :ability_stddev
-                    error("Not implemented yet: `type = :ability_stddev` for request `$k`.")
+                    ability_variance = _find_ability_variance(rules)
+                    if ability_variance === nothing
+                        error("Cannot find a `AbilityVariance` in the rules for request `$k`.")
+                    end
+                    new_v[:estimator] = StdDevEstimator(ability_variance)
                 elseif type == :ability_distribution
                     estimator = nothing
                     integrator = nothing
@@ -192,7 +211,7 @@ function run_cat(loop::RecordedCatLoop; ib_labels = nothing)
     run_cat(loop, loop.item_bank; ib_labels=ib_labels)
 end
 
-function show(io::IO, ::MIME"text/plain", loop::RecordedCatLoop)
+function power_summary(io::IO, loop::RecordedCatLoop)
     println(io, "Recorded Computer-Adaptive Test:")
-    power_summary(io, loop.recorder.recording; skip_first_line=true)
+    power_summary(io, loop.recorder.recording; skip_first_line=true, recorder=loop.recorder)
 end

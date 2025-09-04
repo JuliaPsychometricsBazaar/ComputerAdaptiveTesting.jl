@@ -20,7 +20,7 @@ using FittedItemBanks: AbstractItemBank, ContinuousDomain,
 using ..Responses
 using ..Responses: concrete_response_type, function_xs, function_ys, Responses
 using ..ConfigBase
-using PsychometricsBazaarBase: power_summary
+import PsychometricsBazaarBase: power_summary
 using PsychometricsBazaarBase.ConfigTools: @requiresome, @returnsome,
                                            find1_instance, find1_type,
                                            find1_type_sloppy
@@ -216,8 +216,8 @@ function (integrator::FunctionIntegrator{IntegratorT})(f::F,
     integrator.integrator(FunctionProduct(f, lh_function), ncomp)
 end
 
-function show(io::IO, ::MIME"text/plain", responses::FunctionIntegrator)
-    show(io, MIME("text/plain"), responses.integrator)
+function power_summary(io::IO, responses::FunctionIntegrator)
+    power_summary(io, responses.integrator)
 end
 
 # Defaults

@@ -68,11 +68,13 @@ function compute_criterion(
         denom)
 end
 
-function show(io::IO, ::MIME"text/plain", criterion::AbilityVariance)
-    println(io, "Minimise variance of ability estimate")
+function power_summary(io::IO, criterion::AbilityVariance; skip_first_line=false)
+    if !skip_first_line
+        println(io, "Minimise variance of ability estimate")
+    end
     indent_io = indent(io, 2)
-    show(indent_io, MIME("text/plain"), criterion.dist_est)
-    show(indent_io, MIME("text/plain"), criterion.integrator)
+    power_summary(indent_io, criterion.dist_est)
+    power_summary(indent_io, criterion.integrator)
 end
 
 struct AbilityCovarianceStateMultiCriterion{

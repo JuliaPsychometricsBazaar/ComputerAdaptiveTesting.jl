@@ -39,11 +39,11 @@ function GreedyForcedContentBalancer(targets::AbstractVector, groups, bits...)
     GreedyForcedContentBalancer(targets, groups, NextItemRule(bits...))
 end
 
-function show(io::IO, ::MIME"text/plain", rule::GreedyForcedContentBalancer)
+function power_summary(io::IO, rule::GreedyForcedContentBalancer)
     indent_io = indent(io, 2)
     println(io, "Greedy + forced content balancing")
     println(indent_io, "Target ratio: " * join(rule.targets, ", "))
-    show(indent_io, MIME("text/plain"), rule.inner_rule)
+    power_summary(indent_io, rule.inner_rule)
 end
 
 function next_item_bank(targets, groups, responses, items)

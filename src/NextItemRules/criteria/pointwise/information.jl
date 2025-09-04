@@ -22,7 +22,7 @@ function compute_criterion_vec(
     -actual
 end
 
-function show(io::IO, ::MIME"text/plain", ::ObservedInformationPointwiseItemCategoryCriterion)
+function power_summary(io::IO, ::ObservedInformationPointwiseItemCategoryCriterion)
     println(io, "Observed pointwise item-category information")
 end
 
@@ -51,7 +51,7 @@ function compute_criterion_vec(
 end
 
 
-function show(io::IO, ::MIME"text/plain", ::RawEmpiricalInformationPointwiseItemCategoryCriterion)
+function power_summary(io::IO, ::RawEmpiricalInformationPointwiseItemCategoryCriterion)
     println(io, "Raw empirical pointwise item-category information")
 end
 
@@ -104,7 +104,7 @@ function compute_criterion_vec(
     -actual
 end
 
-function show(io::IO, ::MIME"text/plain", ::EmpiricalInformationPointwiseItemCategoryCriterion)
+function power_summary(io::IO, ::EmpiricalInformationPointwiseItemCategoryCriterion)
     println(io, "Empirical pointwise item-category information")
 end
 
@@ -131,7 +131,7 @@ function compute_criterion(
     sum(compute_criterion_vec(tii.pcic, ir, ability))
 end
 
-function show(io::IO, ::MIME"text/plain", rule::TotalItemInformation)
+function power_summary(io::IO, rule::TotalItemInformation)
     if rule.pcic isa ObservedInformationPointwiseItemCategoryCriterion
         println(io, "Observed pointwise item information")
     elseif rule.pcic isa RawEmpiricalInformationPointwiseItemCategoryCriterion
@@ -140,6 +140,6 @@ function show(io::IO, ::MIME"text/plain", rule::TotalItemInformation)
         println(io, "Empirical pointwise item information")
     else
         print(io, "Total ")
-        show(io, MIME("text/plain"), rule.pcic)
+        power_summary(io, rule.pcic)
     end
 end

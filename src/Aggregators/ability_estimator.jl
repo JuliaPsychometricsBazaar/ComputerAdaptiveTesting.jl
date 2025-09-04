@@ -26,7 +26,7 @@ function pdf(::LikelihoodAbilityEstimator,
     AbilityLikelihood(tracked_responses)
 end
 
-function show(io::IO, ::MIME"text/plain", ability_estimator::LikelihoodAbilityEstimator)
+function power_summary(io::IO, ability_estimator::LikelihoodAbilityEstimator)
     println(io, "Ability likelihood distribution")
 end
 
@@ -61,7 +61,7 @@ function multiple_response_types_guard(tracked_responses)
     return false
 end
 
-function show(io::IO, ::MIME"text/plain", ability_estimator::PosteriorAbilityEstimator)
+function power_summary(io::IO, ability_estimator::PosteriorAbilityEstimator)
     println(io, "Ability posterior distribution")
     indent_io = indent(io, 2)
     print(indent_io, "Prior: ")
@@ -224,11 +224,11 @@ function ModeAbilityEstimator(bits...)
     ModeAbilityEstimator(dist_est, optimizer)
 end
 
-function show(io::IO, ::MIME"text/plain", ability_estimator::ModeAbilityEstimator)
+function power_summary(io::IO, ability_estimator::ModeAbilityEstimator)
     println(io, "Estimate ability using its mode")
     indent_io = indent(io, 2)
-    show(indent_io, MIME("text/plain"), ability_estimator.dist_est)
-    show(indent_io, MIME("text/plain"), ability_estimator.optim)
+    power_summary(indent_io, ability_estimator.dist_est)
+    power_summary(indent_io, ability_estimator.optim)
 end
 
 struct MeanAbilityEstimator{
@@ -246,12 +246,12 @@ function MeanAbilityEstimator(bits...)
     MeanAbilityEstimator(dist_est, integrator)
 end
 
-function show(io::IO, ::MIME"text/plain", ability_estimator::MeanAbilityEstimator)
+function power_summary(io::IO, ability_estimator::MeanAbilityEstimator)
     println(io, "Estimate ability using its mean")
     indent_io = indent(io, 2)
-    show(indent_io, MIME("text/plain"), ability_estimator.dist_est)
+    power_summary(indent_io, ability_estimator.dist_est)
     print(indent_io, "Integrator: ")
-    show(indent_io, MIME("text/plain"), ability_estimator.integrator)
+    power_summary(indent_io, ability_estimator.integrator)
 end
 
 function distribution_estimator(dist_est::DistributionAbilityEstimator)::DistributionAbilityEstimator

@@ -17,6 +17,7 @@ using Random: AbstractRNG, Xoshiro
 
 using ..Responses: BareResponses
 using ..ConfigBase
+import PsychometricsBazaarBase: power_summary
 using PsychometricsBazaarBase.ConfigTools: @requiresome, @returnsome,
                                            find1_instance, find1_type
 using PsychometricsBazaarBase.Integrators: Integrator, intval

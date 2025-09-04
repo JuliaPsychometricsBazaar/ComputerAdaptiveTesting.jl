@@ -29,14 +29,14 @@ function compute_criteria(rule::FixedRuleSequencer, responses::TrackedResponses)
     return compute_criteria(current_rule(rule, responses), responses)
 end
 
-function show(io::IO, ::MIME"text/plain", rule::FixedRuleSequencer)
+function power_summary(io::IO, rule::FixedRuleSequencer)
     indent_io = indent(io, 2)
     println(io, "Fixed rule sequencing:")
     print(indent_io, "Firstly: ")
-    show(indent_io, MIME("text/plain"), rule.rules[1])
+    power_summary(indent_io, rule.rules[1])
     for (responses, rule) in zip(rule.breaks, rule.rules[2:end])
         print(indent_io, "After $responses responses: ")
-        show(indent_io, MIME("text/plain"), rule)
+        power_summary(indent_io, rule)
     end
 end
 
@@ -58,7 +58,7 @@ function best_item(rule::MemoryNextItemRule, responses::TrackedResponses, _items
     # TODO: Add some basic error checking -- can only panic
 end
 
-function show(io::IO, ::MIME"text/plain", rule::MemoryNextItemRule)
+function power_summary(io::IO, rule::MemoryNextItemRule)
     item_list = join(rule.item_idxs, ", ")
     println(io, "Present the items indexed: $item_list")
 end
