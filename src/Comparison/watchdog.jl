@@ -146,7 +146,7 @@ function deactivate!(watchdog::WatchdogTask)
     if istaskdone(watchdog.task)
         wait(watchdog.task)
     end
-    put(watchdog.channel, (; active=false))
+    put!(watchdog.channel, (; active=false))
 end
 
 struct NullWatchdog <: AbstractWatchdogTask end

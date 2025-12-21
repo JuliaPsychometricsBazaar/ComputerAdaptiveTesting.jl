@@ -269,6 +269,8 @@ function CatRecorder(dims::Int, expected_responses::Int; requests...)
                 data = empty_capacity(Float64, dims, length(request.points), expected_responses)
             end
             extra = (; points = request.points)
+        else
+            error("Unknown request type: $(request.type)")
         end
         push!(out, (name => (;
             label=haskey(request, :label) ? request.label : name_to_label(name),
