@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.11'
+          - '1.12'
         os:
           - ubuntu-latest
         arch:
@@ -48,7 +48,7 @@ jobs:
           miniforge-version: latest
       - uses: julia-actions/setup-julia@v1
         with:
-          version: '1.11'
+          version: '1.12'
       - name: Set CAT packages to develop & resolve env
         run: |
           julia --project=docs/ -e 'using Pkg;
