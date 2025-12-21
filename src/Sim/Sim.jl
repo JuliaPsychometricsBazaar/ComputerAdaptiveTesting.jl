@@ -7,6 +7,7 @@ using DocStringExtensions
 using StatsBase
 using FittedItemBanks: AbstractItemBank, ResponseType, ItemResponse, domdims
 using PsychometricsBazaarBase: show_into_buf, power_summary_into_buf
+using PsychometricsBazaarBase.ConfigTools: @requiresome, @returnsome
 using PsychometricsBazaarBase.Integrators
 using PsychometricsBazaarBase.IndentWrappers: indent
 using PsychometricsBazaarBase: GridSummary
@@ -20,11 +21,14 @@ using ..Aggregators: TrackedResponses,
                      AbilityIntegrator,
                      AbilityEstimator,
                      LikelihoodAbilityEstimator,
+                     PointAbilityEstimator,
+                     DistributionAbilityEstimator,
                      PosteriorAbilityEstimator,
                      ModeAbilityEstimator,
                      MeanAbilityEstimator,
                      LikelihoodAbilityEstimator,
                      RiemannEnumerationIntegrator
+using ..DerivedMeasures: MeanAndStdDevEstimator, LaplaceApproxEstimator, DistributionSampler, SpreadEstimator
 using ..NextItemRules: AbilityVariance, compute_criteria, compute_criterion, best_item
 import Base: show
 import PsychometricsBazaarBase: power_summary

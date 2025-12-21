@@ -55,13 +55,13 @@ function compute_criterion(
 )::Float64
     # XXX: Not quite sure about this --- is it useful, the MIRT rules cover this case
     mean = expectation(IntegralCoeffs.id,
-        ndims(tracked_responses.item_bank),
+        domdims(tracked_responses.item_bank),
         criterion.integrator,
         criterion.dist_est,
         tracked_responses,
         denom)
     expectation(IntegralCoeffs.SqDev(mean),
-        ndims(tracked_responses.item_bank),
+        domdims(tracked_responses.item_bank),
         criterion.integrator,
         criterion.dist_est,
         tracked_responses,

@@ -26,7 +26,7 @@ function pdf(::LikelihoodAbilityEstimator,
     AbilityLikelihood(tracked_responses)
 end
 
-function power_summary(io::IO, ability_estimator::LikelihoodAbilityEstimator)
+function power_summary(io::IO, ::LikelihoodAbilityEstimator)
     println(io, "Ability likelihood distribution")
 end
 

@@ -29,98 +29,119 @@ function _walk_find_type(obj, typ, out=[])
     return out
 end
 
-function _find_mean_ability(rules)
+function _walk_find_type_first(args...)
+    result = _walk_find_type(args...)
+    if !isempty(result)
+        return result[1]
+    end
+    return nothing
+end
+
+#=
+function _find_mean_ability(rules_source)
     if rules.ability_estimator isa MeanAbilityEstimator
         return rules.ability_estimator
     end
-    result = _walk_find_type(rules.next_item, MeanAbilityEstimator)
-    if !isempty(result)
-        return result[1]
-    end
-    result = _walk_find_type(rules.termination_condition, MeanAbilityEstimator)
-    if !isempty(result)
-        return result[1]
-    end
+    @returnsome _walk_find_type_first(rules.next_item, MeanAbilityEstimator)
+    @returnsome _walk_find_type_first(rules.termination_condition, MeanAbilityEstimator)
     return nothing
 end
 
 function _find_ability_variance(rules)
-    result = _walk_find_type(rules.next_item, AbilityVariance)
-    if !isempty(result)
-        return result[1]
+    @returnsome _walk_find_type(rules.next_item, AbilityVariance)
+    return nothing
+end
+=#
+
+MeanAbilityEstimator, ModeAbilityEstimator
+const SOURCE_ORDER = (:ability_estimator, :termination_condition, :next_item)
+const VALID_SOURCES = (:any, SOURCE_ORDER...)
+const VALID_TYPES = (:ability, :ability_stddev, :ability_and_stddev, :ability_distribution)
+
+function enrich_request_source(source, type, rules, request)
+    if source == :any
+        for source in SOURCE_ORDER
+            @returnsome enrich_request_type(type, source, rules, request)
+        end
+        return nothing
+    else
+        return enrich_request_type(type, source, rules, request)
     end
+end
+
+enrich_request_type(type, source, rules, request) = enrich_request_type(Val(type), source, rules, request)
+
+function enrich_request_type(::Val{:ability}, source, rules, request)
+    @returnsome _walk_find_type_first(getproperty(rules, source), PointAbilityEstimator)
     return nothing
 end
 
-struct StdDevEstimator
-    ability_variance::AbilityVariance
+function enrich_request_type(::Val{:ability_stddev}, source, rules, request)
+    ability_variance = enrich_request_type(Val(:ability_and_stddev), source, rules, request)
+    return SpreadEstimator(ability_variance)
 end
 
-function (est::StdDevEstimator)(tracked_responses::TrackedResponses)
-    sqrt(compute_criterion(est.ability_variance, tracked_responses))
+function enrich_request_type(::Val{:ability_and_stddev}, source, rules, request)
+    rules_source = getproperty(rules, source)
+    @returnsome _walk_find_type_first(rules_source, MeanAbilityEstimator) MeanAndStdDevEstimator
+    @returnsome _walk_find_type_first(rules_source, AbilityVariance) MeanAndStdDevEstimator
+    @returnsome _walk_find_type_first(rules_source, ModeAbilityEstimator) LaplaceApproxEstimator
 end
 
-function power_summary(io::IO, est::StdDevEstimator)
-    println(io, "Standard deviation based on variance estimate")
-    power_summary(io, est.ability_variance; skip_first_line=true)
+function get_composite(rules, source)
+    rules_source = getproperty(rules, source)
+    @returnsome _walk_find_type_first(rules_source, MeanAbilityEstimator)
+    @returnsome _walk_find_type_first(rules_source, AbilityVariance)
 end
 
-show(io::IO, ::MIME"text/html", est::StdDevEstimator) = power_summary(io, est)
+function enrich_request_type(::Val{:ability_distribution}, source, rules, request)
+    if !(:integrator in keys(request))
+        @info "ability_distribution" rules source
+        @requiresome composite = get_composite(rules, source)
+        @info "composite" composite
+        return DistributionSampler(composite, get(request, :points, nothing))
+    else
+        rules_source = getproperty(rules, source)
+        @info "ability_distribution" rules_source DistributionAbilityEstimator
+        @requiresome dist_est = _walk_find_type_first(rules_source, DistributionAbilityEstimator)
+        return DistributionSampler(dist_est, get(request, :integrator, nothing), get(request, :points, nothing))
+    end
+end
+
+function enrich_recorder_request(name, request, rules)
+    type = get(request, :type, nothing)
+    if !(type in VALID_TYPES)
+        return request
+    end
+    if haskey(request, :estimator) && haskey(request, :source)
+        error("Cannot provide both `estimator` and `source` for request `$name`.")
+    elseif haskey(request, :estimator)
+        return request
+    end
+    if !haskey(request, :source)
+        error("Must provide either `estimator` or `source` for request `$name`.")
+    end
+    source = request[:source]
+    if !(source in VALID_SOURCES)
+        error("Not implemented: `source = $source` for request `$name`; must be one of $VALID_SOURCES.")
+    end
+    result = enrich_request_source(source, type, rules, request)
+    if isnothing(result)
+        error("Could not find suitable estimator for request `$name` with `type = $type` and `source = $source`.")
+    elseif result isa NamedTuple
+        if !(:points in keys(request)) && !(:points in keys(result))
+            error("Must provide `points` for request `$name` with `type = $type` and `source = $source` since found `integrator` not an `AnyGridIntegrator`.")
+        end
+        return (; request..., result...)
+    else
+        return (; request..., estimator=result)
+    end
+end
 
 function enrich_recorder_requests(old_requests, rules)
     requests = Dict()
     for (k, v) in pairs(old_requests)
-        new_v = Dict{Symbol, Any}(pairs(v))
-        type = get(new_v, :type, nothing)
-        if type in (:ability, :ability_distribution, :ability_stddev)
-            if haskey(new_v, :estimator) && haskey(new_v, :source)
-                error("Cannot provide both `estimator` and `source` for request `$k`.")
-            elseif !haskey(new_v, :estimator)
-                if !haskey(new_v, :source)
-                    error("Must provide either `estimator` or `source` for request `$k`.")
-                end
-                source = new_v[:source]
-                if source != :any
-                    error("Not implemented yet: `source = $source` for request `$k`.")
-                end
-                if type == :ability
-                    new_v[:estimator] = rules.ability_estimator
-                elseif type == :ability_stddev
-                    ability_variance = _find_ability_variance(rules)
-                    if ability_variance === nothing
-                        error("Cannot find a `AbilityVariance` in the rules for request `$k`.")
-                    end
-                    new_v[:estimator] = StdDevEstimator(ability_variance)
-                elseif type == :ability_distribution
-                    estimator = nothing
-                    integrator = nothing
-                    mean_ability = _find_mean_ability(rules)
-                    if mean_ability === nothing
-                        ability_variance = _find_ability_variance(rules)
-                        if ability_variance === nothing
-                            error("Cannot find a `MeanAbilityEstimator` or `AbilityVariance` in the rules for request `$k`.")
-                        end
-                        estimator = ability_variance.dist_est
-                        integrator = ability_variance.integrator
-                    else
-                        estimator = distribution_estimator(mean_ability)
-                        integrator = mean_ability.integrator
-                    end
-                    new_v[:estimator] = estimator
-                    if !haskey(new_v, :integrator)
-                        new_v[:integrator] = integrator
-                    end
-                    if !haskey(new_v, :points)
-                        integrator = get_integrator(new_v[:integrator])
-                        if !(integrator isa AnyGridIntegrator)
-                            error("Must provide `points` for request `$k` when `integrator` is not an `AnyGridIntegrator`.")
-                        end
-                        new_v[:points] = get_grid(integrator)
-                    end
-                end
-            end
-        end
-        requests[k] = NamedTuple(new_v)
+        requests[k] = enrich_recorder_request(k, v, rules)
     end
     return requests
 end
@@ -164,7 +185,7 @@ function RecordedCatLoop(; kwargs...)
     end
     new_response_callback = pop!(kwargs, :new_response_callback, nothing)
     new_response_callbacks = pop!(kwargs, :new_response_callbacks, Any[])
-    local dims
+    dims = 0
     item_bank = nothing
     if !haskey(kwargs, :item_bank) && !haskey(kwargs, :dims)
         error("Must provide either `item_bank` or `dims`.")

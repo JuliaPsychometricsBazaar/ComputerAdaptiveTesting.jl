@@ -9,3 +9,15 @@ function TRuleItemCriterion(ability_estimator)
         InformationMatrixCriteria(ability_estimator),
         TraceScalarizer())
 end
+
+function ObservedInformationPointwiseItemCriterion()
+    TotalItemInformation(ObservedInformationPointwiseItemCategoryCriterion())
+end
+
+function RawEmpiricalInformationPointwiseItemCriterion()
+    TotalItemInformation(RawEmpiricalInformationPointwiseItemCategoryCriterion())
+end
+
+function EmpiricalInformationPointwiseItemCriterion()
+    TotalItemInformation(EmpiricalInformationPointwiseItemCategoryCriterion())
+end

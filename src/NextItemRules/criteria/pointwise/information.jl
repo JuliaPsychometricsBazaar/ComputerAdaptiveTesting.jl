@@ -9,7 +9,7 @@ function compute_criterion(
     ability,
     category
 )
-    actual = -double_derivative((ability -> log_resp(ir, category, ability)), ability) .* resp(ir, category, ability)
+    actual = -Differentiation.double_derivative((ability -> log_resp(ir, category, ability)), ability) .* resp(ir, category, ability)
     -actual
 end
 
@@ -18,7 +18,7 @@ function compute_criterion_vec(
     ir::ItemResponse,
     ability
 )
-    actual = -double_derivative((ability -> log_resp_vec(ir, ability)), ability) .* resp_vec(ir, ability)
+    actual = -Differentiation.double_derivative((ability -> log_resp_vec(ir, ability)), ability) .* resp_vec(ir, ability)
     -actual
 end
 
@@ -87,7 +87,7 @@ function compute_criterion(
         ir,
         ability,
         category
-    ) .- double_derivative((ability -> resp(ir, category, ability)), ability)
+    ) .- Differentiation.double_derivative((ability -> resp(ir, category, ability)), ability)
     -actual
 end
 
@@ -100,7 +100,7 @@ function compute_criterion_vec(
         RawEmpiricalInformationPointwiseItemCategoryCriterion(),
         ir,
         ability
-    ) .- double_derivative((ability -> resp_vec(ir, ability)), ability)
+    ) .- Differentiation.double_derivative((ability -> resp_vec(ir, ability)), ability)
     -actual
 end
 

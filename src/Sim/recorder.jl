@@ -15,10 +15,6 @@ elastic_push!(xs::AbstractVector, value) = push!(xs, value)
 elastic_push!(xs::ElasticArray, value) = append!(xs, value)
 
 Base.@kwdef mutable struct CatRecording{LikelihoodsT <: NamedTuple}
-    #ability_ests::AbilityVecT
-    #xs::Union{Nothing, AbilityVecT}
-    #likelihoods::Matrix{Float64}
-    #raw_likelihoods::Matrix{Float64}
     data::LikelihoodsT
     item_index::Vector{Int}
     item_correctness::Vector{Bool}
@@ -192,40 +188,6 @@ function power_summary(io::IO, recording::CatRecording; include_cat_config = :al
     end
 end
 
-#=
-function CatRecording(
-        xs,
-        points,
-        ability_ests,
-        num_questions,
-        num_respondents,
-        actual_abilities = nothing)
-    num_values = num_questions * num_respondents
-    if xs === nothing
-        xs_vec = nothing
-    else
-        xs_vec = collect(xs)
-    end
-
-    CatRecorder(1,
-        1,
-        points,
-        zeros(Int, num_values),
-        ability_ests,
-        zeros(Float64, num_values),
-        zeros(Int, num_values),
-        xs_vec,
-        zeros(points, num_values),
-        zeros(points, num_values),
-        zeros(points, num_values),
-        zeros(num_questions, num_respondents),
-        zeros(Int, num_questions, num_respondents),
-        zeros(Bool, num_questions, num_respondents),
-        Dict{Tuple{Int, Int}, Int}(),
-        actual_abilities)
-end
-=#
-
 function record!(recording::CatRecording, responses; data...)
     if length(responses) == 0
         recording.has_initial = true
@@ -254,131 +216,23 @@ function Base.isempty(recording::CatRecording)
     return length(recording.item_index) == 0 && !recording.has_initial
 end
 
-#=
-"""
-$(TYPEDSIGNATURES)
-"""
-function CatRecorder(
-        xs,
-        points,
-        ability_ests,
-        num_questions,
-        num_respondents,
-        integrator,
-        raw_estimator,
-        ability_estimator,
-        actual_abilities = nothing)
-    CatRecorder(
-        CatRecording(
-            xs,
-            points,
-            ability_ests,
-            num_questions,
-            num_respondents,
-            actual_abilities
-        ),
-        AbilityIntegrator(integrator),
-        raw_estimator,
-        ability_estimator,
-    )
-end
-
-function CatRecorder(
-        xs::AbstractVector{Float64},
-        responses,
-        integrator,
-        raw_estimator,
-        ability_estimator,
-        actual_abilities = nothing
-    )
-    points = size(xs, 1)
-    num_questions = size(responses, 1)
-    num_respondents = size(responses, 2)
-    num_values = num_questions * num_respondents
-    CatRecorder(
-        xs,
-        points,
-        zeros(num_values),
-        num_questions,
-        num_respondents,
-        integrator,
-        raw_estimator,
-        ability_estimator,
-        actual_abilities)
-end
-
-function CatRecorder(
-        xs::AbstractMatrix{Float64},
-        responses,
-        integrator,
-        raw_estimator,
-        ability_estimator,
-        actual_abilities = nothing
-    )
-    dims = size(xs, 1)
-    points = size(xs, 2)
-    num_questions = size(responses, 1)
-    num_respondents = size(responses, 2)
-    num_values = num_questions * num_respondents
-    CatRecorder(xs,
-        points,
-        zeros(dims, num_values),
-        num_questions,
-        num_respondents,
-        integrator,
-        raw_estimator,
-        ability_estimator,
-        actual_abilities)
-end
-
-function CatRecorder(
-        xs::AbstractVector{Float64},
-        max_responses::Int,
-        integrator,
-        raw_estimator,
-        ability_estimator,
-        actual_abilities = nothing
-    )
-    points = size(xs, 1)
-    CatRecorder(xs,
-        points,
-        zeros(max_responses),
-        max_responses,
-        1,
-        integrator,
-        raw_estimator,
-        ability_estimator,
-        actual_abilities)
-end
-
-function CatRecorder(
-        xs::AbstractMatrix{Float64},
-        max_responses::Int,
-        integrator,
-        raw_estimator,
-        ability_estimator,
-        actual_abilities = nothing
-    )
-    dims = size(xs, 1)
-    points = size(xs, 2)
-    CatRecorder(xs,
-        points,
-        zeros(dims, max_responses),
-        max_responses,
-        1,
-        integrator,
-        raw_estimator,
-        ability_estimator,
-        actual_abilities)
-end
-=#
-
 function name_to_label(name)
     titlecase(join(split(String(name), "_"), " "))
 end
 
 function hasallkeys(haystack, needles...)
     return all(n in keys(haystack) for n in needles)
+end
+
+function enrich_request_pei(name, request)
+    if !hasallkeys(request, :points, :estimator, :integrator)
+        error("Must provide `points`, `estimator`, and `integrator` for $name (unless `estimator` is a DistributionSampler).")
+    end
+    estimator = DistributionSampler(request.estimator, request.integrator, request.points)
+    return (;
+        Base.structdiff(request, NamedTuple{(:points, :integrator)})...,
+        estimator
+    )
 end
 
 function CatRecorder(dims::Int, expected_responses::Int; requests...)
@@ -394,18 +248,22 @@ function CatRecorder(dims::Int, expected_responses::Int; requests...)
         if !haskey(request, :type)
             error("Must provide `type` for $name.")
         end
+        data = nothing
         if request.type in (:ability, :ability_stddev)
             data = empty_capacity(Float64, expected_responses)
+        elseif request.type == :ability_and_stddev
+            data = empty_capacity(Float64, 2, expected_responses)
         elseif request.type == :ability_distribution
-            if !hasallkeys(request, :points, :estimator, :integrator)
-                error("Must provide `points`, `estimator`, and `integrator` for $name.")
+            if !(request.estimator isa DistributionSampler)
+                requests_dict[name] = request = enrich_request_pei(name, request)
             end
+            points = request.estimator.points
             if dims == 0
-                data = empty_capacity(Float64, length(request.points), expected_responses)
+                data = empty_capacity(Float64, length(points), expected_responses)
             else
-                data = empty_capacity(Float64, dims, length(request.points), expected_responses)
+                data = empty_capacity(Float64, dims, length(points), expected_responses)
             end
-            extra = (; points = request.points)
+            extra = (; points)
         else
             error("Unknown request type: $(request.type)")
         end
@@ -421,19 +279,6 @@ function CatRecorder(dims::Int, expected_responses::Int; requests...)
         requests=NamedTuple(requests_dict),
         include_initial
     )
-    #=
-    CatRecording(
-        xs,
-        points,
-        ability_ests,
-        num_questions,
-        num_respondents,
-        actual_abilities
-    ),
-    AbilityIntegrator(integrator),
-    raw_estimator,
-    ability_estimator
-    =#
 end
 
 
@@ -445,80 +290,21 @@ function push_ability_est!(ability_ests::AbstractVector{Float64}, col_idx, abili
     ability_ests[col_idx] = ability_est
 end
 
-function eachmatcol(xs::AbstractMatrix)
-    eachcol(xs)
-end
-
-function eachmatcol(xs::AbstractVector)
-    xs
-end
-
-#=
-function save_sampled(xs::Nothing, integrator::RiemannEnumerationIntegrator,
-        recorder::CatRecorder, tracked_responses, ir, item_correct)
-    # In this case, the item bank is probably sampled so we can use that
-
-    # Save likelihoods
-    dist_est = distribution_estimator(recorder.ability_estimator)
-    denom = normdenom(integrator, dist_est, tracked_responses)
-    recorder.likelihoods[:, recorder.col_idx] = function_ys(
-        Aggregators.pdf(
-        dist_est,
-        tracked_responses
-    )
-    ) ./ denom
-    raw_denom = normdenom(integrator, recorder.raw_estimator, tracked_responses)
-    recorder.raw_likelihoods[:, recorder.col_idx] = function_ys(
-        Aggregators.pdf(
-        recorder.raw_estimator,
-        tracked_responses
-    )
-    ) ./ raw_denom
-
-    # Save item responses
-    recorder.item_responses[:, recorder.col_idx] = item_ys(ir, item_correct)
-end
-=#
-
-function sample_likelihood(tracked_responses, xs, dist_est, integrator)
-    # Save likelihoods
-    num = Aggregators.pdf.(
-        dist_est,
-        tracked_responses,
-        eachmatcol(xs)
-    )
-    denom = normdenom(integrator, dist_est, tracked_responses)
-    return num ./ denom
-end
-
-#=
-    raw_denom = normdenom(integrator, recorder.raw_estimator, tracked_responses)
-    recorder.raw_likelihoods[:, recorder.col_idx] = Aggregators.pdf.(
-        Ref(recorder.raw_estimator),
-        Ref(tracked_responses),
-        eachmatcol(xs)) ./ raw_denom
-=#
-
 function service_requests!(
-        #xs, integrator, recorder::CatRecorder, tracked_responses, ir, item_correct)
     recorder::CatRecorder, tracked_responses, ir, item_correct
 )
     out = recorder.recording.data
     for (name, request) in pairs(recorder.requests)
         if request.type in (:ability, :ability_stddev)
             push!(out[name].data, request.estimator(tracked_responses))
+        elseif request.type == :ability_and_stddev
+            (point, spread) = request.estimator(tracked_responses)
+            elastic_push!(out[name].data, (point, spread))
         elseif request.type == :ability_distribution
-            likelihood_sample = sample_likelihood(tracked_responses, request.points, request.estimator, request.integrator)
-            elastic_push!(out[name].data, likelihood_sample)
+            #likelihood_sample = sample_likelihood(tracked_responses, request.points, request.estimator, request.integrator)
+            elastic_push!(out[name].data, request.estimator(tracked_responses))
         end
     end
-
-    #=
-    # Save item responses
-    recorder.item_responses[:, recorder.col_idx] = resp.(Ref(ir),
-        item_correct,
-        eachmatcol(xs))
-    =#
 end
 
 """
@@ -557,14 +343,3 @@ function recorder_init_callback(recorder::CatRecorder)
         record!(recorder, tracked_responses)
     end
 end
-
-#=
-function power_summary(io::IO, recorder::CatRecorder)
-    indent_io = indent(io, 4)
-    println(io, "Computer-Adaptive Test Recorder")
-    println(io, "  Requests:")
-    power_summary(indent_io, recorder.requests)
-    println(io, "  Recording:")
-    power_summary(indent_io, recorder.recording)
-end
-=#
