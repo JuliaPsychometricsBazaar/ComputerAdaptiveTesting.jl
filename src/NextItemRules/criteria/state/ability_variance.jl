@@ -55,24 +55,26 @@ function compute_criterion(
 )::Float64
     # XXX: Not quite sure about this --- is it useful, the MIRT rules cover this case
     mean = expectation(IntegralCoeffs.id,
-        ndims(tracked_responses.item_bank),
+        domdims(tracked_responses.item_bank),
         criterion.integrator,
         criterion.dist_est,
         tracked_responses,
         denom)
     expectation(IntegralCoeffs.SqDev(mean),
-        ndims(tracked_responses.item_bank),
+        domdims(tracked_responses.item_bank),
         criterion.integrator,
         criterion.dist_est,
         tracked_responses,
         denom)
 end
 
-function show(io::IO, ::MIME"text/plain", criterion::AbilityVariance)
-    println(io, "Minimise variance of ability estimate")
+function power_summary(io::IO, criterion::AbilityVariance; skip_first_line=false)
+    if !skip_first_line
+        println(io, "Minimise variance of ability estimate")
+    end
     indent_io = indent(io, 2)
-    show(indent_io, MIME("text/plain"), criterion.dist_est)
-    show(indent_io, MIME("text/plain"), criterion.integrator)
+    power_summary(indent_io, criterion.dist_est)
+    power_summary(indent_io, criterion.integrator)
 end
 
 struct AbilityCovarianceStateMultiCriterion{

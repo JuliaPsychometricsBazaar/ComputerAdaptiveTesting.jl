@@ -17,10 +17,12 @@ using Random: AbstractRNG, Xoshiro
 
 using ..Responses: BareResponses
 using ..ConfigBase
+import PsychometricsBazaarBase: power_summary
 using PsychometricsBazaarBase.ConfigTools: @requiresome, @returnsome,
                                            find1_instance, find1_type
 using PsychometricsBazaarBase.Integrators: Integrator, intval
 using PsychometricsBazaarBase: Integrators
+using PsychometricsBazaarBase: Differentiation
 using PsychometricsBazaarBase.IndentWrappers: indent
 import PsychometricsBazaarBase.IntegralCoeffs
 using FittedItemBanks: AbstractItemBank, DiscreteDomain, DomainType,
@@ -56,8 +58,11 @@ export PointResponseExpectation, DistributionResponseExpectation
 export MatrixScalarizer, DeterminantScalarizer, TraceScalarizer
 export AbilityCovarianceStateMultiCriterion, StateMultiCriterion, ItemMultiCriterion
 export InformationMatrixCriteria
-export ScalarizedStateCriteron, ScalarizedItemCriteron
+export ScalarizedStateCriterion, ScalarizedItemCriterion
 export DRuleItemCriterion, TRuleItemCriterion
+export ObservedInformationPointwiseItemCriterion
+export RawEmpiricalInformationPointwiseItemCriterion
+export EmpiricalInformationPointwiseItemCriterion
 
 # Prelude
 include("./prelude/abstract.jl")

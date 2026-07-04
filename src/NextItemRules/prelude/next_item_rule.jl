@@ -53,11 +53,11 @@ function best_item(rule::NextItemRule, tracked_responses::TrackedResponses)
     best_item(rule, tracked_responses, tracked_responses.item_bank)
 end
 
-function Base.show(io::IO, ::MIME"text/plain", rule::ItemCriterionRule)
+function power_summary(io::IO, rule::ItemCriterionRule)
     println(io, "Pick optimal item criterion according to strategy")
     indent_io = indent(io, 2)
-    show(indent_io, MIME"text/plain"(), rule.strategy)
-    show(indent_io, MIME"text/plain"(), rule.criterion)
+    power_summary(indent_io, rule.strategy)
+    power_summary(indent_io, rule.criterion)
 end
 
 # Default implementation
