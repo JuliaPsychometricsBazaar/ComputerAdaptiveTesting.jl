@@ -37,23 +37,6 @@ function _walk_find_type_first(args...)
     return nothing
 end
 
-#=
-function _find_mean_ability(rules_source)
-    if rules.ability_estimator isa MeanAbilityEstimator
-        return rules.ability_estimator
-    end
-    @returnsome _walk_find_type_first(rules.next_item, MeanAbilityEstimator)
-    @returnsome _walk_find_type_first(rules.termination_condition, MeanAbilityEstimator)
-    return nothing
-end
-
-function _find_ability_variance(rules)
-    @returnsome _walk_find_type(rules.next_item, AbilityVariance)
-    return nothing
-end
-=#
-
-MeanAbilityEstimator, ModeAbilityEstimator
 const SOURCE_ORDER = (:ability_estimator, :termination_condition, :next_item)
 const VALID_SOURCES = (:any, SOURCE_ORDER...)
 const VALID_TYPES = (:ability, :ability_stddev, :ability_and_stddev, :ability_distribution)
@@ -96,13 +79,10 @@ end
 
 function enrich_request_type(::Val{:ability_distribution}, source, rules, request)
     if !(:integrator in keys(request))
-        @info "ability_distribution" rules source
         @requiresome composite = get_composite(rules, source)
-        @info "composite" composite
         return DistributionSampler(composite, get(request, :points, nothing))
     else
         rules_source = getproperty(rules, source)
-        @info "ability_distribution" rules_source DistributionAbilityEstimator
         @requiresome dist_est = _walk_find_type_first(rules_source, DistributionAbilityEstimator)
         return DistributionSampler(dist_est, get(request, :integrator, nothing), get(request, :points, nothing))
     end
