@@ -4,13 +4,13 @@
 CurrentModule = ComputerAdaptiveTesting
 ```
 
-```@docs
+```@docs; canonical=false
 Stateful.Stateful
 ```
 
 ## Interface
 
-```@docs
+```@docs; canonical=false
 Stateful.StatefulCat
 Stateful.next_item
 Stateful.ranked_items
@@ -27,7 +27,7 @@ Stateful.get_ability
 
 There is an implementation in terms of [CatRules](@ref):
 
-```@docs
+```@docs; canonical=false
 Stateful.StatefulCatRules
 ```
 

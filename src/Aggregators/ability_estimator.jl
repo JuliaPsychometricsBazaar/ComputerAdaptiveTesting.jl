@@ -39,6 +39,13 @@ function pdf(ability_est::DistributionAbilityEstimator,
     pdf(ability_est, tracked_responses)(x)
 end
 
+"""
+$(TYPEDEF)
+
+The ability likelihood distribution.
+
+    $(FUNCTIONNAME)(; ncomp=0)
+"""
 struct LikelihoodAbilityEstimator <: DistributionAbilityEstimator end
 
 function pdf(::LikelihoodAbilityEstimator,
