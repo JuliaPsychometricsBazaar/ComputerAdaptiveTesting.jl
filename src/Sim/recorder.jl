@@ -204,10 +204,12 @@ function Base.empty!(recording::CatRecording)
     empty!(recording.item_index)
     empty!(recording.item_correctness)
     for (name, value) in pairs(recording.data)
-        if value.data isa AbstractVector
-            empty!(value.data)
-        elseif value.data isa ElasticArray
-            resize_lastdim!(value.data, 0)
+        if haskey(value, :data)
+            if value.data isa AbstractVector
+                empty!(value.data)
+            elseif value.data isa ElasticArray
+                resize_lastdim!(value.data, 0)
+            end
         end
     end
 end
@@ -264,15 +266,25 @@ function CatRecorder(dims::Int, expected_responses::Int; requests...)
                 data = empty_capacity(Float64, dims, length(points), expected_responses)
             end
             extra = (; points)
-        else
-            error("Unknown request type: $(request.type)")
         end
-        push!(out, (name => (;
+        entry = (;
             label=haskey(request, :label) ? request.label : name_to_label(name),
-            type=request.type,
-            data,
-            extra...
-        )))
+            type=request.type
+        )
+        if data === nothing
+            # Pass through request
+            entry = (;
+                entry...,
+                request...
+            )
+        else
+            entry = (;
+                entry...,
+                data,
+                extra...
+            )
+        end
+        push!(out, (name => entry))
     end
     return CatRecorder(;
         recording=CatRecording(NamedTuple(out), expected_responses, include_initial),
