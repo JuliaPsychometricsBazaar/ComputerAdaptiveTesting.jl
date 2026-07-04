@@ -33,6 +33,7 @@ using PsychometricsBazaarBase.Integrators: Integrators,
 using PsychometricsBazaarBase.Optimizers: OneDimOptimOptimizer, Optimizer, Optimizers
 using PsychometricsBazaarBase.ConstDistributions: std_normal, std_mv_normal
 using PsychometricsBazaarBase.IndentWrappers: indent
+using DocStringExtensions
 import Distributions: pdf
 import Base: show
 
@@ -162,6 +163,15 @@ function AbilityOptimizer(bits...; ability_estimator = nothing)
     @returnsome Optimizer(bits...) optimizer->FunctionOptimizer(optimizer)
 end
 
+"""
+$(TYPEDEF)
+
+Responses to items in `item_bank` (as [`BareResponses`](@ref)), together with
+an `ability_tracker` that maintains an incrementally-updated ability estimate
+(or distribution) as responses are added. This is the object threaded through
+a CAT run and passed to next item rules, termination conditions and ability
+estimators.
+"""
 @with_kw struct TrackedResponses{
     BareResponsesT <: BareResponses,
     ItemBankT <: AbstractItemBank,

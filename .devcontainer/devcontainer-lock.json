@@ -1,0 +1,14 @@
+{
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "1.1.0",
+      "resolved": "ghcr.io/devcontainers/features/github-cli@sha256:d22f50b70ed75339b4eed1ba9ecde3a1791f90e88d37936517e3bace0bbad671",
+      "integrity": "sha256:d22f50b70ed75339b4eed1ba9ecde3a1791f90e88d37936517e3bace0bbad671"
+    },
+    "ghcr.io/julialang/devcontainer-features/julia:1": {
+      "version": "1.2.0",
+      "resolved": "ghcr.io/julialang/devcontainer-features/julia@sha256:748ff7272e392e0c2ac7c837dbdc6c8cfa1dd3f81819fd29a111c718e3c4199d",
+      "integrity": "sha256:748ff7272e392e0c2ac7c837dbdc6c8cfa1dd3f81819fd29a111c718e3c4199d"
+    }
+  }
+}

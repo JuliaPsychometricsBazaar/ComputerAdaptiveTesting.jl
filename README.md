@@ -81,6 +81,15 @@ also contains a number of examples.
 
 ## Repo organisation
 
+ * `/src`, Source code for the main ComputerAdaptiveTesting.jl package. The
+   main submodules are `Aggregators` (ability estimation), `NextItemRules`
+   (item selection), `TerminationConditions`, `Sim` (simulation loop),
+   `Stateful` (step-wise interface for interactive use), `DecisionTree`, and
+   `Compat`/`Comparison` (interoperability with and cross-checking against
+   the R packages catR and mirtCAT)
+ * `/docs`, Documentation source code, built with Documenter.jl via
+   `docs/build.sh`
  * `/docs/examples`, Example code
- * `/docs`, Documentation source code, build with Documenter.jl
- * `/src`, Source code for the main ComputerAdaptiveTesting.jl package
+ * `/test`, Test suite, including Aqua.jl and JET.jl quality checks
+ * `/AGENTS.md`, Development conventions (style, testing, workflow) for
+   coding agents and human contributors alike
