@@ -4,6 +4,7 @@ using DocStringExtensions: TYPEDEF, TYPEDFIELDS
 using FittedItemBanks: AbstractItemBank
 using ..Aggregators: TrackedResponses
 using ..ConfigBase
+import PsychometricsBazaarBase: power_summary
 using PsychometricsBazaarBase.ConfigTools: @returnsome, find1_instance
 using FittedItemBanks
 import Base: show
@@ -32,7 +33,7 @@ function (condition::FixedLength)(responses::TrackedResponses,
     length(responses) >= condition.num_items
 end
 
-function show(io::IO, ::MIME"text/plain", condition::FixedLength)
+function power_summary(io::IO, condition::FixedLength)
     println(io, "Terminate test after administering $(condition.num_items) items")
 end
 

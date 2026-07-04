@@ -20,6 +20,7 @@ using FittedItemBanks: AbstractItemBank, ContinuousDomain,
 using ..Responses
 using ..Responses: concrete_response_type, function_xs, function_ys, Responses
 using ..ConfigBase
+import PsychometricsBazaarBase: power_summary
 using PsychometricsBazaarBase.ConfigTools: @requiresome, @returnsome,
                                            find1_instance, find1_type,
                                            find1_type_sloppy
@@ -52,6 +53,7 @@ export FunctionOptimizer, FunctionIntegrator
 export DistributionAbilityEstimator
 export variance, variance_given_mean, mean_1d
 export RiemannEnumerationIntegrator
+export get_integrator
 # export EnumerationOptimizer
 
 # Basic types
@@ -200,6 +202,10 @@ struct FunctionIntegrator{IntegratorT <: Integrator} <: AbilityIntegrator
     integrator::IntegratorT
 end
 
+function get_integrator(integrator::FunctionIntegrator)
+    return integrator.integrator
+end
+
 function (integrator::FunctionIntegrator{IntegratorT})(f::F,
         ncomp,
         lh_function::LHF) where {F, LHF, IntegratorT}
@@ -210,8 +216,8 @@ function (integrator::FunctionIntegrator{IntegratorT})(f::F,
     integrator.integrator(FunctionProduct(f, lh_function), ncomp)
 end
 
-function show(io::IO, ::MIME"text/plain", responses::FunctionIntegrator)
-    show(io, MIME("text/plain"), responses.integrator)
+function power_summary(io::IO, responses::FunctionIntegrator)
+    power_summary(io, responses.integrator)
 end
 
 # Defaults

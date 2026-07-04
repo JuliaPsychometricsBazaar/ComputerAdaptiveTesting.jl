@@ -2,6 +2,7 @@ module ConfigBase
 
 using Accessors: PropertyLens, opcompose
 using DocStringExtensions: TYPEDEF
+using PsychometricsBazaarBase: power_summary
 
 export CatConfigBase, walk
 
@@ -9,6 +10,8 @@ export CatConfigBase, walk
 $(TYPEDEF)
 """
 abstract type CatConfigBase end
+
+show(io::IO, ::MIME"text/plain", obj::CatConfigBase) = power_summary(io, obj)
 
 function walk(f, x::CatConfigBase, lens = identity)
     f(x, lens)

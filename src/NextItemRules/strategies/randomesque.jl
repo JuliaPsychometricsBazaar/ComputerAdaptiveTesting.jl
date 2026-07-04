@@ -53,6 +53,6 @@ function best_item(
     randomesque(rule.strategy.rng, rule.criterion, responses, items, rule.strategy.k)[1]
 end
 
-function show(io::IO, ::MIME"text/plain", rule::RandomesqueStrategy)
+function power_summary(io::IO, rule::RandomesqueStrategy)
     println(io, "Randomesque strategy with k = $(rule.k)")
 end

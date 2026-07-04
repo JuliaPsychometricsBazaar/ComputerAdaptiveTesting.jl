@@ -61,7 +61,7 @@ mle_mode_2d = ModeAbilityEstimator(lh_est_2d, optimizer_2d)
 
     @testset "2 dim information higher closer to current estimate" begin
         information_matrix_criteria = InformationMatrixCriteria(mle_mean_2d)
-        information_criterion = ScalarizedItemCriteron(
+        information_criterion = ScalarizedItemCriterion(
             information_matrix_criteria, DeterminantScalarizer())
 
         # Item closer to the current estimate (1, 1)
@@ -79,7 +79,7 @@ mle_mode_2d = ModeAbilityEstimator(lh_est_2d, optimizer_2d)
     @testset "2 dim variance smaller closer to current estimate" begin
         covariance_state_criterion = AbilityCovarianceStateMultiCriterion(
             lh_est_2d, integrator_2d)
-        variance_criterion = ScalarizedStateCriteron(
+        variance_criterion = ScalarizedStateCriterion(
             covariance_state_criterion, DeterminantScalarizer())
         variance_item_criterion = ExpectationBasedItemCriterion(
             mle_mean_2d, variance_criterion)
@@ -99,7 +99,7 @@ mle_mode_2d = ModeAbilityEstimator(lh_est_2d, optimizer_2d)
     @testset "2 dim variance is whack with trace scalarizer" begin
         covariance_state_criterion = AbilityCovarianceStateMultiCriterion(
             lh_est_2d, integrator_2d)
-        variance_criterion = ScalarizedStateCriteron(
+        variance_criterion = ScalarizedStateCriterion(
             covariance_state_criterion, TraceScalarizer())
         variance_item_criterion = ExpectationBasedItemCriterion(
             mle_mean_2d, variance_criterion)

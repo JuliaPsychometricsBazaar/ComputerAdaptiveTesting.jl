@@ -30,6 +30,7 @@ include("./NextItemRules/NextItemRules.jl")
 include("./TerminationConditions.jl")
 
 # Combining / running
+include("./DerivedMeasures.jl")
 include("./Rules.jl")
 include("./Sim/Sim.jl")
 include("./DecisionTree/DecisionTree.jl")

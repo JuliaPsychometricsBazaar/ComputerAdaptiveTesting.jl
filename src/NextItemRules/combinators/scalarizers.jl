@@ -4,7 +4,7 @@ scalarize(::DeterminantScalarizer, mat) = det(mat)
 struct TraceScalarizer <: MatrixScalarizer end
 scalarize(::TraceScalarizer, mat) = tr(mat)
 
-struct ScalarizedItemCriteron{
+struct ScalarizedItemCriterion{
     ItemMultiCriterionT <: ItemMultiCriterion,
     MatrixScalarizerT <: MatrixScalarizer
 } <: ItemCriterion
@@ -12,7 +12,7 @@ struct ScalarizedItemCriteron{
     scalarizer::MatrixScalarizerT
 end
 
-struct ScalarizedStateCriteron{
+struct ScalarizedStateCriterion{
     StateMultiCriterionT <: StateMultiCriterion,
     MatrixScalarizerT <: MatrixScalarizer
 } <: StateCriterion
@@ -20,7 +20,7 @@ struct ScalarizedStateCriteron{
     scalarizer::MatrixScalarizerT
 end
 
-function compute_criterion(ssc::Union{ScalarizedItemCriteron, ScalarizedStateCriteron},
+function compute_criterion(ssc::Union{ScalarizedItemCriterion, ScalarizedStateCriterion},
         tracked_responses::TrackedResponses, item_idx...)
     res = scalarize(
         ssc.scalarizer,

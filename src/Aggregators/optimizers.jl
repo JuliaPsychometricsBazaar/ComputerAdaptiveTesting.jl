@@ -10,7 +10,7 @@ function (optim::FunctionOptimizer)(f::F,
     optim.optim(comp_f)
 end
 
-function show(io::IO, ::MIME"text/plain", optim::FunctionOptimizer)
+function power_summary(io::IO, optim::FunctionOptimizer)
     indent_io = indent(io, 2)
     if optim.optim isa Optimizers.OneDimOptimOptimizer || optim.optim isa Optimizers.MultiDimOptimOptimizer || optim.optim isa Optimizers.NativeOneDimOptimOptimizer
         inner = optim.optim

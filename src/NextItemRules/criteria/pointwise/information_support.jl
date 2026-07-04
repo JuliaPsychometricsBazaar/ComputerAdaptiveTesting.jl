@@ -70,18 +70,9 @@ log_resp(ir::ItemResponse{<:GuessAndSlipItemBank}, response, θ) = log(resp(ir, 
 log_resp(ir::ItemResponse{<:GuessAndSlipItemBank}, θ) = log(resp(ir, θ))
 log_resp_vec(ir::ItemResponse{<:GuessAndSlipItemBank}, θ) = log.(resp_vec(ir, θ))
 
-function vector_hessian(f, x, n)
-    out = ForwardDiff.jacobian(x -> ForwardDiff.jacobian(f, x), x)
-    return reshape(out, n, n, n)
-end
-
-function double_derivative(f, x)
-    ForwardDiff.derivative(x -> ForwardDiff.derivative(f, x), x)
-end
-
 function expected_item_information(ir::ItemResponse, θ::Number)
     exp_resp = resp_vec(ir, θ)
-    d² = double_derivative((θ -> log_resp_vec(ir, θ)), θ)
+    d² = Differentiation.double_derivative((θ -> log_resp_vec(ir, θ)), θ)
     -sum(exp_resp .* d²)
 end
 
@@ -90,7 +81,7 @@ end
 function expected_item_information(ir::ItemResponse, θ::Vector)
     exp_resp = resp_vec(ir, θ)
     n = domdims(ir.item_bank)
-    hess = vector_hessian(θ -> log_resp_vec(ir, θ), θ, n)
+    hess = Differentiation.vector_hessian(θ -> log_resp_vec(ir, θ), θ, n)
     return -sum(eachslice(hess, dims=1) .* exp_resp)
 end
 

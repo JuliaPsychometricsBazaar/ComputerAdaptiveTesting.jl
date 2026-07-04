@@ -75,6 +75,10 @@ function Base.empty!(responses::BareResponses)
     Base.empty!(responses.values)
 end
 
+function Base.length(responses::BareResponses)
+    return length(responses.indices)
+end
+
 function add_response!(responses::BareResponses, response::Response)::BareResponses
     push!(responses.indices, response.index)
     push!(responses.values, response.value)

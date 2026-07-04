@@ -12,6 +12,7 @@ using ..NextItemRules: NextItemRule
 using ..TerminationConditions: TerminationCondition
 using ..ConfigBase
 import Base: show
+import PsychometricsBazaarBase: power_summary
 
 """
 $(TYPEDEF)
@@ -82,14 +83,23 @@ function CatRules(bits...)
 end
 
 function show(io::IO, ::MIME"text/plain", rules::CatRules)
+    power_summary(io, rules; toplevel=true)
+end
+
+function power_summary(io::IO, rules::CatRules; toplevel=false)
+    # TODO
     print(io, "Next item rule: ")
-    show(io, MIME("text/plain"), rules.next_item)
-    println(io)
+    power_summary(io, rules.next_item)
+    if toplevel
+        println(io)
+    end
     print(io, "Termination condition: ")
-    show(io, MIME("text/plain"), rules.termination_condition)
-    println(io)
+    power_summary(io, rules.termination_condition)
+    if toplevel
+        println(io)
+    end
     print(io, "Ability estimator: ")
-    show(io, MIME("text/plain"), rules.ability_estimator)
+    power_summary(io, rules.ability_estimator)
 end
 
 function _find_ability_estimator_and_tracker(bits...)
