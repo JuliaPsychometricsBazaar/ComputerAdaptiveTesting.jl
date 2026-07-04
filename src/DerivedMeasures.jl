@@ -83,7 +83,7 @@ function (est::LaplaceApproxEstimator)(tracked_responses::TrackedResponses)
     mode = est.optimizer(IntegralCoeffs.one, est.dist_est, tracked_responses)
     return (
         mode,
-        -Differentiation.double_derivative((ability -> log(pdf(est, tracked_responses))), mode)
+        -Differentiation.double_derivative((ability -> log(pdf(est.dist_est, tracked_responses, ability))), mode)
     )
 end
 
@@ -122,7 +122,6 @@ function DistributionSampler(composite::Union{MeanAbilityEstimator, AbilityVaria
 end
 
 function DistributionSampler(dist_est::DistributionAbilityEstimator, integrator::Union{AbilityIntegrator, Nothing}=nothing, points::Nothing=nothing)
-    @info "DistributionSampler" dist_est integrator points
     if isnothing(integrator)
         return nothing
     end
