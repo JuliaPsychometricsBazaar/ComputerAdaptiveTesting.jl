@@ -44,7 +44,7 @@ $(TYPEDEF)
 
 The ability likelihood distribution.
 
-    $(FUNCTIONNAME)(; ncomp=0)
+    $(FUNCTIONNAME)()
 """
 struct LikelihoodAbilityEstimator <: DistributionAbilityEstimator end
 
