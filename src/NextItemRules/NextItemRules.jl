@@ -64,6 +64,12 @@ export ObservedInformationPointwiseItemCriterion
 export RawEmpiricalInformationPointwiseItemCriterion
 export EmpiricalInformationPointwiseItemCriterion
 
+public PointwiseNextItemRule, PointwiseFirstNextItemRule
+public WeightedStateMultiCriterion, WeightedItemMultiCriterion
+public GreedyForcedContentBalancer
+public PosteriorExpectedKLInformationItemCriterion
+public alt_expected_1d_item_information, alt_expected_mirt_item_information, alt_expected_mirt_3pl_item_information
+
 # Prelude
 include("./prelude/abstract.jl")
 include("./prelude/next_item_rule.jl")

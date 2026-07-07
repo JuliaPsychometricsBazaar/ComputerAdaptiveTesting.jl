@@ -155,32 +155,6 @@ model backing the CAT.
 """
 function item_response_functions end
 
-## Running the CAT
-function Sim.run_cat(cat_config::CatLoop{RulesT},
-        ib_labels = nothing) where {RulesT <: StatefulCat}
-    (; stateful_cat, get_response, new_response_callback) = cat_config
-    while true
-        next_index = next_item(stateful_cat)
-        next_label = item_label(ib_labels, next_index)
-        @debug "Querying" next_index next_label
-        response = get_response(next_index, next_label)
-        @debug "Got response" response
-        add_response!(stateful_cat, next_index, response)
-        terminating = termination_condition(responses, item_bank)
-        if new_response_callback !== nothing
-            new_response_callback(get_responses(responses), terminating)
-        end
-        if terminating
-            @debug "Met termination condition"
-            break
-        end
-    end
-    return (
-        get_responses(stateful_cat),
-        get_ability(stateful_cat)
-    )
-end
-
 ## TODO: Materialise the cat into a decsision tree
 
 """

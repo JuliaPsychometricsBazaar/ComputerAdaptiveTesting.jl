@@ -30,42 +30,6 @@ function log_resp(ir::ItemResponse{<:CdfMirtItemBank}, val, θ)
     end
 end
 
-#=
-# XXX: Not sure if this is optimal numerically or speed wise -- possibly it
-# would be better to just transform to linear space in this case?
-@inline function log_transform_irf_y(guess, slip, y)
-    # log space version of guess + irf_size(guess, slip) * y
-    logaddexp(log(guess), log(irf_size(guess, slip)) + y)
-end
-
-@inline function log_transform_irf_y(ir::ItemResponse{<:GuessItemBank}, response, y)
-    guess = y_offset(ir.item_bank, ir.index)
-    if response
-        log_transform_irf_y(guess, 0.0, y)
-    else
-        log_transform_irf_y(0.0, guess, y)
-    end
-end
-
-@inline function log_transform_irf_y(ir::ItemResponse{<:SlipItemBank}, response, y)
-    slip = y_offset(ir.item_bank, ir.index)
-    if response
-        log_transform_irf_y(0.0, slip, y)
-    else
-        log_transform_irf_y(slip, 0.0, y)
-    end
-end
-
-function log_resp_vec(ir::ItemResponse{<:AnySlipOrGuessItemBank}, θ)
-    r = log_resp_vec(inner_item_response(ir), θ)
-    SVector(log_transform_irf_y(ir, false, r[1]), log_transform_irf_y(ir, true, r[2]))
-end
-
-function log_resp(ir::ItemResponse{<:AnySlipOrGuessItemBank}, val, θ)
-    log_transform_irf_y(ir, val, log_resp(inner_item_response(ir), val, θ))
-end
-=#
-
 log_resp(ir::ItemResponse{<:GuessAndSlipItemBank}, response, θ) = log(resp(ir, response, θ))
 log_resp(ir::ItemResponse{<:GuessAndSlipItemBank}, θ) = log(resp(ir, θ))
 log_resp_vec(ir::ItemResponse{<:GuessAndSlipItemBank}, θ) = log.(resp_vec(ir, θ))
