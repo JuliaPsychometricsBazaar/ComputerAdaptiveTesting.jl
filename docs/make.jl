@@ -45,7 +45,7 @@ makedocs(;
         ],
         "Contributing" => "contributing.md",
     ],
-    warnonly = [:missing_docs],
+    checkdocs_ignored_modules = [ComputerAdaptiveTesting.Compat],
     linkcheck = true)
 
 if build_demos

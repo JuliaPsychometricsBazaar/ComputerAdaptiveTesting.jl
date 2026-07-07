@@ -11,7 +11,16 @@ using FittedItemBanks: AbstractItemBank, ItemResponse, PointsItemBank,
 using LogarithmicNumbers: ULogarithmic
 import FittedItemBanks
 using Lazy: @forward
+using DocStringExtensions
 
+"""
+$(TYPEDEF)
+
+Wraps `inner`, an item bank whose response function `FittedItemBanks.log_resp`
+gives log-probabilities, exposing it as an ordinary `AbstractItemBank` whose
+`resp`/`resp_vec` return `ULogarithmic` values. Used where response
+probabilities are so small that computing in log-space avoids underflow.
+"""
 struct LogItemBank{ItemBankT <: AbstractItemBank} <: AbstractItemBank
     inner::ItemBankT
 end
@@ -40,6 +49,14 @@ FittedItemBanks.domdims,
 FittedItemBanks.ResponseType,
 FittedItemBanks.DomainType
 
+"""
+$(TYPEDEF)
+
+A `DichotomousPointsItemBank` (`inner_bank`) with its tabulated response
+probabilities precomputed in log-space (`log_ys`), so that likelihoods over
+many responses can be accumulated by summation instead of repeated
+multiplication.
+"""
 struct DichotomousPointsWithLogsItemBank{DomainT} <: PointsItemBank
     inner_bank::DichotomousPointsItemBank{DomainT}
     log_ys::Array{Float64, 3}

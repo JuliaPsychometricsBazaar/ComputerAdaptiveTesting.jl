@@ -1,0 +1,23 @@
+{
+  "name": "ComputerAdaptiveTesting.jl",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/julialang/devcontainer-features/julia:1": {
+      "channel": "1.12"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+  },
+  "mounts": [
+    "source=claude-code-config-${devcontainerId},target=/home/vscode/.claude,type=volume"
+  ],
+  "postCreateCommand": "sudo chown vscode:vscode /home/vscode/.claude && julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'",
+  "remoteEnv": {
+    "JULIA_NUM_THREADS": "auto"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["julialang.language-julia"]
+    }
+  }
+}

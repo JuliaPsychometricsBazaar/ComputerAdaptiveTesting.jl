@@ -1,3 +1,23 @@
+# Ability estimators come in two flavours:
+#   * `DistributionAbilityEstimator`s produce a (possibly unnormalized)
+#     density over ability, via `pdf(est, tracked_responses)`, e.g. the raw
+#     likelihood (`LikelihoodAbilityEstimator`) or a Bayesian posterior
+#     (`PosteriorAbilityEstimator`).
+#   * `PointAbilityEstimator`s reduce such a distribution to a single ability
+#     value when called as `est(tracked_responses)`, either by optimization
+#     (`ModeAbilityEstimator`, i.e. MAP/MLE) or by integration
+#     (`MeanAbilityEstimator`, i.e. EAP).
+# `AbilityTracker`s (see ability_tracker.jl) wrap an estimator to maintain an
+# incrementally-updated estimate as responses are added, avoiding
+# recomputation from scratch after every response.
+#
+# Constructors here follow the package-wide "bag of config bits" convention:
+# `XAbilityEstimator(bits...)` scans the heterogeneous `bits` arguments (which
+# may include other estimators, integrators, optimizers, priors, item banks,
+# etc.) via `find1_instance`/`find1_type` and assembles a suitable estimator,
+# falling back to sensible defaults (e.g. a standard normal prior) when
+# nothing more specific is found.
+
 function Integrators.normdenom(integrator::AbilityIntegrator,
         est::DistributionAbilityEstimator,
         tracked_responses::TrackedResponses)
@@ -19,6 +39,13 @@ function pdf(ability_est::DistributionAbilityEstimator,
     pdf(ability_est, tracked_responses)(x)
 end
 
+"""
+$(TYPEDEF)
+
+The ability likelihood distribution.
+
+    $(FUNCTIONNAME)()
+"""
 struct LikelihoodAbilityEstimator <: DistributionAbilityEstimator end
 
 function pdf(::LikelihoodAbilityEstimator,
@@ -30,6 +57,17 @@ function power_summary(io::IO, ::LikelihoodAbilityEstimator)
     println(io, "Ability likelihood distribution")
 end
 
+"""
+$(TYPEDEF)
+
+Ability posterior distribution: the response likelihood times a `prior`
+distribution over ability (a standard normal by default).
+
+    $(FUNCTIONNAME)(; ncomp=0)
+
+Constructs with a standard normal prior (`ncomp=0`) or a `ncomp`-dimensional
+standard multivariate normal prior.
+"""
 struct PosteriorAbilityEstimator{PriorT <: Distribution} <: DistributionAbilityEstimator
     prior::PriorT
 end
@@ -209,6 +247,19 @@ function covariance_matrix(
     )
 end
 
+"""
+$(TYPEDEF)
+
+Point ability estimate given by the mode of `dist_est` (e.g. MLE for a
+[`LikelihoodAbilityEstimator`](@ref) or MAP for a
+[`PosteriorAbilityEstimator`](@ref)), found using `optim`.
+
+    $(FUNCTIONNAME)(bits...)
+
+Bag-of-config-bits constructor: uses any given `DistributionAbilityEstimator`
+and `AbilityOptimizer` found in `bits`, or builds default ones from the rest
+of `bits`.
+"""
 struct ModeAbilityEstimator{
     DistEst <: DistributionAbilityEstimator,
     OptimizerT <: AbilityOptimizer
@@ -231,6 +282,18 @@ function power_summary(io::IO, ability_estimator::ModeAbilityEstimator)
     power_summary(indent_io, ability_estimator.optim)
 end
 
+"""
+$(TYPEDEF)
+
+Point ability estimate given by the mean (EAP) of `dist_est`, computed using
+`integrator`.
+
+    $(FUNCTIONNAME)(bits...)
+
+Bag-of-config-bits constructor: uses any given `DistributionAbilityEstimator`
+and `AbilityIntegrator` found in `bits`, or builds default ones from the rest
+of `bits`.
+"""
 struct MeanAbilityEstimator{
     DistEst <: DistributionAbilityEstimator,
     IntegratorT <: AbilityIntegrator

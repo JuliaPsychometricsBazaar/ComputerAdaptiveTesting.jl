@@ -1,3 +1,7 @@
+"""
+Types and functions for recording examinee responses and evaluating the
+resulting ability likelihood function.
+"""
 module Responses
 
 using FittedItemBanks: AbstractItemBank,
@@ -5,6 +9,7 @@ using FittedItemBanks: AbstractItemBank,
                        resp,
                        DichotomousPointsItemBank, item_ys
 using AutoHashEquals: @auto_hash_equals
+using DocStringExtensions
 
 export Response, BareResponses, AbilityLikelihood, function_xs, function_ys
 export add_response!, pop_response!
@@ -12,6 +17,11 @@ export add_response!, pop_response!
 concrete_response_type(::BooleanResponse) = Bool
 concrete_response_type(::MultinomialResponse) = Int
 
+"""
+$(TYPEDEF)
+
+A single response of the given `ResponseType` to the item at `index`.
+"""
 @auto_hash_equals struct Response{ResponseTypeT <: ResponseType, ConcreteResponseTypeT}
     index::Int
     value::ConcreteResponseTypeT
@@ -19,6 +29,14 @@ concrete_response_type(::MultinomialResponse) = Int
     Response(rt, index, value) = new{typeof(rt), concrete_response_type(rt)}(index, value)
 end
 
+"""
+$(TYPEDEF)
+
+A bare (untracked) sequence of responses, stored as parallel vectors of item
+`indices` and response `values`, sharing a common `rt` (response type).
+See also `TrackedResponses`, which additionally tracks the item bank and
+ability estimate.
+"""
 @auto_hash_equals struct BareResponses{
     ResponseTypeT <: ResponseType,
     ConcreteResponseTypeT,
@@ -79,12 +97,22 @@ function Base.length(responses::BareResponses)
     return length(responses.indices)
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Append `response` to `responses` in-place.
+"""
 function add_response!(responses::BareResponses, response::Response)::BareResponses
     push!(responses.indices, response.index)
     push!(responses.values, response.value)
     responses
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Remove and discard the last response from `responses` in-place.
+"""
 function pop_response!(responses::BareResponses)::BareResponses
     pop!(responses.indices)
     pop!(responses.values)
@@ -96,6 +124,14 @@ function Base.sizehint!(bare_responses::BareResponses, n)
     sizehint!(bare_responses.values, n)
 end
 
+"""
+$(TYPEDEF)
+
+The likelihood of ability `θ` given `responses` to items in `item_bank`, i.e.
+`θ -> prod(P(response | θ) for response in responses)`. Callable as a function
+of `θ`; also has [`function_xs`](@ref)/[`function_ys`](@ref) methods for item
+banks that support evaluation at a fixed grid of `xs`.
+"""
 struct AbilityLikelihood{ItemBankT <: AbstractItemBank, BareResponsesT <: BareResponses}
     item_bank::ItemBankT
     responses::BareResponsesT
@@ -116,10 +152,23 @@ function (ability_lh::AbilityLikelihood)(θ)
     )
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+The grid of ability values (`xs`) at which `ability_lh`'s item bank tabulates
+response probabilities.
+"""
 function function_xs(ability_lh::AbilityLikelihood{DichotomousPointsItemBank})
     return ability_lh.item_bank.xs
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+The likelihood of `ability_lh`'s responses evaluated at each point in
+[`function_xs`](@ref), i.e. the product over responses of the tabulated
+response probability at each grid point.
+"""
 function function_ys(ability_lh::AbilityLikelihood{DichotomousPointsItemBank})
     return reduce(
         .*,

@@ -1,3 +1,8 @@
+"""
+Runs a configured CAT ([`CatRules`](@ref)) in a loop ([`CatLoop`](@ref)/[`run_cat`](@ref)),
+obtaining responses interactively or from simulated data, and optionally
+recording the run (see recorder.jl).
+"""
 module Sim
 
 using DataFrames: DataFrame
