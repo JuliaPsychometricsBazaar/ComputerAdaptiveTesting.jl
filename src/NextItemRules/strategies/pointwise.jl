@@ -1,4 +1,4 @@
-struct PointwiseNextItemRule{CriterionT <: PointwiseItemCriterion, PointsT <: AbstractArray{<:Number}} <: NextItemRule
+public struct PointwiseNextItemRule{CriterionT <: PointwiseItemCriterion, PointsT <: AbstractArray{<:Number}} <: NextItemRule
     criterion::CriterionT
     points::PointsT
 end
@@ -25,6 +25,6 @@ function power_summary(io::IO, rule::PointwiseNextItemRule)
 end
 
 
-function PointwiseFirstNextItemRule(criterion, points, rule)
+public function PointwiseFirstNextItemRule(criterion, points, rule)
     FixedRuleSequencer((length(points),), (PointwiseNextItemRule(criterion, points), rule))
 end

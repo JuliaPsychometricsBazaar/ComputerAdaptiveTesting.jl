@@ -7,13 +7,13 @@ At each step the group with the lowest ratio of seen items to target is selected
 
 http://dx.doi.org/10.1207/s15324818ame0403_4
 """
-struct GreedyForcedContentBalancer{InnerRuleT <: NextItemRule} <: NextItemRule
+public struct GreedyForcedContentBalancer{InnerRuleT <: NextItemRule} <: NextItemRule
     targets::Vector{Float64}
     groups::Vector{Int}
     inner_rule::InnerRuleT
 end
 
-function GreedyForcedContentBalancer(targets::Dict, groups, bits...)
+public function GreedyForcedContentBalancer(targets::Dict, groups, bits...)
     targets_vec = zeros(Float64, length(targets))
     groups_idxs = zeros(Int, length(groups))
     group_lookup = Dict{Any, Int}()
@@ -35,7 +35,7 @@ function GreedyForcedContentBalancer(targets::Dict, groups, bits...)
     GreedyForcedContentBalancer(targets_vec, groups_idxs, bits...)
 end
 
-function GreedyForcedContentBalancer(targets::AbstractVector, groups, bits...)
+public function GreedyForcedContentBalancer(targets::AbstractVector, groups, bits...)
     GreedyForcedContentBalancer(targets, groups, NextItemRule(bits...))
 end
 
