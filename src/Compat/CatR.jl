@@ -61,23 +61,6 @@ end
 
 const ability_estimator_aliases = _ability_estimator_aliases()
 
-#=
-        for (resp_exp, resp_exp_nick) in resp_exp_nick_pairs
-            next_item_rule = NextItemRule(
-                ExpectationBasedItemCriterion(resp_exp, AbilityVariance(numtools.integrator, distribution_estimator(abil_est)))
-            )
-            next_item_rule = preallocate(next_item_rule)
-            est_next_item_rule_pairs[Symbol("$(abil_est_str)_mepv_$(resp_exp_nick)")] = (abil_est, next_item_rule)
-            next_item_rule = NextItemRule(
-                ExpectationBasedItemCriterion(resp_exp, InformationItemCriterion(abil_est))
-            )
-            next_item_rule = preallocate(next_item_rule)
-            est_next_item_rule_pairs[Symbol("$(abil_est_str)_mei_$(resp_exp_nick)")] = (abil_est, next_item_rule)
-        end
-        est_next_item_rule_pairs[Symbol("$(abil_est_str)_mi")] = (abil_est, InformationItemCriterion(abil_est))
-=#
-
-
 function setup_integrator(lo=-4.0, hi=4.0, pts=33)
     Integrators.MidpointIntegrator(range(lo, hi, pts))
 end
