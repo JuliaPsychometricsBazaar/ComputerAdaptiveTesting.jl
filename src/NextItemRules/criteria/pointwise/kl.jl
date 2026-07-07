@@ -12,6 +12,9 @@ struct PosteriorExpectedKLInformationItemCriterion{
     DistributionEstimatorT <: DistributionAbilityEstimator,
     IntegratorT <: AbilityIntegrator
 } <: PointwiseItemCriterion
+    point_estimator::PointEstimatorT
+    distribution_estimator::DistributionEstimatorT
+    integrator::IntegratorT
 end
 
 function PosteriorExpectedKLInformationItemCriterion(bits...)
