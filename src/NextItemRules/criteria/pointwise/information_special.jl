@@ -8,7 +8,7 @@ So these are just from equations in the literature.
 There aren't really any type guards on these so its up to the caller to make sure they are using the right ones.
 =#
 
-public function alt_expected_1d_item_information(ir::ItemResponse, θ)
+function alt_expected_1d_item_information(ir::ItemResponse, θ)
     """
     This is a special case of the expected_item_information function for
         * 1-dimensional ability
@@ -27,7 +27,7 @@ public function alt_expected_1d_item_information(ir::ItemResponse, θ)
     end
 end
 
-public function alt_expected_mirt_item_information(ir::ItemResponse, θ)
+function alt_expected_mirt_item_information(ir::ItemResponse, θ)
     """
     This is a special case of the expected_item_information function for
         * Multidimensional
@@ -42,7 +42,7 @@ public function alt_expected_mirt_item_information(ir::ItemResponse, θ)
     (irθ_prime * irθ_prime') / (pθ * qθ)
 end
 
-public function alt_expected_mirt_3pl_item_information(ir::ItemResponse, θ)
+function alt_expected_mirt_3pl_item_information(ir::ItemResponse, θ)
     """
     This is a special case of the expected_item_information function for
         * Multidimensional

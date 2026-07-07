@@ -37,7 +37,7 @@ function compute_criterion(ssc::Union{ScalarizedItemCriterion, ScalarizedStateCr
     res
 end
 
-public struct WeightedStateMultiCriterion{InnerT <: StateMultiCriterion} <: StateMultiCriterion
+struct WeightedStateMultiCriterion{InnerT <: StateMultiCriterion} <: StateMultiCriterion
     weights::Vector{Float64}
     criteria::InnerT
 end
@@ -47,7 +47,7 @@ function compute_multi_criterion(
     wsc.weights' * wsc.criteria(tracked_responses, item_idx) * wsc.weights
 end
 
-public struct WeightedItemMultiCriterion{InnerT <: ItemMultiCriterion} <: ItemMultiCriterion
+struct WeightedItemMultiCriterion{InnerT <: ItemMultiCriterion} <: ItemMultiCriterion
     weights::Vector{Float64}
     criteria::InnerT
 end

@@ -7,7 +7,7 @@ function kl(item_response::ItemResponse, r0, theta)
     return resp
 end
 
-public struct PosteriorExpectedKLInformationItemCriterion{
+struct PosteriorExpectedKLInformationItemCriterion{
     PointEstimatorT <: PointAbilityEstimator,
     DistributionEstimatorT <: DistributionAbilityEstimator,
     IntegratorT <: AbilityIntegrator
