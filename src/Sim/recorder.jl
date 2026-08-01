@@ -114,7 +114,7 @@ function prepare_dataframe(recording::CatRecording)
         Response = responses,
     )
     for (name, value) in pairs(recording.data)
-        if value.data isa AbstractVector
+        if haskey(value, :data) && value.data isa AbstractVector
             label = haskey(value, :label) ? Symbol(value.label) : name
             cols = (;
                 cols...,
