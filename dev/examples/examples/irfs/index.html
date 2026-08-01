@@ -8,5 +8,27 @@ using AdaptiveTestPlots
 @automakie()</code></pre><p>Typically, the logistic c.d.f. is used as the transfer function in IRT. However, it in an IRT context, a scaled version intended to be close to a normal c.d.f. is often used. The main advantage is that this is usually faster to compute. ComputerAdaptiveTesting provides normal<em>scaled</em>logistic, which is also used by default, for this purpose:</p><pre><code class="language-julia hljs">xs = -8:0.05:8
 lines(xs, cdf.(Normal(), xs))
 lines!(xs, cdf.(normal_scaled_logistic, xs))
-current_figure()</code></pre><div class="bonito-fragment" id="d70fe062-6090-469d-9c5e-fecc37993f30" data-jscall-id="subsession-application-dom"><div><style></style></div><div><script type="module">Bonito.init_session("d70fe062-6090-469d-9c5e-fecc37993f30", Bonito.fetch_binary('bonito/bin/87771d79764634107b0bccc27c50b17825165a16-14974622513317604039.bin'), "sub", false);
-</script><div style="width: 100%; height: 100%" data-jscall-id="3"><canvas data-jp-suppress-context-menu style="display: block" data-jscall-id="4" data-lm-suppress-shortcuts="true" tabindex="0"></canvas></div></div></div><hr/><p><em>This page was generated using <a href="https://github.com/JuliaDocs/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Saturday 11 July 2026 13:06">Saturday 11 July 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+current_figure()</code></pre><div class="bonito-fragment" id="4ae82d25-7825-47e9-b445-716e7bf50432" data-jscall-id="subsession-application-dom"><div><style></style><style>.wglmakie-spinner {
+  left: 50%;
+  z-index: 1000;
+  height: 40px;
+  position: absolute;
+  border-radius: 50%;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  animation: wglmakie-spin 1.0s linear infinite;
+  top: 50%;
+  border-top: 4px solid currentColor;
+  width: 40px;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+@keyframes wglmakie-spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+</style></div><div><script type="module">Bonito.init_session("4ae82d25-7825-47e9-b445-716e7bf50432", Bonito.fetch_binary('bonito/bin/52233dd87c0c7916939b65294f3b8268ab1b5fe5-6945521951853525912.bin'), "sub", false);
+</script><div style="width: 100%; height: 100%; position: relative;" data-jscall-id="4"><canvas height="450px" data-jp-suppress-context-menu style="display: block" data-jscall-id="5" data-lm-suppress-shortcuts="true" width="600px" tabindex="0"></canvas><div class="wglmakie-spinner" data-jscall-id="6"></div></div></div></div><hr/><p><em>This page was generated using <a href="https://github.com/JuliaDocs/DemoCards.jl">DemoCards.jl</a> and <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Saturday 1 August 2026 11:20">Saturday 1 August 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
