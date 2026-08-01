@@ -32,6 +32,14 @@ function PointwiseItemCategoryCriterion(bits...)
     @returnsome find1_type(PointwiseItemCategoryCriterion, bits) typ->typ()
 end
 
+"""
+    should_minimize(criterion)
+
+Whether lower values of a criterion are better. By convention criteria in this
+package are minimised, so this defaults to `true`.
+"""
+should_minimize(::Union{ItemCriterion, CriterionBase}) = true
+
 function init_thread(::ItemCriterion, ::TrackedResponses)
     nothing
 end

@@ -27,6 +27,7 @@ using .Dummy
     include("./jet.jl")
     include("./ability_estimator_1d.jl")
     include("./ability_estimator_2d.jl")
+    include("./termination_conditions.jl")
     include("./smoke.jl")
     include("./dt.jl")
     include("./stateful.jl")

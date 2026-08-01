@@ -64,6 +64,7 @@ export ObservedInformationPointwiseItemCriterion
 export RawEmpiricalInformationPointwiseItemCriterion
 export EmpiricalInformationPointwiseItemCriterion
 
+public should_minimize
 public PointwiseNextItemRule, PointwiseFirstNextItemRule
 public WeightedStateMultiCriterion, WeightedItemMultiCriterion
 public GreedyForcedContentBalancer
