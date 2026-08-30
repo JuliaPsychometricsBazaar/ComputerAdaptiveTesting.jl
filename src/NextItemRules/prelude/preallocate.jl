@@ -1,10 +1,6 @@
-function preallocate(obj)
-    obj
-end
-
-function preallocate(obj::Integrator)
-    Integrators.preallocate(obj)
-end
+preallocate(obj) = obj
+preallocate(obj::Integrator) = PsychometricsBazaarBase.preallocate(obj)
+preallocate(obj::Optimizer) = PsychometricsBazaarBase.preallocate(obj)
 
 @generated function preallocate(obj::CatConfigBase)
     # TODO: Ideally when the same object is referenced multiple times in the
