@@ -22,6 +22,7 @@ export CatComparisonExecutionStrategy, IncreaseItemBankSizeExecutionStrategy
 #export DecisionTreeExecutionStrategy
 export ReplayResponsesExecutionStrategy
 export CatComparisonConfig
+export AbstractComparisonSystem, FullRebuildSystem, SelfResetSystem
 
 include("./watchdog.jl")
 
@@ -82,13 +83,38 @@ function run_random_comparison(next_item,
     RandomCatComparison(true_abilities, rand_abilities, cat_abilities, cat_idxs)
 end
 
+abstract type AbstractComparisonSystem end
+
+struct FullRebuildSystem <: AbstractComparisonSystem
+    mk_cat::Any
+end
+
+struct SelfResetSystem <: AbstractComparisonSystem
+    mk_cat::Any
+    cat::Ref{Stateful.StatefulCat}
+end
+
+SelfResetSystem(mk_cat) = SelfResetSystem(mk_cat, Ref{Stateful.StatefulCat}())
+
+init_cat(cat::FullRebuildSystem, item_bank) = cat.mk_cat(item_bank)
+
+function init_cat(cat_system::SelfResetSystem, item_bank)
+    if (isassigned(cat_system.cat))
+        Stateful.reset!(cat_system.cat[])
+        Stateful.set_item_bank!(cat_system.cat[], item_bank)
+    else
+        cat_system.cat[] = cat_system.mk_cat(item_bank)
+    end
+    return cat_system.cat[]
+end
+
 abstract type CatComparisonExecutionStrategy end
 
 struct CatComparisonConfig{StrategyT <: CatComparisonExecutionStrategy, PhasesT <: NamedTuple}
     """
     A named tuple with the (named) CatRules (or compatable) to be compared
     """
-    rules::NamedTuple
+    systems::Dict{Symbol, AbstractComparisonSystem}
     """
     The comparison and execution strategy to use
     """
@@ -119,7 +145,7 @@ end
 
 """
     CatComparisonConfig(;
-        rules::NamedTuple{Symbol, StatefulCat},
+        systems::Dict{String, Union{AbstractComparisonSystem, Callable}},
         strategy::CatComparisonExecutionStrategy,
         phases::Union{NamedTuple{Symbol, Callable}, Tuple{Symbol}},
         skips::Set{Tuple{Symbol, Symbol}},
@@ -128,7 +154,7 @@ end
 
 CatComparisonConfig sets up a evaluation-oriented comparison between different CAT systems.
 
-Specify the comparison by listing: CAT systems in `rules`, a `NamedTuple` which gives
+Specify the comparison by listing: CAT systems in `systems`, a `NamedTuple` which gives
 identifiers to implementations of the `StatefulCat` interface; the `strategy` to use,
 an implementation of `CatComparisonExecutionStrategy`; the `phases` to run listed as
 either as a `NamedTuple` with names of phases and corresponding callbacks or `nothing` a
@@ -137,7 +163,16 @@ no callback is provided.
 
 The exact phases depend on the strategy used. See their individual documentation for more.
 """
-function CatComparisonConfig(; rules, strategy, phases = nothing, skip_callback = ((_, _, _) -> false), sample_points = nothing, callback = nothing, timeout = Inf)
+function CatComparisonConfig(; systems, strategy, phases = nothing, skip_callback = ((_, _, _) -> false), sample_points = nothing, callback = nothing, timeout = Inf)
+    resolved_systems = Dict{Symbol, AbstractComparisonSystem}()
+    for (name, mk_cat) in pairs(systems)
+        if mk_cat isa AbstractComparisonSystem
+            comparison_system = mk_cat
+        else
+            comparison_system = FullRebuildSystem(mk_cat)
+        end
+        resolved_systems[name] = comparison_system
+    end
     if callback === nothing
         callback = (info; kwargs...) -> nothing
     end
@@ -148,7 +183,7 @@ function CatComparisonConfig(; rules, strategy, phases = nothing, skip_callback 
         phases = NamedTuple((phase => callback for phase in phases))
     end
     CatComparisonConfig(
-        rules,
+        resolved_systems,
         strategy,
         phases,
         sample_points,
@@ -224,20 +259,11 @@ function IncreaseItemBankSizeExecutionStrategy(item_bank, sizes)
     return IncreaseItemBankSizeExecutionStrategy(item_bank, sizes, 0, false, Inf)
 end
 
-function init_cat(cat::Stateful.StatefulCat, item_bank)
-    Stateful.set_item_bank!(cat, item_bank)
-    cat
-end
-
-function init_cat(cat, item_bank)
-    cat(item_bank)
-end
-
 function run_warmup(comparison::CatComparisonConfig{IncreaseItemBankSizeExecutionStrategy})
     strategy = comparison.strategy
     size = strategy.sizes[1]
     subsetted_item_bank = subset(strategy.item_bank, 1:size)
-    for (name, mk_cat) in pairs(comparison.rules)
+    for (name, mk_cat) in pairs(comparison.systems)
         warmup_time = @timed begin
             cat = init_cat(mk_cat, subsetted_item_bank)
             for idx in 1:(strategy.starting_responses)
@@ -255,14 +281,15 @@ end
 
 function run_comparison(comparison::CatComparisonConfig{IncreaseItemBankSizeExecutionStrategy})
     strategy = comparison.strategy
-    current_cats = collect(pairs(comparison.rules))
-    next_current_cats = []
+    current_cats = collect(keys(comparison.systems))
     @info "sizes" strategy.sizes
     for size in strategy.sizes
         subsetted_item_bank = subset(strategy.item_bank, 1:size)
-        for (name, mk_cat) in current_cats
+        next_current_cats = []
+        for name in current_cats
+            cat_system = comparison.systems[name]
             init_time = @timed begin
-                cat = init_cat(mk_cat, subsetted_item_bank)
+                cat = init_cat(cat_system, subsetted_item_bank)
             end
             response_add_time = @timed begin
                 for idx in 1:(strategy.starting_responses)
@@ -293,7 +320,7 @@ function run_comparison(comparison::CatComparisonConfig{IncreaseItemBankSizeExec
                 system_name=name
             )
             if timed_next_item.time < strategy.time_limit
-                push!(next_current_cats, name => cat)
+                push!(next_current_cats, name)
             end
         end
         if length(next_current_cats) == 0
@@ -332,7 +359,7 @@ end
 # Which answer to use: From response memory
 function run_comparison(comparison::CatComparisonConfig{ReplayResponsesExecutionStrategy})
     strategy = comparison.strategy
-    current_cats = Dict(pairs(comparison.rules))
+    current_cats = Dict(pairs(comparison.systems))
     function check_time(name, timer)
         if timer.time >= strategy.time_limit
             if name in keys(current_cats)
