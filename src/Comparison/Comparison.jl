@@ -16,7 +16,7 @@ using StatsBase: median, sample!
 using DataFrames: DataFrame
 using ComputerAdaptiveTesting: Stateful
 
-export run_random_comparison, run_comparison
+export run_random_comparison, run_comparison, run_warmup
 export CatComparisonExecutionStrategy, IncreaseItemBankSizeExecutionStrategy
 #export FollowOneExecutionStrategy, RunIndependentlyExecutionStrategy
 #export DecisionTreeExecutionStrategy
