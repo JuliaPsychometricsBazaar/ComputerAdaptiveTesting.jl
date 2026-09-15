@@ -141,7 +141,7 @@ RecordedCatLoop(;
 )
 ```
 
-This `RecordedCatLoop` is a simplified construction of a `[CatRules](@ref)`-based `[CatLoop](@ref)` and `[CatRecorder](@ref)`.
+This `RecordedCatLoop` is a simplified construction of a `[`CatRules`](@ref)`-based `[CatLoop](@ref)` and `[CatRecorder](@ref)`.
 
 It can be constructed with just some cat `rules`, an `item_bank`, and a response memory `responses`, as well as usually one or more `requests` for the `[CatRecorder](@ref).
 In this case `dims` are provided by the `item_bank`, and `expected_responses` is set to the length of `responses` as well as used to provide responses using `get_responses`, otherwise the respective arguments must be provided.

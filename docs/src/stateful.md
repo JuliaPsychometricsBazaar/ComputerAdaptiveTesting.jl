@@ -25,7 +25,7 @@ Stateful.get_ability
 
 ## CatRules implementation
 
-There is an implementation in terms of [CatRules](@ref):
+There is an implementation in terms of [`CatRules`](@ref):
 
 ```@docs; canonical=false
 Stateful.StatefulCatRules
@@ -33,4 +33,4 @@ Stateful.StatefulCatRules
 
 ## Usage
 
-Just as [CatLoop](@ref) can wrap [CatRules](@ref), you can also use it with any implementor of [Stateful.StatefulCat](@ref), and run using [Sim.run_cat](@ref).
+Just as [CatLoop](@ref) can wrap [`CatRules`](@ref), you can also use it with any implementor of [Stateful.StatefulCat](@ref), and run using [Sim.run_cat](@ref).

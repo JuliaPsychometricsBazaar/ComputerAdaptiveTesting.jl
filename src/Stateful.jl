@@ -1,6 +1,6 @@
 """
 This module defines the interface for a stateful CAT as well as an implementation in terms
-of [CatRules](@ref).
+of [`CatRules`](@ref).
 The interface is meant to enable polymorphic use of different CAT implementations.
 """
 module Stateful
