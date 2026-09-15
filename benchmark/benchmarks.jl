@@ -6,6 +6,7 @@ using StatsBase: sample
 using FittedItemBanks
 using FittedItemBanks.DummyData: dummy_full, SimpleItemBankSpec, StdModel4PL
 using ComputerAdaptiveTesting.Aggregators
+using PsychometricsBazaarBase: preallocate
 using PsychometricsBazaarBase.Optimizers
 using PsychometricsBazaarBase.Integrators: even_grid
 using ComputerAdaptiveTesting.NextItemRules: ExpectationBasedItemCriterion,
