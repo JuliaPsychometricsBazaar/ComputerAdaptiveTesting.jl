@@ -7,6 +7,7 @@ using ComputerAdaptiveTesting.TerminationConditions
 using ComputerAdaptiveTesting.Sim
 using PsychometricsBazaarBase.Integrators
 using PsychometricsBazaarBase.Optimizers
+using PsychometricsBazaarBase.Optimizers: NativeOneDimOptimOptimizer
 using Distributions
 
 """
@@ -30,7 +31,7 @@ item_bank_1d, responses_1d = mk_dummy_1d_data()
 tracked_responses_1d = TrackedResponses(responses_1d, item_bank_1d, NullAbilityTracker())
 
 integrator_1d = AbilityIntegrator(FixedGKIntegrator(-6.0, 6.0, 61))
-optimizer_1d = AbilityOptimizer(OneDimOptimOptimizer(-6.0, 6.0, NelderMead()))
+optimizer_1d = AbilityOptimizer(NativeOneDimOptimOptimizer(; lo = -6.0, hi = 6.0))
 lh_est_1d = LikelihoodAbilityEstimator()
 pa_est_1d = PosteriorAbilityEstimator(Normal(1.0, 0.2))
 eap_1d = MeanAbilityEstimator(pa_est_1d, integrator_1d)

@@ -152,3 +152,4 @@ end
 struct NullWatchdog <: AbstractWatchdogTask end
 function reset!(::NullWatchdog, msg=nothing) end
 function deactivate!(::NullWatchdog) end
+start!(f, ::Comparison.NullWatchdog) = f()

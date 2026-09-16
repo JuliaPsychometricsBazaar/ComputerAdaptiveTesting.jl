@@ -36,7 +36,7 @@ end
 $(FUNCTIONNAME)(cat_config::CatLoop, item_bank::AbstractItemBank; ib_labels=nothing)
 ```
 
-Run a given [CatLoop](@ref) `cat_config` on the given `item_bank`.
+Run a given [`CatLoop`](@ref) `cat_config` on the given `item_bank`.
 If `ib_labels` is not given, default labels of the form
 `<<item #\$index>>` are passed to the callback.
 """

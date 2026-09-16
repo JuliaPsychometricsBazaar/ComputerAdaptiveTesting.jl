@@ -4,7 +4,16 @@ using ComputerAdaptiveTesting
 @testset "aqua" begin
     Aqua.test_all(
         ComputerAdaptiveTesting;
-        ambiguities = false
+        ambiguities = false,
+        # The persistent tasks test builds a temporary environment holding the
+        # newest version of every dependency and precompiles it from scratch,
+        # even when the test environment itself has been downgraded. That
+        # precompilation fails on CI with
+        # "Module <Ext> is missing from the cache", because the package
+        # extensions are still being built by another precompilation process,
+        # and Aqua then reports the failure as a persistent task. See
+        # https://github.com/JuliaTesting/Aqua.jl/issues/315.
+        persistent_tasks = false
     )
     # Ambiguities are not tested in default configuration as a workaround for
     # https://github.com/JuliaTesting/Aqua.jl/issues/77

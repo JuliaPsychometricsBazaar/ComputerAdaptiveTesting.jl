@@ -11,7 +11,7 @@ struct CatLoop{CatEngineT} <: CatConfigBase
     """
     An object which implements the CAT engine.
     Implementations exist for:
-      * [CatRules](@ref)
+      * [`CatRules`](@ref)
       * [Stateful.StatefulCat](@ref ComputerAdaptiveTesting.Stateful.StatefulCat)
     """
     rules::CatEngineT # e.g. CatRules
