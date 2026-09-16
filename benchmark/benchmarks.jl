@@ -10,7 +10,7 @@ using PsychometricsBazaarBase.Optimizers
 using PsychometricsBazaarBase.Integrators: even_grid
 using ComputerAdaptiveTesting.NextItemRules: ExpectationBasedItemCriterion,
                                              PointResponseExpectation,
-                                             preallocate
+                                             NextItemRules
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.Responses
 
@@ -44,7 +44,7 @@ function prepare_4pls(group)
                 AbilityVariance(
                     integrator, distribution_estimator(ability_estimator)))
         )
-        next_item_rule = preallocate(next_item_rule)
+        next_item_rule = NextItemRules.preallocate(next_item_rule)
         tracked_responses = TrackedResponses(BareResponses(ResponseType(item_bank)),
             item_bank,
             NullAbilityTracker())
