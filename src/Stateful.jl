@@ -33,7 +33,7 @@ $(FUNCTIONNAME)(config::StatefulCat) -> IndexT
 Returns the index of the best next item according to the CAT.
 
 Ideally `IndexT` will be an integer and the return type a 1-based index, however it
-should at least be the same type as accepted by [add_response!](@ref).
+should at least be the same type as accepted by [`add_response!`](@ref).
 """
 function next_item end
 
@@ -75,7 +75,7 @@ function add_response! end
 $(FUNCTIONNAME)(config::StatefulCat)
 ```
 
-Rollback the last response added with [add_response!](@ref).
+Rollback the last response added with [`add_response!`](@ref).
 
 Some CAT implementations may not support this operation in which case they will
 throw an error.
@@ -111,7 +111,7 @@ $(FUNCTIONNAME)(config::StatefulCat) -> Tuple{AbstractVector{IndexT}, AbstractVe
 ```
 
 Returns a tuple of the indices and responses of the items that have been
-added to the CAT with [add_response!](@ref) so far.
+added to the CAT with [`add_response!`](@ref) so far.
 """
 function get_responses end
 
