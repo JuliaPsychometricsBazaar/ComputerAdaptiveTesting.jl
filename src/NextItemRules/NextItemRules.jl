@@ -21,7 +21,7 @@ import PsychometricsBazaarBase: power_summary
 using PsychometricsBazaarBase.ConfigTools: @requiresome, @returnsome,
                                            find1_instance, find1_type
 using PsychometricsBazaarBase.Integrators: Integrator, intval
-using PsychometricsBazaarBase: Integrators
+using PsychometricsBazaarBase: Integrators, Optimizers
 using PsychometricsBazaarBase.Optimizers: Optimizer
 using PsychometricsBazaarBase: Differentiation
 using PsychometricsBazaarBase.IndentWrappers: indent
