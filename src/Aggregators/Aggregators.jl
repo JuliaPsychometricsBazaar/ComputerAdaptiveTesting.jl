@@ -35,7 +35,7 @@ using PsychometricsBazaarBase.Optimizers: OneDimOptimOptimizer, Optimizer, Optim
 using PsychometricsBazaarBase.ConstDistributions: std_normal, std_mv_normal
 using PsychometricsBazaarBase.IndentWrappers: indent
 using DocStringExtensions
-import Distributions: pdf
+import Distributions: pdf, logpdf
 import Base: show
 
 import FittedItemBanks
@@ -206,6 +206,10 @@ end
 
 function Base.length(responses::TrackedResponses)
     length(responses.responses.indices)
+end
+
+function Responses.AbilityLogLikelihood(tracked_responses::TrackedResponses)
+    AbilityLogLikelihood(AbilityLikelihood(tracked_responses))
 end
 
 struct FunctionIntegrator{IntegratorT <: Integrator} <: AbilityIntegrator

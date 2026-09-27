@@ -6,12 +6,14 @@ module Responses
 
 using FittedItemBanks: AbstractItemBank,
                        BooleanResponse, MultinomialResponse, ResponseType, ItemResponse,
-                       resp,
-                       DichotomousPointsItemBank, item_ys
+                       resp, log_resp,
+                       DichotomousPointsItemBank, DichotomousPointsWithLogsItemBank,
+                       item_ys, item_log_ys, item_bank_xs
 using AutoHashEquals: @auto_hash_equals
 using DocStringExtensions
 
 export Response, BareResponses, AbilityLikelihood, function_xs, function_ys
+export AbilityLogLikelihood, function_log_ys
 export add_response!, pop_response!
 
 concrete_response_type(::BooleanResponse) = Bool
@@ -131,10 +133,41 @@ The likelihood of ability `θ` given `responses` to items in `item_bank`, i.e.
 `θ -> prod(P(response | θ) for response in responses)`. Callable as a function
 of `θ`; also has [`function_xs`](@ref)/[`function_ys`](@ref) methods for item
 banks that support evaluation at a fixed grid of `xs`.
+See [`AbilityLogLikelihood`](@ref) for evaluation without multiplying probabilities.
 """
 struct AbilityLikelihood{ItemBankT <: AbstractItemBank, BareResponsesT <: BareResponses}
     item_bank::ItemBankT
     responses::BareResponsesT
+end
+
+"""
+$(TYPEDEF)
+
+The log likelihood of ability given a response history. Construct with
+`AbilityLogLikelihood(item_bank, responses)`, `AbilityLogLikelihood(likelihood)`,
+or `AbilityLogLikelihood(tracked_responses)`.
+
+Callable as `log_likelihood(θ)`: sums `FittedItemBanks.log_resp` for the observed
+responses, rather than taking the logarithm of a probability product. An empty
+history has log likelihood zero; an impossible response has log likelihood
+`-Inf`. Pointwise evaluation requires the item bank to implement `log_resp`.
+
+For supported tabulated banks, [`function_xs`](@ref) returns the grid and
+[`function_ys`](@ref) returns **log** likelihoods. The wrapped response history
+is shared, not copied, so later changes to it affect subsequent evaluations.
+"""
+struct AbilityLogLikelihood{LikelihoodT <: AbilityLikelihood}
+    likelihood::LikelihoodT
+end
+
+function AbilityLogLikelihood(item_bank::AbstractItemBank, responses::BareResponses)
+    AbilityLogLikelihood(AbilityLikelihood(item_bank, responses))
+end
+
+function (log_likelihood::AbilityLogLikelihood)(θ)
+    likelihood = log_likelihood.likelihood
+    sum((log_resp(ItemResponse(likelihood.item_bank, response.index), response.value, θ)
+         for response in likelihood.responses); init = 0.0)
 end
 
 function (ability_lh::AbilityLikelihood)(θ)
@@ -158,9 +191,12 @@ $(TYPEDSIGNATURES)
 The grid of ability values (`xs`) at which `ability_lh`'s item bank tabulates
 response probabilities.
 """
-function function_xs(ability_lh::AbilityLikelihood{DichotomousPointsItemBank})
-    return ability_lh.item_bank.xs
+function function_xs(ability_lh::AbilityLikelihood{<:Union{
+        DichotomousPointsItemBank, DichotomousPointsWithLogsItemBank}})
+    return item_bank_xs(ability_lh.item_bank)
 end
+
+function_xs(log_likelihood::AbilityLogLikelihood) = function_xs(log_likelihood.likelihood)
 
 """
 $(TYPEDSIGNATURES)
@@ -168,8 +204,11 @@ $(TYPEDSIGNATURES)
 The likelihood of `ability_lh`'s responses evaluated at each point in
 [`function_xs`](@ref), i.e. the product over responses of the tabulated
 response probability at each grid point.
+
+For an [`AbilityLogLikelihood`](@ref), returns log likelihoods instead.
 """
-function function_ys(ability_lh::AbilityLikelihood{DichotomousPointsItemBank})
+function function_ys(ability_lh::AbilityLikelihood{<:Union{
+        DichotomousPointsItemBank, DichotomousPointsWithLogsItemBank}})
     return reduce(
         .*,
         (
@@ -182,8 +221,35 @@ function function_ys(ability_lh::AbilityLikelihood{DichotomousPointsItemBank})
             )
         for resp_idx in axes(ability_lh.responses.indices, 1)
         );
-        init = ones(length(ability_lh.item_bank.xs))
+        init = ones(length(function_xs(ability_lh)))
     )
+end
+
+function_ys(log_likelihood::AbilityLogLikelihood) = function_log_ys(log_likelihood.likelihood)
+
+"""
+$(TYPEDSIGNATURES)
+
+Return the response log likelihood at each point in [`function_xs`](@ref),
+without exponentiating the accumulated log probabilities. Supports
+`DichotomousPointsItemBank` and `DichotomousPointsWithLogsItemBank`.
+
+For repeated evaluations, use `FittedItemBanks.DichotomousPointsWithLogsItemBank`
+to reuse its item log-probability cache. An ordinary points bank constructs
+that cache on each call. These logs retain the precision of the tabulated
+probabilities; they cannot recover probabilities already rounded to zero or one.
+An empty history returns zeros and impossible responses yield `-Inf`.
+"""
+function function_log_ys(ability_lh::AbilityLikelihood{<:DichotomousPointsWithLogsItemBank})
+    reduce(.+,
+        (item_log_ys(ItemResponse(ability_lh.item_bank, response.index), response.value)
+         for response in ability_lh.responses);
+        init = zeros(length(function_xs(ability_lh))))
+end
+
+function function_log_ys(ability_lh::AbilityLikelihood{<:DichotomousPointsItemBank})
+    function_log_ys(AbilityLikelihood(
+        DichotomousPointsWithLogsItemBank(ability_lh.item_bank), ability_lh.responses))
 end
 
 end

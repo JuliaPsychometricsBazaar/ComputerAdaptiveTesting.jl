@@ -25,6 +25,7 @@ using .Dummy
 @testset verbose=true "Test ComputerAdaptiveTesting.jl" begin
     include("./aqua.jl")
     include("./jet.jl")
+    include("./density_interface.jl")
     include("./ability_estimator_1d.jl")
     include("./ability_estimator_2d.jl")
     include("./termination_conditions.jl")

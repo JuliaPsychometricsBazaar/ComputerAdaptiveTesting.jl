@@ -3,6 +3,8 @@
 #     density over ability, via `pdf(est, tracked_responses)`, e.g. the raw
 #     likelihood (`LikelihoodAbilityEstimator`) or a Bayesian posterior
 #     (`PosteriorAbilityEstimator`).
+#     `logpdf(est, tracked_responses)` provides the corresponding log density
+#     directly, without evaluating the probability-space density first.
 #   * `PointAbilityEstimator`s reduce such a distribution to a single ability
 #     value when called as `est(tracked_responses)`, either by optimization
 #     (`ModeAbilityEstimator`, i.e. MAP/MLE) or by integration
@@ -40,6 +42,25 @@ function pdf(ability_est::DistributionAbilityEstimator,
 end
 
 """
+$(TYPEDSIGNATURES)
+
+Evaluate the unnormalized log density of a distribution ability estimator at
+`x`. The two-argument form, `logpdf(est, tracked_responses)`, returns a callable
+log-density function instead.
+
+For `LikelihoodAbilityEstimator`, this is the sum of item log probabilities;
+for `PosteriorAbilityEstimator`, it additionally includes `logpdf(prior, x)`.
+No normalizing constant is subtracted, matching the existing `pdf` convention.
+`GuardedAbilityEstimator` selects the same branch as `pdf` when the callable
+is constructed. Custom distribution estimators implement the two-argument form;
+there is deliberately no fallback through `log(pdf(...))`.
+"""
+function logpdf(ability_est::DistributionAbilityEstimator,
+        tracked_responses::TrackedResponses, x)
+    logpdf(ability_est, tracked_responses)(x)
+end
+
+"""
 $(TYPEDEF)
 
 The ability likelihood distribution.
@@ -51,6 +72,10 @@ struct LikelihoodAbilityEstimator <: DistributionAbilityEstimator end
 function pdf(::LikelihoodAbilityEstimator,
         tracked_responses::TrackedResponses)
     AbilityLikelihood(tracked_responses)
+end
+
+function logpdf(::LikelihoodAbilityEstimator, tracked_responses::TrackedResponses)
+    AbilityLogLikelihood(tracked_responses)
 end
 
 function power_summary(io::IO, ::LikelihoodAbilityEstimator)
@@ -86,6 +111,19 @@ function pdf(est::PosteriorAbilityEstimator,
         AbilityLikelihood(tracked_responses))
 end
 
+struct LogPosteriorDensity{PriorT <: Distribution, LikelihoodT <: AbilityLogLikelihood}
+    prior::PriorT
+    likelihood::LikelihoodT
+end
+
+function (density::LogPosteriorDensity)(x)
+    logpdf(density.prior, x) + density.likelihood(x)
+end
+
+function logpdf(est::PosteriorAbilityEstimator, tracked_responses::TrackedResponses)
+    LogPosteriorDensity(est.prior, AbilityLogLikelihood(tracked_responses))
+end
+
 function multiple_response_types_guard(tracked_responses)
     if length(tracked_responses.responses.values) == 0
         return false
@@ -119,6 +157,14 @@ function pdf(est::GuardedAbilityEstimator,
         return pdf(est.est, tracked_responses)
     else
         return pdf(est.fallback, tracked_responses)
+    end
+end
+
+function logpdf(est::GuardedAbilityEstimator, tracked_responses::TrackedResponses)
+    if est.guard(tracked_responses)
+        return logpdf(est.est, tracked_responses)
+    else
+        return logpdf(est.fallback, tracked_responses)
     end
 end
 
