@@ -1,39 +1,3 @@
-using FittedItemBanks: CdfMirtItemBank,
-                       TransferItemBank, GuessAndSlipItemBank
-using FittedItemBanks: inner_item_response, norm_abil, irf_size
-using StatsFuns: logaddexp
-
-function log_resp_vec(ir::ItemResponse{<:TransferItemBank}, θ)
-    nθ = norm_abil(ir, θ)
-    return SVector(
-        logccdf(ir.item_bank.distribution, nθ),
-        logcdf(ir.item_bank.distribution, nθ)
-    )
-end
-
-function log_resp(ir::ItemResponse{<:TransferItemBank}, resp, θ)
-    logcdf(ir.item_bank.distribution, norm_abil(ir, θ))
-end
-
-function log_resp_vec(ir::ItemResponse{<:CdfMirtItemBank}, θ)
-    nθ = norm_abil(ir, θ)
-    SVector(logccdf(ir.item_bank.distribution, nθ),
-        logcdf(ir.item_bank.distribution, nθ))
-end
-
-function log_resp(ir::ItemResponse{<:CdfMirtItemBank}, val, θ)
-    nθ = norm_abil(ir, θ)
-    if val
-        logcdf(ir.item_bank.distribution, nθ)
-    else
-        logccdf(ir.item_bank.distribution, nθ)
-    end
-end
-
-log_resp(ir::ItemResponse{<:GuessAndSlipItemBank}, response, θ) = log(resp(ir, response, θ))
-log_resp(ir::ItemResponse{<:GuessAndSlipItemBank}, θ) = log(resp(ir, θ))
-log_resp_vec(ir::ItemResponse{<:GuessAndSlipItemBank}, θ) = log.(resp_vec(ir, θ))
-
 function expected_item_information(ir::ItemResponse, θ::Number)
     exp_resp = resp_vec(ir, θ)
     d² = Differentiation.double_derivative((θ -> log_resp_vec(ir, θ)), θ)
@@ -61,16 +25,4 @@ function responses_information(item_bank::AbstractItemBank, responses::BareRespo
         (information_func(ItemResponse(item_bank, resp_idx), resp_value > 0, θ)
         for (resp_idx, resp_value)
         in zip(responses.indices, responses.values)); init = zeros(d, d))
-end
-
-using ComputerAdaptiveTesting: ItemBanks
-
-function log_resp_vec(ir::ItemResponse{<:ItemBanks.LogItemBank}, θ)
-    # XXX: Should not destruct the logarithmic number here
-    # Works for now
-    log.(resp_vec(ItemBanks.inner_ir(ir), θ))
-end
-
-function log_resp(ir::ItemResponse{<:ItemBanks.LogItemBank}, resp, θ)
-    log(resp(ItemBanks.inner_ir(ir), resp, θ))
 end

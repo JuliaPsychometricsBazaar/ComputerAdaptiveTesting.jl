@@ -22,9 +22,6 @@ include("./Responses.jl")
 # Near base
 include("./Aggregators/Aggregators.jl")
 
-# Extra item banks
-include("./logitembank.jl")
-
 # Stages
 include("./NextItemRules/NextItemRules.jl")
 include("./TerminationConditions.jl")

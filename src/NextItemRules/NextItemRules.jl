@@ -29,11 +29,11 @@ using PsychometricsBazaarBase.IndentWrappers: indent
 import PsychometricsBazaarBase.IntegralCoeffs
 using FittedItemBanks: AbstractItemBank, DiscreteDomain, DomainType,
                        ItemResponse, OneDimContinuousDomain, domdims, item_params,
-                       resp, resp_vec, responses, subset_view
+                       resp, resp_vec, log_resp, log_resp_vec, responses, subset_view
 using ..Aggregators
 using ..Aggregators: covariance_matrix, FunctionProduct
 
-using Distributions: logccdf, logcdf, pdf
+using Distributions: pdf
 using Base.Threads
 using Base.Order
 using StaticArrays: SVector

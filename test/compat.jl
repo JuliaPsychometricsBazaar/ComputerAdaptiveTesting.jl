@@ -8,7 +8,6 @@
     using ComputerAdaptiveTesting.Responses: BareResponses, ResponseType
     using ComputerAdaptiveTesting: Stateful
     using ComputerAdaptiveTesting: require_testext
-    using ComputerAdaptiveTesting.ItemBanks: LogItemBank
     using ComputerAdaptiveTesting.NextItemRules: best_item
     using ComputerAdaptiveTesting: Compat
     using Test: @test, @testset
