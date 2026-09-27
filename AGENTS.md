@@ -44,14 +44,3 @@ Follow the patterns already in the codebase rather than inventing new ones:
   checks). `Pkg.test()` currently does not work — see issue #52.
 - Docs: `cd docs && ./build.sh` (needs R via CondaPkg; CI uses
   `JULIA_CONDAPKG_BACKEND=System` with conda).
-
-## Workflow
-
-Work in a git worktree per task, never directly on `main`:
-
-```sh
-git worktree add ../ComputerAdaptiveTesting.jl-<task> -b <task>
-```
-
-Commit there, push with `git push -u origin <task>`, and open a pull request
-with `gh pr create`. Clean up with `git worktree remove` after merge.
