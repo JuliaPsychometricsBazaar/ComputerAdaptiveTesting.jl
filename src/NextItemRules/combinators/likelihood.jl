@@ -1,3 +1,11 @@
+"""
+$(TYPEDEF)
+$(TYPEDFIELDS)
+
+Integrate a pointwise item criterion against the unnormalized ability density.
+The `integrator` applies the response likelihood and, for a posterior
+`estimator`, its prior exactly once.
+"""
 struct LikelihoodWeightedItemCriterion{
     PointwiseItemCriterionT <: PointwiseItemCriterion,
     AbilityIntegratorT <: AbilityIntegrator,
@@ -20,8 +28,7 @@ function compute_criterion(
     tracked_responses::TrackedResponses,
     item_idx
 )
-    func = FunctionProduct(
-        pdf(lwic.estimator, tracked_responses), ability -> compute_criterion(lwic.criterion, tracked_responses, item_idx, ability))
+    func = ability -> compute_criterion(lwic.criterion, tracked_responses, item_idx, ability)
     intval(lwic.integrator(func, 0, lwic.estimator, tracked_responses))
 end
 
@@ -45,6 +52,14 @@ function compute_criterion(
     return compute_criterion(pic.criterion, tracked_responses, item_idx, ability)
 end
 
+"""
+$(TYPEDEF)
+$(TYPEDFIELDS)
+
+Integrate a pointwise item-category criterion against the unnormalized ability
+density. The `integrator` applies the response likelihood and, for a posterior
+`estimator`, its prior exactly once.
+"""
 struct LikelihoodWeightedItemCategoryCriterion{
     PointwiseItemCategoryCriterionT <: PointwiseItemCategoryCriterion,
     AbilityIntegratorT <: AbilityIntegrator,
@@ -68,10 +83,8 @@ function compute_criterion(
     item_idx,
     category
 )
-    func = FunctionProduct(
-        pdf(lwicc.estimator, tracked_responses),
-        ability -> compute_criterion(lwicc.criterion, tracked_responses, item_idx, ability, category)
-    )
+    func = ability -> compute_criterion(
+        lwicc.criterion, tracked_responses, item_idx, ability, category)
     intval(lwicc.integrator(func, 0, lwicc.estimator, tracked_responses))
 end
 

@@ -4,6 +4,15 @@ CurrentModule = ComputerAdaptiveTesting
 
 # API reference
 
+## Likelihood-weighted criteria
+
+`NextItemRules.LikelihoodWeightedItemCriterion` and
+`NextItemRules.LikelihoodWeightedItemCategoryCriterion` integrate their
+pointwise criterion against an unnormalized ability density. Their ability
+integrator applies the response likelihood and, when using a posterior
+estimator, the prior once. The pointwise criterion supplies only its value at
+the ability being integrated.
+
 ## Log-density interface
 
 `Responses.AbilityLogLikelihood` wraps an `AbilityLikelihood`, or can be

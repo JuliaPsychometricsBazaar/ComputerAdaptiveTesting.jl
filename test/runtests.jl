@@ -26,6 +26,7 @@ using .Dummy
     include("./aqua.jl")
     include("./jet.jl")
     include("./density_interface.jl")
+    include("./likelihood_weighted_criteria.jl")
     include("./ability_estimator_1d.jl")
     include("./ability_estimator_2d.jl")
     include("./termination_conditions.jl")
