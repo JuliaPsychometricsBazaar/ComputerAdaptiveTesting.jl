@@ -32,6 +32,14 @@ function compute_criterion(
     intval(lwic.integrator(func, 0, lwic.estimator, tracked_responses))
 end
 
+function power_summary(io::IO, criterion::LikelihoodWeightedItemCriterion)
+    println(io, "Integrate the pointwise criterion over the ability density")
+    indent_io = indent(io, 2)
+    power_summary(indent_io, criterion.estimator)
+    power_summary(indent_io, criterion.integrator)
+    power_summary(indent_io, criterion.criterion)
+end
+
 struct PointItemCriterion{
     PointwiseItemCriterionT <: PointwiseItemCriterion,
     AbilityEstimatorT <: PointAbilityEstimator
@@ -50,6 +58,13 @@ function compute_criterion(
         pic.estimator
     )
     return compute_criterion(pic.criterion, tracked_responses, item_idx, ability)
+end
+
+function power_summary(io::IO, criterion::PointItemCriterion)
+    println(io, "Evaluate the pointwise criterion at the point ability estimate")
+    indent_io = indent(io, 2)
+    power_summary(indent_io, criterion.estimator)
+    power_summary(indent_io, criterion.criterion)
 end
 
 """
@@ -88,6 +103,14 @@ function compute_criterion(
     intval(lwicc.integrator(func, 0, lwicc.estimator, tracked_responses))
 end
 
+function power_summary(io::IO, criterion::LikelihoodWeightedItemCategoryCriterion)
+    println(io, "Integrate the pointwise item-category criterion over the ability density")
+    indent_io = indent(io, 2)
+    power_summary(indent_io, criterion.estimator)
+    power_summary(indent_io, criterion.integrator)
+    power_summary(indent_io, criterion.criterion)
+end
+
 struct PointItemCategoryCriterion{
     PointwiseItemCategoryCriterionT <: PointwiseItemCategoryCriterion,
     AbilityEstimatorT <: PointAbilityEstimator
@@ -107,4 +130,11 @@ function compute_criterion(
         pic.estimator
     )
     return compute_criterion(pic.criterion, tracked_responses, item_idx, ability, category)
+end
+
+function power_summary(io::IO, criterion::PointItemCategoryCriterion)
+    println(io, "Evaluate the pointwise item-category criterion at the point ability estimate")
+    indent_io = indent(io, 2)
+    power_summary(indent_io, criterion.estimator)
+    power_summary(indent_io, criterion.criterion)
 end

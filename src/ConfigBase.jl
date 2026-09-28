@@ -3,6 +3,7 @@ module ConfigBase
 using Accessors: PropertyLens, opcompose
 using DocStringExtensions: TYPEDEF
 using PsychometricsBazaarBase: power_summary
+import Base: show
 
 export CatConfigBase, walk
 

@@ -8,7 +8,7 @@ module Stateful
 using DocStringExtensions
 
 using FittedItemBanks: AbstractItemBank, ResponseType, ItemResponse, resp_vec
-using ..Aggregators: TrackedResponses, Aggregators, pdf, distribution_estimator
+using ..Aggregators: TrackedResponses, Aggregators, pdf, logpdf, distribution_estimator
 using ..Rules: CatRules
 using ..Responses: BareResponses, Response, Responses
 using ..NextItemRules: compute_criteria, best_item
@@ -17,6 +17,7 @@ using ..Sim: CatLoop, Sim, item_label
 export StatefulCat, StatefulCatRules
 public next_item, ranked_items, item_criteria
 public add_response!, rollback!, reset!, get_responses, get_ability
+public logdensity
 
 """
 $(TYPEDEF)
@@ -131,9 +132,21 @@ function get_ability end
 $(FUNCTIONNAME)(config::StatefulCat, ability::AbilityT) -> Float64
 ```
 
-TODO
+Evaluate the configured ability distribution's unnormalized density. For a
+posterior estimator this includes the prior. See [`logdensity`](@ref) for native
+log-density evaluation without first forming this potentially tiny value.
 """
 function likelihood end
+
+"""
+$(SIGNATURES)
+
+Evaluate the configured ability distribution's unnormalized log density at
+`ability`. Includes the prior for posterior estimators, and follows the selected
+branch for guarded estimators. Available independently of the integration-space
+policy; the distribution estimator must implement native `logpdf`.
+"""
+function logdensity end
 
 """
 ```julia
@@ -233,6 +246,10 @@ end
 
 function likelihood(config::StatefulCatRules, ability)
     pdf(distribution_estimator(config.rules.ability_estimator), config.tracked_responses[], ability)
+end
+
+function logdensity(config::StatefulCatRules, ability)
+    logpdf(distribution_estimator(config.rules.ability_estimator), config.tracked_responses[], ability)
 end
 
 function item_bank_size(config::StatefulCatRules)

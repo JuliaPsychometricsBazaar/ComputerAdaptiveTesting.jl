@@ -25,7 +25,17 @@ Aggregators.CalculationSpace
 Aggregators.LinSpace
 Aggregators.LogSpace
 Aggregators.calculation_space
+Stateful.logdensity
 ```
+
+`Stateful.logdensity(cat, θ)` evaluates the configured estimator's native,
+unnormalized log density. It includes the prior when the CAT uses a posterior
+estimator, matching the density returned by the existing `Stateful.likelihood`.
+It is available with either integration policy and does not first compute a
+potentially underflowed probability. Custom estimators need native `logpdf`.
+
+The [creation guide](creating_a_cat.md#Choosing-linear-or-log-space-integration)
+shows propagation through `CatRules`, optional tracking, and explicit overrides.
 
 ## Likelihood-weighted criteria
 

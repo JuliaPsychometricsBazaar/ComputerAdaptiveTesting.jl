@@ -41,6 +41,10 @@ $(TYPEDFIELDS)
 """
 struct ExhaustiveSearch <: NextItemStrategy end
 
+function power_summary(io::IO, ::ExhaustiveSearch)
+    println(io, "Examine each unanswered item and select the smallest criterion value")
+end
+
 function best_item(
         rule::ItemCriterionRule{ExhaustiveSearch, ItemCriterionT},
         responses::TrackedResponses,

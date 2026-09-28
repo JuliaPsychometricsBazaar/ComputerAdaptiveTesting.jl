@@ -14,6 +14,11 @@ function UrryItemCriterion(bits...)
     UrryItemCriterion(ability_estimator)
 end
 
+function power_summary(io::IO, criterion::UrryItemCriterion)
+    println(io, "Select the item with the difficulty closest to the ability estimate")
+    power_summary(indent(io, 2), criterion.ability_estimator)
+end
+
 # TODO: Slow + poor error handling
 function raw_difficulty(item_bank, item_idx)
     item_params(item_bank, item_idx).difficulty

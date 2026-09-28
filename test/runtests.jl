@@ -30,6 +30,7 @@ using .Dummy
     include("./log_grid.jl")
     include("./log_function.jl")
     include("./calculation_space.jl")
+    include("./configuration_api.jl")
     include("./likelihood_weighted_criteria.jl")
     include("./ability_estimator_1d.jl")
     include("./ability_estimator_2d.jl")

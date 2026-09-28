@@ -11,10 +11,27 @@ end
 function inherited_integrator(bits, est, backend)
     point = find1_instance(MeanAbilityEstimator, bits)
     if point !== nothing && point.dist_est === est &&
-            inherited_backend_matches(backend, point.integrator)
+            inherited_backend_matches(backend, point.integrator) &&
+            inherited_options_match(bits, point.integrator)
         return point.integrator
     end
     nothing
+end
+
+function inherited_options_match(bits, integral)
+    tracker = find1_instance(AbilityTracker, bits)
+    tracker_matches(tracker, inherited_tracker(integral)) &&
+        inherited_optimizer_matches(bits, integral)
+end
+tracker_matches(::Nothing, _) = true
+tracker_matches(::NullAbilityTracker, tracker) = tracker === nothing
+tracker_matches(::AbilityTracker, tracker) = true
+tracker_matches(requested::Union{GriddedAbilityTracker, LogGridAbilityTracker}, tracker) =
+    requested === tracker
+inherited_optimizer_matches(bits, ::AbilityIntegrator) = true
+function inherited_optimizer_matches(bits, integral::LogFunctionIntegrator)
+    optimizer = Optimizer(bits...)
+    optimizer === nothing || optimizer === integral.optimizer
 end
 
 inherited_backend_matches(::Nothing, ::AbilityIntegrator) = true
@@ -86,8 +103,12 @@ with_estimator_default(bits, est::AbilityEstimator) =
     with_default_bit(bits, AbilityEstimator, est)
 
 function with_ability_defaults(bits; ability_estimator = nothing, ability_tracker = nothing)
-    with_default_bit(with_estimator_default(bits, ability_estimator), AbilityTracker, ability_tracker)
+    with_tracker_default(with_estimator_default(bits, ability_estimator), ability_tracker)
 end
+
+# Absence of an inherited tracker is not an explicit request to disable a cache.
+with_tracker_default(bits, ::NullAbilityTracker) = bits
+with_tracker_default(bits, tracker) = with_default_bit(bits, AbilityTracker, tracker)
 
 function build_ability_integrator(::LogSpace, backend::ContinuousLogBackend,
         est, bits; prefer_tracked = false)

@@ -53,6 +53,13 @@ struct DistributionResponseExpectation{
     integrator::AbilityIntegratorT
 end
 
+function power_summary(io::IO, expectation::DistributionResponseExpectation)
+    println(io, "Expected response over the ability distribution")
+    indent_io = indent(io, 2)
+    power_summary(indent_io, expectation.ability_estimator)
+    power_summary(indent_io, expectation.integrator)
+end
+
 function Aggregators.response_expectation(
         dist_response_expectation::DistributionResponseExpectation,
         tracked_responses,
