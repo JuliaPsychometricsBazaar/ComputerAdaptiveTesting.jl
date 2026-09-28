@@ -10,6 +10,15 @@ function (optim::FunctionOptimizer)(f::F,
     optim.optim(comp_f)
 end
 
+# Only the unit-weight distribution objective is a density mode. General
+# coefficient functions may be signed, so their products must not be logged.
+function (optim::FunctionOptimizer)(::typeof(IntegralCoeffs.one),
+        est::DistributionAbilityEstimator,
+        tracked_responses::TrackedResponses;
+        kwargs...)
+    optim.optim(logpdf(est, tracked_responses); kwargs...)
+end
+
 function power_summary(io::IO, optim::FunctionOptimizer)
     indent_io = indent(io, 2)
     if optim.optim isa Optimizers.OneDimOptimOptimizer || optim.optim isa Optimizers.MultiDimOptimOptimizer || optim.optim isa Optimizers.NativeOneDimOptimOptimizer

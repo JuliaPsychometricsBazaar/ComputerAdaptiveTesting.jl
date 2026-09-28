@@ -53,9 +53,24 @@ Use `FittedItemBanks.DichotomousPointsWithLogsItemBank` to reuse the item log ca
 across calls. Constructing logs from a table cannot recover probabilities that
 were already rounded to zero or one.
 
-This interface does not change the algorithms used by mean/mode estimators or
-integrators. Custom distribution estimators implement the two-argument `logpdf`
-method; there is no automatic fallback through `log(pdf(...))`.
+`Aggregators.ModeAbilityEstimator` with `Aggregators.FunctionOptimizer` maximizes
+this log density directly for MLE/MAP. This also applies to the explicit
+`optimizer(IntegralCoeffs.one, distribution_estimator, tracked_responses)` call.
+General coefficient-weighted objectives, including signed objectives, and
+the two-argument `optimizer(coefficient, density_function)` interface retain
+their probability-space product semantics. Custom `AbilityOptimizer`s control
+their own objective evaluation.
+
+`DerivedMeasures.LaplaceApproxEstimator` evaluates log-density curvature directly
+at the mode. Its result remains `(mode, negative_second_derivative)`: the second
+value is precision, not standard deviation. Mean estimators and integrators
+are unchanged. Custom distribution estimators used for log-density optimization
+implement the two-argument `logpdf` method; there is no automatic fallback through
+`log(pdf(...))`.
+
+```@docs
+ComputerAdaptiveTesting.DerivedMeasures.LaplaceApproxEstimator
+```
 
 ```@index
 ```

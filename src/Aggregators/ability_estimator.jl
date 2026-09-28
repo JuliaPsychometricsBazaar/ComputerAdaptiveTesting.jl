@@ -300,6 +300,11 @@ Point ability estimate given by the mode of `dist_est` (e.g. MLE for a
 [`LikelihoodAbilityEstimator`](@ref) or MAP for a
 [`PosteriorAbilityEstimator`](@ref)), found using `optim`.
 
+With `FunctionOptimizer`, maximizes `logpdf(dist_est, tracked_responses)`
+directly to avoid likelihood underflow. Custom distribution estimators must
+implement the two-argument `logpdf` interface; custom `AbilityOptimizer`s
+control their own objective evaluation.
+
     $(FUNCTIONNAME)(bits...)
 
 Bag-of-config-bits constructor: uses any given `DistributionAbilityEstimator`
