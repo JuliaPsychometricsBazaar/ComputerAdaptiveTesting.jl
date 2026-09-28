@@ -56,6 +56,7 @@ export variance, variance_given_mean, mean_1d
 export RiemannEnumerationIntegrator
 export get_integrator
 export LogGridIntegrator, LogGridAbilityTracker
+export LogFunctionIntegrator
 # export EnumerationOptimizer
 
 # Basic types
@@ -246,6 +247,7 @@ include("./ability_tracker.jl")
 include("./tracked.jl")
 include("./log_grid_weights.jl")
 include("./log_grid.jl")
+include("./log_function.jl")
 include("./optimizers.jl")
 include("./speculators.jl")
 

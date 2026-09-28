@@ -137,6 +137,77 @@ No probability-space fallback is supplied for custom estimators lacking
 log densities raise errors. A grid with insufficient resolution can still miss
 the posterior peak: stable normalization does not correct quadrature error.
 
+## Continuous log-density integration
+
+`Aggregators.LogFunctionIntegrator(backend, optimizer)` opts into stable
+continuous integration. Both arguments are config bits and may be supplied in
+either order. It reuses PsychometricsBazaarBase's quadrature and maximization
+implementations; it does not change the existing `FunctionIntegrator` default.
+The estimator must implement native `Distributions.logpdf`.
+
+```jldoctest
+julia> using ComputerAdaptiveTesting.Aggregators, ComputerAdaptiveTesting.Responses,
+           FittedItemBanks, Distributions, PsychometricsBazaarBase.Integrators
+
+julia> using PsychometricsBazaarBase.Optimizers: NativeOneDimOptimOptimizer
+
+julia> bank = ItemBank2PL([0.0], [1.0]);
+
+julia> tracked = TrackedResponses(BareResponses(ResponseType(bank)), bank);
+
+julia> backend = QuadGKIntegrator(; lo=-8.0, hi=8.0, rtol=1e-8);
+
+julia> optimizer = NativeOneDimOptimOptimizer(; lo=-8.0, hi=8.0);
+
+julia> integral = LogFunctionIntegrator(backend, optimizer);
+
+julia> dist = PosteriorAbilityEstimator(Normal(-0.7, 1.0));
+
+julia> abs(MeanAbilityEstimator(dist, integral)(tracked) + 0.7) < 1e-8
+true
+
+julia> abs(variance(integral, dist, tracked) - 1) < 1e-8
+true
+```
+
+Supported backends are `QuadGKIntegrator`, `FixedGKIntegrator`,
+`MultiDimFixedGKIntegrator`, `HCubatureIntegrator` and `CubatureIntegrator`.
+Their domain, tolerances and scalar/vector/matrix output restrictions still
+apply. For example, use HCubature for vector and matrix moments. The optimizer
+must maximize its input function and search a region containing a representative
+density peak inside the integration domain. It may use a finite search interval
+when the quadrature domain is infinite.
+
+Each expectation prepares one log density and chooses a reference value `c`
+using the optimizer. Both numerator and denominator integrate against
+`exp(log_density(x) - c)` using ordinary arithmetic, then divide before restoring
+any absolute scale. Signed moments stay ordinary numbers. A separate calculation
+prepares a fresh reference, so response-history edits and speculative histories
+cannot reuse stale density state. Predictions integrate every response category
+directly rather than subtracting a probability from one.
+
+Raw integration returns the backend's result type with its value **and error**
+multiplied by `exp(c)` using logarithmic numbers. `normdenom` remains the absolute,
+unnormalized mass. Inspect it with `log(mass)`; converting it to `Float64` can
+underflow or overflow. An explicit denominator supplied to `expectation` is
+an absolute mass, not a log mass or a rescaled mass.
+
+Use `IntPassthrough()` (from `PsychometricsBazaarBase.Integrators`) with
+`expectation` to inspect its ordinary-valued result and error via `intval` and
+`interr`, or `IntMeasurement()` for a normalized measurement. When both integrals
+provide errors, the ratio estimate includes both numerator and normalization
+error. It treats an explicitly supplied scalar denominator as fixed. These
+estimates depend on the backend's error estimates; they are not certified bounds.
+Backends without error estimates retain `BareIntegrationResult` semantics.
+
+A nonfinite reference, invalid log density, overflow after rescaling, or zero or
+nonfinite normalization mass raises `DomainError`. Normalization also rejects a
+mass error estimate as large as the mass itself. Coefficients must be defined at
+the reference point; zero-density integration points skip their evaluation.
+Choosing a log scale does not ensure the optimizer or quadrature finds every
+peak, resolve an inadequate integration range, or make an improper density
+integrable. Adjust the domain, optimizer or quadrature when needed.
+
 ```@docs
 ComputerAdaptiveTesting.DerivedMeasures.LaplaceApproxEstimator
 ```

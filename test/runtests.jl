@@ -28,6 +28,7 @@ using .Dummy
     include("./density_interface.jl")
     include("./log_objective_optimization.jl")
     include("./log_grid.jl")
+    include("./log_function.jl")
     include("./likelihood_weighted_criteria.jl")
     include("./ability_estimator_1d.jl")
     include("./ability_estimator_2d.jl")

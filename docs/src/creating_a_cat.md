@@ -63,6 +63,13 @@ pass `Aggregators.LogGridIntegrator(tracker)` to `MeanAbilityEstimator`.
 [Fixed-grid log normalization and tracking](@ref) for an executable example,
 supported grids and normalization semantics.
 
+For continuous quadrature, wrap a backend and a maximization optimizer in
+`Aggregators.LogFunctionIntegrator(backend, optimizer)` and pass it to
+`MeanAbilityEstimator` or other distribution-based criteria. It rescales native
+log densities before integration and preserves the scale of raw masses and
+quadrature errors. See [Continuous log-density integration](@ref) for an example
+and the supported backends.
+
 This is the main type for configuring a CAT. It contains the item bank, the
 next item selection rule, and the stopping rule. `CatRules` has explicit and
 implicit constructors.
