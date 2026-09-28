@@ -54,6 +54,15 @@ See the documentation pages of those packages for more information.
 
 ## CatRules
 
+For stable mean and uncertainty estimates over a fixed grid, use
+`Aggregators.LogGridIntegrator(grid)` with a distribution estimator. To reuse
+the grid density across calculations, construct
+`tracker = Aggregators.LogGridAbilityTracker(distribution_estimator, grid)` and
+pass `Aggregators.LogGridIntegrator(tracker)` to `MeanAbilityEstimator`.
+`CatRules` collects that tracker automatically. See
+[Fixed-grid log normalization and tracking](@ref) for an executable example,
+supported grids and normalization semantics.
+
 This is the main type for configuring a CAT. It contains the item bank, the
 next item selection rule, and the stopping rule. `CatRules` has explicit and
 implicit constructors.

@@ -63,10 +63,79 @@ their own objective evaluation.
 
 `DerivedMeasures.LaplaceApproxEstimator` evaluates log-density curvature directly
 at the mode. Its result remains `(mode, negative_second_derivative)`: the second
-value is precision, not standard deviation. Mean estimators and integrators
-are unchanged. Custom distribution estimators used for log-density optimization
+value is precision, not standard deviation. Custom distribution estimators used for log-density optimization
 implement the two-argument `logpdf` method; there is no automatic fallback through
 `log(pdf(...))`.
+
+## Fixed-grid log normalization and tracking
+
+`Aggregators.LogGridIntegrator` opts into stable fixed-grid inference. Wrap a
+`PsychometricsBazaarBase.Integrators.FixedGridIntegrator`, its preallocated form,
+or an `IterativeFixedGridIntegrator`. These are **equal-weight sums**, without a
+grid-spacing factor; normalized expectations are unaffected by that common
+factor. Adaptive quadrature and unequal quadrature weights are not supported by
+this wrapper.
+
+The wrapper evaluates the estimator's native `logpdf` on the grid, subtracts
+the largest log density, exponentiates, and normalizes the resulting weights.
+Means, variances, covariance matrices and response predictions reuse that
+normalization. Signed moments are calculated with ordinary numbers. It returns
+ordinary values for expectations, but logarithmic numbers for raw integrals and
+`normdenom`, preserving their unnormalized scale. `Float64(mass)` may underflow;
+`log(mass)` preserves the log mass. An explicit denominator supplied to
+`expectation` is still an unnormalized denominator, not a log denominator.
+
+Use `LogGridAbilityTracker` to cache the grid log densities, normalized weights,
+and normalization scale across calculations. Both new constructors accept config
+bits in any order. Attach the tracker to `TrackedResponses`, or let `CatRules`
+collect it from the integrator embedded in the ability estimator.
+
+```jldoctest
+julia> using ComputerAdaptiveTesting.Aggregators, ComputerAdaptiveTesting.Responses,
+           FittedItemBanks, Distributions, PsychometricsBazaarBase.Integrators
+
+julia> bank = ItemBank2PL([0.0], [1.0]);
+
+julia> dist = PosteriorAbilityEstimator(Normal());
+
+julia> grid = FixedGridIntegrator(collect(-6.0:0.05:6.0));
+
+julia> tracker = LogGridAbilityTracker(dist, grid);
+
+julia> integral = LogGridIntegrator(tracker);
+
+julia> history = BareResponses(ResponseType(bank), fill(1, 2000),
+                              repeat([false, true], 1000));
+
+julia> tracked = TrackedResponses(history, bank, tracker); track!(tracked);
+
+julia> abs(MeanAbilityEstimator(dist, integral)(tracked)) < 1e-10
+true
+
+julia> isfinite(variance(integral, dist, tracked))
+true
+
+julia> sum(response_expectation(dist, integral, tracked, 1)) ≈ 1
+true
+```
+
+`LogGridIntegrator(grid)` works without a tracker, recomputing the weights on
+each calculation. Before a tracker's first `track!`, it also computes temporary
+weights. Adding, popping or clearing tracked responses refreshes the tracker.
+Integrating a different history (including a speculative response), bank or
+estimator computes temporary weights without modifying the live cache. The
+cache includes a snapshot of response indices and values, so bare-history edits
+cannot reuse stale weights. Treat grid coordinates, item parameters and prior
+parameters as fixed; explicitly refresh with `track!` after changing them.
+Parallel reads are supported; concurrent mutation of the tracker is not.
+
+Predictions evaluate every response category directly, including nominal
+categories, avoiding cancellation from `1 - P(true)`. Tabulated dichotomous
+banks use their log-likelihood arrays and require an exactly matching grid.
+No probability-space fallback is supplied for custom estimators lacking
+`logpdf`. An empty grid, a grid with zero density everywhere, or `NaN`/`+Inf`
+log densities raise errors. A grid with insufficient resolution can still miss
+the posterior peak: stable normalization does not correct quadrature error.
 
 ```@docs
 ComputerAdaptiveTesting.DerivedMeasures.LaplaceApproxEstimator

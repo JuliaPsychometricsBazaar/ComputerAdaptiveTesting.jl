@@ -79,7 +79,8 @@ function CatRules(bits...)
         next_item = next_item,
         termination_condition = termination_condition,
         ability_estimator = ability_estimator,
-        ability_tracker = collect_trackers(next_item, ability_tracker))
+        ability_tracker = collect_trackers(next_item,
+            collect_trackers(ability_estimator, ability_tracker)))
 end
 
 function show(io::IO, ::MIME"text/plain", rules::CatRules)
@@ -127,8 +128,8 @@ function collect_trackers(config::CatConfigBase)
     return acc
 end
 
-function collect_trackers(next_item_rule::NextItemRule, ability_tracker::AbilityTracker)
-    rest = collect_trackers(next_item_rule)
+function collect_trackers(config::CatConfigBase, ability_tracker::AbilityTracker)
+    rest = collect_trackers(config)
     if !(ability_tracker isa NullAbilityTracker)
         ConsAbilityTracker(ability_tracker, rest)
     else

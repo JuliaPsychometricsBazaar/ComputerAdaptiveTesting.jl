@@ -1,6 +1,18 @@
 preallocate(obj) = obj
 preallocate(obj::Integrator) = PsychometricsBazaarBase.preallocate(obj)
 preallocate(obj::Optimizer) = PsychometricsBazaarBase.preallocate(obj)
+# Log-grid reductions have no numerical scratch buffers. Preserve the shared
+# tracker when preallocating an entire configuration tree.
+preallocate(obj::Union{LogGridIntegrator, LogGridAbilityTracker}) = obj
+
+# A generated function can only call helpers defined before it (Julia 1.12).
+function preallocate_impl(obj)
+    recursives = []
+    for fieldname in fieldnames(obj)
+        push!(recursives, :($fieldname = preallocate(obj.$fieldname)))
+    end
+    return :($(constructorof(obj))($(recursives...)))
+end
 
 @generated function preallocate(obj::CatConfigBase)
     # TODO: Ideally when the same object is referenced multiple times in the
@@ -32,12 +44,4 @@ preallocate(obj::Optimizer) = PsychometricsBazaarBase.preallocate(obj)
     # TODO: It might also be nice to avoid reconstructing bits of the object graph
     #       which are not affected by the preallocation.
     return preallocate_impl(obj)
-end
-
-function preallocate_impl(obj)
-    recursives = []
-    for fieldname in fieldnames(obj)
-        push!(recursives, :($fieldname = preallocate(obj.$fieldname)))
-    end
-    return :($(constructorof(obj))($(recursives...)))
 end
