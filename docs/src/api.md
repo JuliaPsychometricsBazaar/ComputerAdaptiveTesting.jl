@@ -4,6 +4,29 @@ CurrentModule = ComputerAdaptiveTesting
 
 # API reference
 
+## Density integration policies
+
+`PosteriorAbilityEstimator(prior, LogSpace())` and
+`LikelihoodAbilityEstimator(LogSpace())` select log-density integration when
+constructing an integrator from a numerical backend. Config bits may be given
+in either order; omitting the space defaults to `LinSpace()`.
+`SafeLikelihoodAbilityEstimator(LogSpace(); ncomp=2)` applies the same policy to
+both its likelihood and prior fallback branches.
+
+`MeanAbilityEstimator(dist, grid)` selects `LogGridIntegrator` for a log-space
+estimator and a supported equal-weight grid. With a supported continuous backend,
+also supply a maximizing optimizer: `MeanAbilityEstimator(dist, backend, optimizer)`.
+An explicitly constructed `AbilityIntegrator` overrides the default policy.
+Both `pdf` and `logpdf` remain available in either space; density modes continue
+to maximize `logpdf`. Normalized moments remain ordinary numbers.
+
+```@docs
+Aggregators.CalculationSpace
+Aggregators.LinSpace
+Aggregators.LogSpace
+Aggregators.calculation_space
+```
+
 ## Likelihood-weighted criteria
 
 `NextItemRules.LikelihoodWeightedItemCriterion` and

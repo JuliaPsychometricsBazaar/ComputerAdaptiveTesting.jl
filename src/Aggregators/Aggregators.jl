@@ -57,9 +57,11 @@ export RiemannEnumerationIntegrator
 export get_integrator
 export LogGridIntegrator, LogGridAbilityTracker
 export LogFunctionIntegrator
+export CalculationSpace, LinSpace, LogSpace, calculation_space
 # export EnumerationOptimizer
 
 # Basic types
+include("./spaces.jl")
 # XXX: Does having a common supertype of DistributionAbilityEstimator and PointAbilityEstimator make sense?
 abstract type AbilityEstimator <: CatConfigBase end
 
@@ -146,6 +148,14 @@ function AbilityIntegrator(bits...; ability_estimator = nothing, prefer_tracked 
     if integrator === nothing
         return nothing
     end
+    est = ability_estimator === nothing ? DistributionAbilityEstimator(bits...) :
+          distribution_estimator(ability_estimator)
+    space = est === nothing ? LinSpace() : calculation_space(est)
+    build_ability_integrator(space, integrator, est, bits; prefer_tracked)
+end
+
+function build_ability_integrator(::LinSpace, integrator, ability_estimator, bits;
+        prefer_tracked = false)
     tracker = compatible_tracker(bits...;
         integrator = integrator,
         ability_estimator = ability_estimator,
@@ -248,6 +258,7 @@ include("./tracked.jl")
 include("./log_grid_weights.jl")
 include("./log_grid.jl")
 include("./log_function.jl")
+include("./configuration.jl")
 include("./optimizers.jl")
 include("./speculators.jl")
 
