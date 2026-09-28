@@ -383,8 +383,10 @@ Point ability estimate given by the mean (EAP) of `dist_est`, computed using
     $(FUNCTIONNAME)(bits...)
 
 Bag-of-config-bits constructor: uses any given `DistributionAbilityEstimator`
-and `AbilityIntegrator` found in `bits`, or builds default ones from the rest
-of `bits`.
+and `AbilityIntegrator` found in `bits`, or adapts a numerical backend using
+the distribution's [`calculation_space`](@ref). Explicit ability integrators
+override this default. Log-space continuous integration also needs a maximizing
+optimizer config bit; grid tracking can be requested with `GriddedAbilityTracker`.
 """
 struct MeanAbilityEstimator{
     DistEst <: DistributionAbilityEstimator,

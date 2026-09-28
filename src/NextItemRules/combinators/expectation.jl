@@ -13,7 +13,7 @@ end
 
 function ResponseExpectation(ability_estimator::DistributionAbilityEstimator,
         bits...)
-    @returnsome AbilityIntegrator(bits...) integrator->DistributionResponseExpectation(
+    @returnsome AbilityIntegrator(bits...; ability_estimator = ability_estimator) integrator->DistributionResponseExpectation(
         ability_estimator,
         integrator)
 end
