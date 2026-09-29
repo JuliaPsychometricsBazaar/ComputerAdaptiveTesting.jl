@@ -24,6 +24,11 @@ function get_integrator(integrator::TrackedLikelihoodIntegrator)
     return integrator.integrator
 end
 
+function power_summary(io::IO, integrator::TrackedLikelihoodIntegrator)
+    println(io, "Tracked ordinary density integration (linear space)")
+    power_summary(indent(io, 2), integrator.integrator)
+end
+
 function (integrator::TrackedLikelihoodIntegrator{IntegratorT})(f::F,
         ncomp) where {F, IntegratorT}
     integrator.integrator(FunctionArgProduct(f), integrator.tracker.cur_ability, ncomp)

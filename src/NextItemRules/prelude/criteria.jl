@@ -2,9 +2,8 @@
 
 function ItemCriterion(bits...; ability_estimator = nothing, ability_tracker = nothing, skip_expectation = false)
     @returnsome find1_instance(ItemCriterion, bits)
-    @returnsome find1_type(ItemCriterion, bits) typ->typ(
-        ability_estimator = ability_estimator,
-        ability_tracker = ability_tracker)
+    resolved = Aggregators.with_ability_defaults(bits; ability_estimator, ability_tracker)
+    @returnsome find1_type(ItemCriterion, bits) typ->typ(resolved...)
     if !skip_expectation
         @returnsome ExpectationBasedItemCriterion(bits...;
             ability_estimator = ability_estimator,
@@ -14,12 +13,13 @@ end
 
 function StateCriterion(bits...; ability_estimator = nothing, ability_tracker = nothing)
     @returnsome find1_instance(StateCriterion, bits)
-    @returnsome find1_type(StateCriterion, bits) typ->typ()
+    resolved = Aggregators.with_ability_defaults(bits; ability_estimator, ability_tracker)
+    @returnsome find1_type(StateCriterion, bits) typ->typ(resolved...)
 end
 
 function ItemCategoryCriterion(bits...)
     @returnsome find1_instance(ItemCategoryCriterion, bits)
-    @returnsome find1_type(ItemCategoryCriterion, bits) typ->typ()
+    @returnsome find1_type(ItemCategoryCriterion, bits) typ->typ(bits...)
 end
 
 function PointwiseItemCriterion(bits...)
@@ -118,19 +118,4 @@ end
 function compute_multi_criterion(
         state_criterion::StateMultiCriterion, ::Nothing, tracked_responses)
     compute_multi_criterion(state_criterion, tracked_responses)
-end
-
-function get_dist_est_and_integrator(bits...)
-    # XXX: Weakness in this initialisation system is showing now
-    # This needs ot be explicitly passed dist_est and integrator, but this may
-    # be burried within a MeanAbilityEstimator
-    dist_est = DistributionAbilityEstimator(bits...)
-    integrator = AbilityIntegrator(bits...)
-    if dist_est !== nothing && integrator !== nothing
-        return (dist_est, integrator)
-    end
-    # So let's just handle this case individually for now
-    # (Is this going to cause a problem with this being picked over something more appropriate?)
-    @requiresome mean_ability_est = MeanAbilityEstimator(bits...)
-    return (mean_ability_est.dist_est, mean_ability_est.integrator)
 end

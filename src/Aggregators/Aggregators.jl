@@ -35,7 +35,7 @@ using PsychometricsBazaarBase.Optimizers: OneDimOptimOptimizer, Optimizer, Optim
 using PsychometricsBazaarBase.ConstDistributions: std_normal, std_mv_normal
 using PsychometricsBazaarBase.IndentWrappers: indent
 using DocStringExtensions
-import Distributions: pdf
+import Distributions: pdf, logpdf
 import Base: show
 
 import FittedItemBanks
@@ -55,18 +55,23 @@ export DistributionAbilityEstimator
 export variance, variance_given_mean, mean_1d
 export RiemannEnumerationIntegrator
 export get_integrator
+export LogGridIntegrator, LogGridAbilityTracker
+export LogFunctionIntegrator
+export CalculationSpace, LinSpace, LogSpace, calculation_space
 # export EnumerationOptimizer
 
 # Basic types
+include("./spaces.jl")
 # XXX: Does having a common supertype of DistributionAbilityEstimator and PointAbilityEstimator make sense?
 abstract type AbilityEstimator <: CatConfigBase end
 
 function AbilityEstimator(bits...; ability_estimator = nothing, ability_tracker = nothing)
     @returnsome ability_estimator
+    @returnsome PointAbilityEstimator(bits...)
     @returnsome find1_instance(AbilityEstimator, bits)
     item_bank = find1_type_sloppy(AbstractItemBank, bits)
     if item_bank !== nothing
-        @returnsome AbilityEstimator(DomainType(item_bank))
+        @returnsome AbilityEstimator(DomainType(item_bank), bits...)
     end
 end
 AbilityEstimator(::DomainType) = nothing
@@ -91,46 +96,36 @@ end
 abstract type PointAbilityEstimator <: AbilityEstimator end
 function PointAbilityEstimator(bits...)
     @returnsome find1_instance(PointAbilityEstimator, bits)
-    mode_ability_estimator = find1_type(ModeAbilityEstimator, bits)
-    if mode_ability_estimator !== nothing
-        return mode_ability_estimator(bits...)
-    end
-    mean_ability_estimator = find1_type(MeanAbilityEstimator, bits)
-    if mean_ability_estimator !== nothing
-        return mean_ability_estimator(bits...)
-    end
+    @returnsome find1_type(PointAbilityEstimator, bits) typ->typ(bits...)
 end
 
 abstract type AbilityTracker <: CatConfigBase end
 
 function AbilityTracker(bits...; integrator = nothing, ability_estimator = nothing)
     @returnsome find1_instance(AbilityTracker, bits)
-    ability_tracker = find1_type(AbilityTracker, bits)
-    if (ability_tracker !== nothing)
-        ability_tracker()
+    estimator = ability_estimator === nothing ? AbilityEstimator(bits...) : ability_estimator
+    tracker_type = find1_type(AbilityTracker, bits)
+    tracker_type === nothing || return construct_tracker(tracker_type, estimator, integrator, bits)
+    if estimator !== nothing && integrator !== nothing
+        return default_grid_tracker(calculation_space(distribution_estimator(estimator)),
+            distribution_estimator(estimator), integrator)
     end
-    if ability_estimator !== nothing && integrator !== nothing
-        GriddedAbilityTracker(ability_estimator, integrator)
-    else
-        NullAbilityTracker()
-    end
+    NullAbilityTracker()
 end
 
-function find_ability_tracker(ability_tracker, typ, integrator)
-    if ability_tracker isa typ &&
-       ability_tracker.integrator === integrator
-        return ability_tracker
+function compatible_tracker(bits...; integrator, ability_estimator, prefer_tracked,
+        space = LinSpace())
+    tracker = find1_instance(AbilityTracker, bits)
+    # An explicitly supplied tracker, including NullAbilityTracker, takes precedence.
+    if tracker !== nothing
+        return matching_tracker(space, tracker, integrator, ability_estimator)
     end
-end
-
-function compatible_tracker(bits...; integrator, ability_estimator, prefer_tracked)
-    ability_tracker = AbilityTracker(bits...; ability_estimator = ability_estimator)
-    @returnsome find_ability_tracker(ability_tracker, GriddedAbilityTracker, integrator)
-    if prefer_tracked
-        return AbilityTracker(bits...;
-            integrator = integrator,
-            ability_estimator = ability_estimator)
+    requested = find1_type(AbilityTracker, bits)
+    @returnsome requested_grid_tracker(requested, ability_estimator, integrator)
+    if prefer_tracked && requested === nothing && ability_estimator !== nothing
+        return default_grid_tracker(space, ability_estimator, integrator)
     end
+    nothing
 end
 
 abstract type AbilityIntegrator <: CatConfigBase end
@@ -140,16 +135,26 @@ function AbilityIntegrator(bits...; ability_estimator = nothing, prefer_tracked 
     if (zero_arg_intergrators !== nothing)
         return RiemannEnumerationIntegrator()
     end
+    est = ability_estimator === nothing ? DistributionAbilityEstimator(bits...) :
+          distribution_estimator(ability_estimator)
     integrator = Integrator(bits...)
+    @returnsome inherited_integrator(bits, est, integrator)
+    integrator = integrator === nothing ? inherited_backend(bits) : integrator
     if integrator === nothing
         return nothing
     end
+    space = est === nothing ? LinSpace() : calculation_space(est)
+    build_ability_integrator(space, integrator, est, bits; prefer_tracked)
+end
+
+function build_ability_integrator(::LinSpace, integrator, ability_estimator, bits;
+        prefer_tracked = false)
     tracker = compatible_tracker(bits...;
         integrator = integrator,
         ability_estimator = ability_estimator,
         prefer_tracked = prefer_tracked)
     if tracker !== nothing
-        TrackedLikelihoodIntegrator(integrator, tracker)
+        tracked_integrator(integrator, tracker)
     else
         FunctionIntegrator(integrator)
     end
@@ -208,6 +213,10 @@ function Base.length(responses::TrackedResponses)
     length(responses.responses.indices)
 end
 
+function Responses.AbilityLogLikelihood(tracked_responses::TrackedResponses)
+    AbilityLogLikelihood(AbilityLikelihood(tracked_responses))
+end
+
 struct FunctionIntegrator{IntegratorT <: Integrator} <: AbilityIntegrator
     integrator::IntegratorT
 end
@@ -227,7 +236,8 @@ function (integrator::FunctionIntegrator{IntegratorT})(f::F,
 end
 
 function power_summary(io::IO, responses::FunctionIntegrator)
-    power_summary(io, responses.integrator)
+    println(io, "Ordinary density integration (linear space)")
+    power_summary(indent(io, 2), responses.integrator)
 end
 
 # Defaults
@@ -239,6 +249,10 @@ include("./riemann.jl")
 include("./ability_estimator.jl")
 include("./ability_tracker.jl")
 include("./tracked.jl")
+include("./log_grid_weights.jl")
+include("./log_grid.jl")
+include("./log_function.jl")
+include("./configuration.jl")
 include("./optimizers.jl")
 include("./speculators.jl")
 

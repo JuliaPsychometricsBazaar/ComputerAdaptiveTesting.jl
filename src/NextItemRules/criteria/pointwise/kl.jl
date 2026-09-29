@@ -20,7 +20,7 @@ end
 function PosteriorExpectedKLInformationItemCriterion(bits...)
     @requiresome point_estimator = PointAbilityEstimator(bits...)
     @requiresome distribution_estimator = DistributionAbilityEstimator(bits...)
-    @requiresome integrator = AbilityIntegrator(bits...)
+    @requiresome integrator = AbilityIntegrator(bits...; ability_estimator = distribution_estimator)
     PosteriorExpectedKLInformationItemCriterion(
         point_estimator, distribution_estimator, integrator)
 end

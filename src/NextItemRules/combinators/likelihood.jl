@@ -1,3 +1,11 @@
+"""
+$(TYPEDEF)
+$(TYPEDFIELDS)
+
+Integrate a pointwise item criterion against the unnormalized ability density.
+The `integrator` applies the response likelihood and, for a posterior
+`estimator`, its prior exactly once.
+"""
 struct LikelihoodWeightedItemCriterion{
     PointwiseItemCriterionT <: PointwiseItemCriterion,
     AbilityIntegratorT <: AbilityIntegrator,
@@ -20,9 +28,16 @@ function compute_criterion(
     tracked_responses::TrackedResponses,
     item_idx
 )
-    func = FunctionProduct(
-        pdf(lwic.estimator, tracked_responses), ability -> compute_criterion(lwic.criterion, tracked_responses, item_idx, ability))
+    func = ability -> compute_criterion(lwic.criterion, tracked_responses, item_idx, ability)
     intval(lwic.integrator(func, 0, lwic.estimator, tracked_responses))
+end
+
+function power_summary(io::IO, criterion::LikelihoodWeightedItemCriterion)
+    println(io, "Integrate the pointwise criterion over the ability density")
+    indent_io = indent(io, 2)
+    power_summary(indent_io, criterion.estimator)
+    power_summary(indent_io, criterion.integrator)
+    power_summary(indent_io, criterion.criterion)
 end
 
 struct PointItemCriterion{
@@ -45,6 +60,21 @@ function compute_criterion(
     return compute_criterion(pic.criterion, tracked_responses, item_idx, ability)
 end
 
+function power_summary(io::IO, criterion::PointItemCriterion)
+    println(io, "Evaluate the pointwise criterion at the point ability estimate")
+    indent_io = indent(io, 2)
+    power_summary(indent_io, criterion.estimator)
+    power_summary(indent_io, criterion.criterion)
+end
+
+"""
+$(TYPEDEF)
+$(TYPEDFIELDS)
+
+Integrate a pointwise item-category criterion against the unnormalized ability
+density. The `integrator` applies the response likelihood and, for a posterior
+`estimator`, its prior exactly once.
+"""
 struct LikelihoodWeightedItemCategoryCriterion{
     PointwiseItemCategoryCriterionT <: PointwiseItemCategoryCriterion,
     AbilityIntegratorT <: AbilityIntegrator,
@@ -68,11 +98,17 @@ function compute_criterion(
     item_idx,
     category
 )
-    func = FunctionProduct(
-        pdf(lwicc.estimator, tracked_responses),
-        ability -> compute_criterion(lwicc.criterion, tracked_responses, item_idx, ability, category)
-    )
+    func = ability -> compute_criterion(
+        lwicc.criterion, tracked_responses, item_idx, ability, category)
     intval(lwicc.integrator(func, 0, lwicc.estimator, tracked_responses))
+end
+
+function power_summary(io::IO, criterion::LikelihoodWeightedItemCategoryCriterion)
+    println(io, "Integrate the pointwise item-category criterion over the ability density")
+    indent_io = indent(io, 2)
+    power_summary(indent_io, criterion.estimator)
+    power_summary(indent_io, criterion.integrator)
+    power_summary(indent_io, criterion.criterion)
 end
 
 struct PointItemCategoryCriterion{
@@ -94,4 +130,11 @@ function compute_criterion(
         pic.estimator
     )
     return compute_criterion(pic.criterion, tracked_responses, item_idx, ability, category)
+end
+
+function power_summary(io::IO, criterion::PointItemCategoryCriterion)
+    println(io, "Evaluate the pointwise item-category criterion at the point ability estimate")
+    indent_io = indent(io, 2)
+    power_summary(indent_io, criterion.estimator)
+    power_summary(indent_io, criterion.criterion)
 end

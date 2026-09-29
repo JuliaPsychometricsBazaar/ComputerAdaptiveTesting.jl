@@ -17,6 +17,13 @@ function InformationItemCriterion(bits...)
     InformationItemCriterion(ability_estimator)
 end
 
+function power_summary(io::IO, criterion::InformationItemCriterion)
+    println(io, "Maximize the expected item information")
+    indent_io = indent(io, 2)
+    power_summary(indent_io, criterion.ability_estimator)
+    println(indent_io, "Information function: ", nameof(criterion.expected_item_information))
+end
+
 function compute_criterion(
         item_criterion::InformationItemCriterion, tracked_responses::TrackedResponses,
         item_idx)
@@ -35,6 +42,14 @@ end
 
 function InformationMatrixCriteria(ability_estimator)
     InformationMatrixCriteria(ability_estimator, expected_item_information, expected_item_information)
+end
+
+function power_summary(io::IO, criterion::InformationMatrixCriteria)
+    println(io, "Build the expected information matrix")
+    indent_io = indent(io, 2)
+    power_summary(indent_io, criterion.ability_estimator)
+    println(indent_io, "Known information function: ", nameof(criterion.known_item_information))
+    println(indent_io, "Expected information function: ", nameof(criterion.expected_item_information))
 end
 
 function init_thread(item_criterion::InformationMatrixCriteria,

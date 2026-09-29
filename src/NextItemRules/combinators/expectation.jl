@@ -13,7 +13,7 @@ end
 
 function ResponseExpectation(ability_estimator::DistributionAbilityEstimator,
         bits...)
-    @returnsome Integrator(bits...) integrator->DistributionResponseExpectation(
+    @returnsome AbilityIntegrator(bits...; ability_estimator = ability_estimator) integrator->DistributionResponseExpectation(
         ability_estimator,
         integrator)
 end
@@ -51,6 +51,13 @@ struct DistributionResponseExpectation{
 } <: ResponseExpectation
     ability_estimator::DistributionAbilityEstimatorT
     integrator::AbilityIntegratorT
+end
+
+function power_summary(io::IO, expectation::DistributionResponseExpectation)
+    println(io, "Expected response over the ability distribution")
+    indent_io = indent(io, 2)
+    power_summary(indent_io, expectation.ability_estimator)
+    power_summary(indent_io, expectation.integrator)
 end
 
 function Aggregators.response_expectation(

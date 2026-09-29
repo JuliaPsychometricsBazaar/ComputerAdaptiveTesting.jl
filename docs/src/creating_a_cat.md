@@ -52,10 +52,103 @@ and can be fit to data using
 [RIrtWrappers.jl](https://juliapsychometricsbazaar.github.io/RIrtWrappers.jl/stable/).
 See the documentation pages of those packages for more information.
 
+## Choosing linear or log-space integration
+
+Give the distribution estimator a `LogSpace()` config bit to use stable
+log-density integration. The default is `LinSpace()`. The same policy is used
+by direct composition and by the flat `CatRules` constructor:
+
+```jldoctest space_configuration
+julia> using ComputerAdaptiveTesting, ComputerAdaptiveTesting.Aggregators,
+           ComputerAdaptiveTesting.NextItemRules,
+           ComputerAdaptiveTesting.TerminationConditions,
+           PsychometricsBazaarBase.Integrators, Distributions
+
+julia> dist = PosteriorAbilityEstimator(Normal(), LogSpace());
+
+julia> grid = FixedGridIntegrator(range(-6, 6; length=121));
+
+julia> ability = MeanAbilityEstimator(dist, grid);
+
+julia> ability.integrator isa LogGridIntegrator
+true
+
+julia> rules = CatRules(MeanAbilityEstimator, dist, grid,
+           GriddedAbilityTracker, AbilityVariance, FixedLength(20));
+
+julia> rules.ability_estimator.integrator isa LogGridIntegrator
+true
+
+julia> rules.next_item.criterion.criterion.integrator === rules.ability_estimator.integrator
+true
+
+julia> rules.ability_estimator.integrator.tracker isa LogGridAbilityTracker
+true
+```
+
+`AbilityVariance` here constructs expected post-response variance item selection.
+Use `InformationItemCriterion` in its place for information-based selection.
+The resolved point estimator supplies defaults to newly constructed criteria;
+compatible criteria reuse its integrator and tracker. The integration-space
+choice does not change point predictions into posterior-predictive predictions.
+
+Tracking is optional: omit `GriddedAbilityTracker` to calculate weights on demand.
+With `LogSpace()`, requesting a grid tracker constructs `LogGridAbilityTracker`.
+Shared trackers are registered once, including when also used by a stopping
+criterion, and remain shared after `preallocate(rules)`.
+
+Continuous log integration additionally needs an optimizer to choose a reference
+log density:
+
+```jldoctest space_configuration
+julia> using PsychometricsBazaarBase.Optimizers: NativeOneDimOptimOptimizer
+
+julia> backend = QuadGKIntegrator(; lo=-8.0, hi=8.0);
+
+julia> optimizer = NativeOneDimOptimOptimizer(; lo=-8.0, hi=8.0);
+
+julia> MeanAbilityEstimator(dist, backend, optimizer).integrator isa LogFunctionIntegrator
+true
+```
+
+Supported backends and their limitations are listed in the
+[API reference](api.md#Continuous-log-density-integration). Missing optimizers
+and unsupported automatic log-space adapters cause construction errors.
+Equal-weight grid integration preserves the backend's sum convention; other
+weighting schemes such as `MidpointIntegrator` are not automatically converted.
+
+Explicitly supplied ability integrators and already constructed criteria retain
+their settings. For example, `MeanAbilityEstimator(dist, FunctionIntegrator(grid))`
+explicitly uses ordinary density integration even though `dist` prefers log space.
+Printing the rules shows both the distribution's policy and the actual adapter.
+To change a component, reconstruct it with the desired policy or adapter.
+
+Both `pdf` and `logpdf` remain available in either space, and MLE/MAP continue
+to maximize the log density. Reported abilities, normalized moments and
+probability predictions retain their ordinary meanings. Raw masses returned by
+log integrators use logarithmic numbers to preserve their absolute scale.
+
 ## CatRules
 
-This is the main type for configuring a CAT. It contains the item bank, the
-next item selection rule, and the stopping rule. `CatRules` has explicit and
+For stable mean and uncertainty estimates over a fixed grid, use
+`Aggregators.LogGridIntegrator(grid)` with a distribution estimator. To reuse
+the grid density across calculations, construct
+`tracker = Aggregators.LogGridAbilityTracker(distribution_estimator, grid)` and
+pass `Aggregators.LogGridIntegrator(tracker)` to `MeanAbilityEstimator`.
+`CatRules` collects that tracker automatically. See
+[Fixed-grid log normalization and tracking](@ref) for an executable example,
+supported grids and normalization semantics.
+
+For continuous quadrature, wrap a backend and a maximization optimizer in
+`Aggregators.LogFunctionIntegrator(backend, optimizer)` and pass it to
+`MeanAbilityEstimator` or other distribution-based criteria. It rescales native
+log densities before integration and preserves the scale of raw masses and
+quadrature errors. See [Continuous log-density integration](@ref) for an example
+and the supported backends.
+
+This is the main type for configuring a CAT. It contains ability estimation,
+the next item selection rule, and the stopping rule. The item bank is supplied
+when running the CAT. `CatRules` has explicit and
 implicit constructors.
 
 ```@docs; canonical=false

@@ -31,9 +31,8 @@ using FittedItemBanks: AbstractItemBank, DiscreteDomain, DomainType,
                        ItemResponse, OneDimContinuousDomain, domdims, item_params,
                        resp, resp_vec, log_resp, log_resp_vec, responses, subset_view
 using ..Aggregators
-using ..Aggregators: covariance_matrix, FunctionProduct
+using ..Aggregators: covariance_matrix, get_dist_est_and_integrator
 
-using Distributions: pdf
 using Base.Threads
 using Base.Order
 using StaticArrays: SVector

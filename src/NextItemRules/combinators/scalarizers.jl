@@ -12,12 +12,26 @@ struct ScalarizedItemCriterion{
     scalarizer::MatrixScalarizerT
 end
 
+function power_summary(io::IO, criterion::ScalarizedItemCriterion)
+    println(io, "Scalarize the item multi-criterion")
+    indent_io = indent(io, 2)
+    println(indent_io, "Scalarizer: ", nameof(typeof(criterion.scalarizer)))
+    power_summary(indent_io, criterion.criteria)
+end
+
 struct ScalarizedStateCriterion{
     StateMultiCriterionT <: StateMultiCriterion,
     MatrixScalarizerT <: MatrixScalarizer
 } <: StateCriterion
     criteria::StateMultiCriterionT
     scalarizer::MatrixScalarizerT
+end
+
+function power_summary(io::IO, criterion::ScalarizedStateCriterion)
+    println(io, "Scalarize the state multi-criterion")
+    indent_io = indent(io, 2)
+    println(indent_io, "Scalarizer: ", nameof(typeof(criterion.scalarizer)))
+    power_summary(indent_io, criterion.criteria)
 end
 
 function compute_criterion(ssc::Union{ScalarizedItemCriterion, ScalarizedStateCriterion},

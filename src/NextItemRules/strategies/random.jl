@@ -10,6 +10,11 @@ administered.
     rng::RandomT = Xoshiro()
 end
 
+function power_summary(io::IO, rule::RandomNextItemRule)
+    println(io, "Select a random unanswered item")
+    println(indent(io, 2), "Random number generator: ", nameof(typeof(rule.rng)))
+end
+
 function best_item(rule::RandomNextItemRule, responses::TrackedResponses, items)
     # TODO: This is not efficient
     item_idxes = Set(1:length(items))
