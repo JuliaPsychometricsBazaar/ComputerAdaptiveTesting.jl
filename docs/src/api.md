@@ -21,11 +21,7 @@ Both `pdf` and `logpdf` remain available in either space; density modes continue
 to maximize `logpdf`. Normalized moments remain ordinary numbers.
 
 ```@docs
-Aggregators.CalculationSpace
-Aggregators.LinSpace
-Aggregators.LogSpace
 Aggregators.calculation_space
-Stateful.logdensity
 ```
 
 `Stateful.logdensity(cat, θ)` evaluates the configured estimator's native,
