@@ -36,7 +36,6 @@ using ..Aggregators: covariance_matrix, get_dist_est_and_integrator
 using Base.Threads
 using Base.Order
 using StaticArrays: SVector
-using ConstructionBase: constructorof
 import ForwardDiff
 import Base: show
 

@@ -11,7 +11,12 @@ function preallocate_impl(obj)
     for fieldname in fieldnames(obj)
         push!(recursives, :($fieldname = preallocate(obj.$fieldname)))
     end
-    return :($(constructorof(obj))($(recursives...)))
+    # Reconstruct with the type's wrapper instead of `ConstructionBase.constructorof`:
+    # in ConstructionBase < 1.6 the latter is itself a generated function, and
+    # calling it from this generator resolves the type's binding in the world
+    # where `preallocate` was defined. Julia 1.12 rejects that for types defined
+    # later (e.g. test-local configs), so go straight to the wrapper.
+    return :($(Base.typename(obj).wrapper)($(recursives...)))
 end
 
 @generated function preallocate(obj::CatConfigBase)
