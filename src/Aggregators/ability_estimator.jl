@@ -3,6 +3,8 @@
 #     density over ability, via `pdf(est, tracked_responses)`, e.g. the raw
 #     likelihood (`LikelihoodAbilityEstimator`) or a Bayesian posterior
 #     (`PosteriorAbilityEstimator`).
+#     `logpdf(est, tracked_responses)` provides the corresponding log density
+#     directly, without evaluating the probability-space density first.
 #   * `PointAbilityEstimator`s reduce such a distribution to a single ability
 #     value when called as `est(tracked_responses)`, either by optimization
 #     (`ModeAbilityEstimator`, i.e. MAP/MLE) or by integration
@@ -40,21 +42,63 @@ function pdf(ability_est::DistributionAbilityEstimator,
 end
 
 """
+$(TYPEDSIGNATURES)
+
+Evaluate the unnormalized log density of a distribution ability estimator at
+`x`. The two-argument form, `logpdf(est, tracked_responses)`, returns a callable
+log-density function instead.
+
+For `LikelihoodAbilityEstimator`, this is the sum of item log probabilities;
+for `PosteriorAbilityEstimator`, it additionally includes `logpdf(prior, x)`.
+No normalizing constant is subtracted, matching the existing `pdf` convention.
+`GuardedAbilityEstimator` selects the same branch as `pdf` when the callable
+is constructed. Custom distribution estimators implement the two-argument form;
+there is deliberately no fallback through `log(pdf(...))`.
+"""
+function logpdf(ability_est::DistributionAbilityEstimator,
+        tracked_responses::TrackedResponses, x)
+    logpdf(ability_est, tracked_responses)(x)
+end
+
+"""
 $(TYPEDEF)
 
-The ability likelihood distribution.
+The ability likelihood distribution. Optional `LinSpace()` (default) or
+`LogSpace()` config bits select the default integration policy.
 
-    $(FUNCTIONNAME)()
+    $(FUNCTIONNAME)(bits...)
 """
-struct LikelihoodAbilityEstimator <: DistributionAbilityEstimator end
+struct LikelihoodAbilityEstimator{SpaceT <: CalculationSpace} <: DistributionAbilityEstimator
+    space::SpaceT
+end
+
+function LikelihoodAbilityEstimator(bits...)
+    space = CalculationSpace(bits...)
+    LikelihoodAbilityEstimator{typeof(space)}(space)
+end
+
+"""
+$(SIGNATURES)
+
+Default integration policy for a distribution estimator. Custom estimators
+default to `LinSpace()` and may specialize this method. Both `pdf` and `logpdf`
+retain their usual meaning regardless of this policy.
+"""
+calculation_space(::DistributionAbilityEstimator) = LinSpace()
+calculation_space(est::LikelihoodAbilityEstimator) = est.space
 
 function pdf(::LikelihoodAbilityEstimator,
         tracked_responses::TrackedResponses)
     AbilityLikelihood(tracked_responses)
 end
 
-function power_summary(io::IO, ::LikelihoodAbilityEstimator)
+function logpdf(::LikelihoodAbilityEstimator, tracked_responses::TrackedResponses)
+    AbilityLogLikelihood(tracked_responses)
+end
+
+function power_summary(io::IO, est::LikelihoodAbilityEstimator)
     println(io, "Ability likelihood distribution")
+    power_summary(indent(io, 2), calculation_space(est))
 end
 
 """
@@ -63,27 +107,46 @@ $(TYPEDEF)
 Ability posterior distribution: the response likelihood times a `prior`
 distribution over ability (a standard normal by default).
 
-    $(FUNCTIONNAME)(; ncomp=0)
+    $(FUNCTIONNAME)(bits...; ncomp=0)
 
-Constructs with a standard normal prior (`ncomp=0`) or a `ncomp`-dimensional
-standard multivariate normal prior.
+Accepts a prior distribution and a `LinSpace()` (default) or `LogSpace()` policy
+in either order. Without a prior, constructs with a standard normal (`ncomp=0`)
+or a `ncomp`-dimensional standard multivariate normal prior. The policy affects
+automatic integrator construction, not the meanings of `pdf` and `logpdf`.
 """
-struct PosteriorAbilityEstimator{PriorT <: Distribution} <: DistributionAbilityEstimator
+struct PosteriorAbilityEstimator{PriorT <: Distribution, SpaceT <: CalculationSpace} <: DistributionAbilityEstimator
     prior::PriorT
+    space::SpaceT
 end
 
-function PosteriorAbilityEstimator(; ncomp = 0)
-    if ncomp == 0
-        return PosteriorAbilityEstimator(std_normal)
-    else
-        return PosteriorAbilityEstimator(std_mv_normal(ncomp))
+function PosteriorAbilityEstimator(bits...; ncomp = 0)
+    prior = find1_instance(Distribution, bits)
+    if prior === nothing
+        prior = ncomp == 0 ? std_normal : std_mv_normal(ncomp)
     end
+    space = CalculationSpace(bits...)
+    PosteriorAbilityEstimator{typeof(prior), typeof(space)}(prior, space)
 end
+
+calculation_space(est::PosteriorAbilityEstimator) = est.space
 
 function pdf(est::PosteriorAbilityEstimator,
         tracked_responses::TrackedResponses)
     IntegralCoeffs.PriorApply(IntegralCoeffs.Prior(est.prior),
         AbilityLikelihood(tracked_responses))
+end
+
+struct LogPosteriorDensity{PriorT <: Distribution, LikelihoodT <: AbilityLogLikelihood}
+    prior::PriorT
+    likelihood::LikelihoodT
+end
+
+function (density::LogPosteriorDensity)(x)
+    logpdf(density.prior, x) + density.likelihood(x)
+end
+
+function logpdf(est::PosteriorAbilityEstimator, tracked_responses::TrackedResponses)
+    LogPosteriorDensity(est.prior, AbilityLogLikelihood(tracked_responses))
 end
 
 function multiple_response_types_guard(tracked_responses)
@@ -102,6 +165,7 @@ end
 function power_summary(io::IO, ability_estimator::PosteriorAbilityEstimator)
     println(io, "Ability posterior distribution")
     indent_io = indent(io, 2)
+    power_summary(indent_io, calculation_space(ability_estimator))
     print(indent_io, "Prior: ")
     power_summary(indent_io, ability_estimator.prior)
     println(io)
@@ -122,12 +186,35 @@ function pdf(est::GuardedAbilityEstimator,
     end
 end
 
+function logpdf(est::GuardedAbilityEstimator, tracked_responses::TrackedResponses)
+    if est.guard(tracked_responses)
+        return logpdf(est.est, tracked_responses)
+    else
+        return logpdf(est.fallback, tracked_responses)
+    end
+end
+
 function SafeLikelihoodAbilityEstimator(args...; kwargs...)
+    posterior = PosteriorAbilityEstimator(args...; kwargs...)
     GuardedAbilityEstimator(
-        LikelihoodAbilityEstimator(),
-        PosteriorAbilityEstimator(args...),
+        LikelihoodAbilityEstimator(calculation_space(posterior)),
+        posterior,
         multiple_response_types_guard
     )
+end
+
+function calculation_space(est::GuardedAbilityEstimator)
+    space = calculation_space(est.est)
+    space == calculation_space(est.fallback) ||
+        throw(ArgumentError("Guarded estimator branches must agree on the default integration space"))
+    space
+end
+
+function power_summary(io::IO, est::GuardedAbilityEstimator)
+    println(io, "Guarded ability distribution")
+    power_summary(indent(io, 2), est.est)
+    println(indent(io, 2), "Fallback:")
+    power_summary(indent(io, 4), est.fallback)
 end
 
 unlog(x) = x
@@ -254,6 +341,11 @@ Point ability estimate given by the mode of `dist_est` (e.g. MLE for a
 [`LikelihoodAbilityEstimator`](@ref) or MAP for a
 [`PosteriorAbilityEstimator`](@ref)), found using `optim`.
 
+With `FunctionOptimizer`, maximizes `logpdf(dist_est, tracked_responses)`
+directly to avoid likelihood underflow. Custom distribution estimators must
+implement the two-argument `logpdf` interface; custom `AbilityOptimizer`s
+control their own objective evaluation.
+
     $(FUNCTIONNAME)(bits...)
 
 Bag-of-config-bits constructor: uses any given `DistributionAbilityEstimator`
@@ -291,8 +383,10 @@ Point ability estimate given by the mean (EAP) of `dist_est`, computed using
     $(FUNCTIONNAME)(bits...)
 
 Bag-of-config-bits constructor: uses any given `DistributionAbilityEstimator`
-and `AbilityIntegrator` found in `bits`, or builds default ones from the rest
-of `bits`.
+and `AbilityIntegrator` found in `bits`, or adapts a numerical backend using
+the distribution's [`calculation_space`](@ref). Explicit ability integrators
+override this default. Log-space continuous integration also needs a maximizing
+optimizer config bit; grid tracking can be requested with `GriddedAbilityTracker`.
 """
 struct MeanAbilityEstimator{
     DistEst <: DistributionAbilityEstimator,
@@ -305,7 +399,7 @@ end
 function MeanAbilityEstimator(bits...)
     @returnsome find1_instance(MeanAbilityEstimator, bits)
     @requiresome dist_est = DistributionAbilityEstimator(bits...)
-    @requiresome integrator = AbilityIntegrator(bits...)
+    @requiresome integrator = AbilityIntegrator(bits...; ability_estimator = dist_est)
     MeanAbilityEstimator(dist_est, integrator)
 end
 

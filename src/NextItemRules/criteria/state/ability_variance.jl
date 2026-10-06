@@ -95,6 +95,13 @@ end
 # XXX: Should be at type level
 should_minimize(::AbilityCovarianceStateMultiCriterion) = true
 
+function power_summary(io::IO, criterion::AbilityCovarianceStateMultiCriterion)
+    println(io, "Minimize the ability covariance matrix")
+    indent_io = indent(io, 2)
+    power_summary(indent_io, criterion.dist_est)
+    power_summary(indent_io, criterion.integrator)
+end
+
 function compute_multi_criterion(
         criteria::AbilityCovarianceStateMultiCriterion,
         tracked_responses::TrackedResponses,

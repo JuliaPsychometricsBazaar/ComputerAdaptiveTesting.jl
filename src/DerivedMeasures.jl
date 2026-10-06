@@ -1,6 +1,7 @@
 module DerivedMeasures
 
-using Distributions: pdf
+using Distributions: logpdf
+using DocStringExtensions
 
 import PsychometricsBazaarBase: power_summary, GridSummary
 using ..Aggregators: TrackedResponses,
@@ -68,6 +69,17 @@ end
 
 show(io::IO, ::MIME"text/plain", est::MeanAndStdDevEstimator) = power_summary(io, est)
 
+"""
+$(TYPEDEF)
+
+Estimate a scalar ability density's mode and its log-density curvature.
+Returns `(mode, -d²logpdf/dθ²)` at the mode. The second value is curvature
+(precision), not variance or standard deviation. Evaluates the log density
+directly, including when the probability-space density underflows.
+
+Construct from a `ModeAbilityEstimator`, or from a distribution ability
+estimator and an ability optimizer.
+"""
 struct LaplaceApproxEstimator{
     DistEstT <: DistributionAbilityEstimator,
     OptimizerT <: AbilityOptimizer
@@ -79,16 +91,15 @@ end
 LaplaceApproxEstimator(ability_estimator::ModeAbilityEstimator) = LaplaceApproxEstimator(ability_estimator.dist_est, ability_estimator.optim)
 
 function (est::LaplaceApproxEstimator)(tracked_responses::TrackedResponses)
-    # TODO: Numerical stability: Should directly access the log-pdf here
     mode = est.optimizer(IntegralCoeffs.one, est.dist_est, tracked_responses)
     return (
         mode,
-        -Differentiation.double_derivative((ability -> log(pdf(est.dist_est, tracked_responses, ability))), mode)
+        -Differentiation.double_derivative(logpdf(est.dist_est, tracked_responses), mode)
     )
 end
 
 function power_summary(io::IO, est::LaplaceApproxEstimator)
-    println(io, "Laplace approximation based mean and standard deviation estimator")
+    println(io, "Laplace approximation mode and log-density curvature estimator")
     indent_io = indent(io, 2)
     power_summary(indent_io, est.dist_est)
     power_summary(indent_io, est.optimizer)

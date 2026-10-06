@@ -9,12 +9,19 @@ end
 
 function Responses.pop_response!(tracked_responses::TrackedResponses)::TrackedResponses
     pop_response!(tracked_responses.responses)
+    refresh_after_history_edit!(tracked_responses, tracked_responses.ability_tracker)
     tracked_responses
 end
 
 function Base.empty!(tracked_responses::TrackedResponses)
     Base.empty!(tracked_responses.responses)
+    refresh_after_history_edit!(tracked_responses, tracked_responses.ability_tracker)
+    tracked_responses
 end
+
+# Some trackers process only the last appended response, so track! cannot be
+# called indiscriminately after removing responses. Recomputable caches opt in.
+refresh_after_history_edit!(responses, ::AbilityTracker) = nothing
 
 function response_expectation(ability_estimator::DistributionAbilityEstimator,
         integrator::AbilityIntegrator,
@@ -51,6 +58,11 @@ end
 function track!(responses, cons::ConsAbilityTracker)
     track!(responses, cons.head)
     track!(responses, cons.tail)
+end
+
+function refresh_after_history_edit!(responses, cons::ConsAbilityTracker)
+    refresh_after_history_edit!(responses, cons.head)
+    refresh_after_history_edit!(responses, cons.tail)
 end
 
 struct VarNormal{T <: Real}

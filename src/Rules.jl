@@ -31,7 +31,12 @@ Explicit constructor for $(FUNCTIONNAME).
 
     $(FUNCTIONNAME)(bits...)
 
-Implicit constructor for $(FUNCTIONNAME).
+Implicit constructor for $(FUNCTIONNAME). Supply a point estimator instance,
+or a point estimator type (such as `MeanAbilityEstimator`) together with its
+distribution and numerical backend. Constructors for item/state criteria inherit
+the resolved estimator and compatible integration adapter. Explicitly supplied
+components retain their own configuration. Shared trackers from estimation,
+selection and stopping are registered once.
 """
 @kw_only struct CatRules{
     NextItemRuleT <: NextItemRule,
@@ -79,7 +84,8 @@ function CatRules(bits...)
         next_item = next_item,
         termination_condition = termination_condition,
         ability_estimator = ability_estimator,
-        ability_tracker = collect_trackers(next_item, ability_tracker))
+        ability_tracker = collect_trackers(next_item, ability_estimator,
+            termination_condition, ability_tracker))
 end
 
 function show(io::IO, ::MIME"text/plain", rules::CatRules)
@@ -108,31 +114,34 @@ function _find_ability_estimator_and_tracker(bits...)
     (ability_estimator, ability_tracker)
 end
 
-function collect_trackers(_)
-    return NullAbilityTracker()
-end
-
-function collect_trackers(tracker::AbilityTracker)
-    return tracker
-end
-
-function collect_trackers(config::CatConfigBase)
-    acc = NullAbilityTracker()
-    for fieldname in fieldnames(typeof(config))
-        tracker = collect_trackers(getfield(config, fieldname))
-        if !(tracker isa NullAbilityTracker)
-            acc = ConsAbilityTracker(tracker, acc)
-        end
+# A shared cache may be reachable through estimation, selection and stopping.
+# Register each tracker once so a response update refreshes it only once.
+function collect_trackers(configs...)
+    trackers = AbilityTracker[]
+    for config in configs
+        collect_trackers!(trackers, config)
     end
-    return acc
+    foldr(ConsAbilityTracker, trackers; init = NullAbilityTracker())
 end
 
-function collect_trackers(next_item_rule::NextItemRule, ability_tracker::AbilityTracker)
-    rest = collect_trackers(next_item_rule)
-    if !(ability_tracker isa NullAbilityTracker)
-        ConsAbilityTracker(ability_tracker, rest)
-    else
-        rest
+collect_trackers!(trackers, _) = nothing
+collect_trackers!(trackers, ::NullAbilityTracker) = nothing
+function collect_trackers!(trackers, tracker::AbilityTracker)
+    any(existing -> existing === tracker, trackers) || push!(trackers, tracker)
+    nothing
+end
+function collect_trackers!(trackers, pair::ConsAbilityTracker)
+    collect_trackers!(trackers, pair.head)
+    collect_trackers!(trackers, pair.tail)
+end
+function collect_trackers!(trackers, config::CatConfigBase)
+    for field in fieldnames(typeof(config))
+        collect_trackers!(trackers, getfield(config, field))
+    end
+end
+function collect_trackers!(trackers, configs::Tuple)
+    for config in configs
+        collect_trackers!(trackers, config)
     end
 end
 
