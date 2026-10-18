@@ -58,6 +58,8 @@ export get_integrator
 export LogGridIntegrator, LogGridAbilityTracker
 export LogFunctionIntegrator
 export CalculationSpace, LinSpace, LogSpace, calculation_space
+export unsynced_responses, response_delta_style, MultiplicativeResponseDelta,
+       NoResponseDelta
 # export EnumerationOptimizer
 
 # Basic types
@@ -137,6 +139,7 @@ function AbilityIntegrator(bits...; ability_estimator = nothing, prefer_tracked 
     end
     est = ability_estimator === nothing ? DistributionAbilityEstimator(bits...) :
           distribution_estimator(ability_estimator)
+    est = est === nothing ? tracker_estimator(find1_instance(AbilityTracker, bits)) : est
     integrator = Integrator(bits...)
     @returnsome inherited_integrator(bits, est, integrator)
     integrator = integrator === nothing ? inherited_backend(bits) : integrator
@@ -187,10 +190,39 @@ estimators.
     responses::BareResponsesT
     item_bank::ItemBankT
     ability_tracker::AbilityTrackerT = NullAbilityTracker()
+    # Zero denotes a committed history; otherwise this is the earliest pending
+    # position, including responses inherited from an enclosing speculation.
+    speculation_start::Int = 0
+end
+
+function TrackedResponses(responses, item_bank, tracker)
+    TrackedResponses(responses, item_bank, tracker, 0)
 end
 
 function TrackedResponses(responses, item_bank)
     TrackedResponses(responses, item_bank, NullAbilityTracker())
+end
+
+function pending_start(responses::TrackedResponses)
+    responses.speculation_start == 0 ?
+    length(responses) + 1 : responses.speculation_start
+end
+
+function response_view(history::BareResponses, positions)
+    BareResponses(history.rt,
+        view(history.indices, positions), view(history.values, positions))
+end
+
+"""
+$(SIGNATURES)
+
+Return a zero-copy `BareResponses` view of the hypothetical responses not in
+the committed tracker cache. Committed histories return an empty view. Nested
+speculation includes its enclosing hypothetical responses. The view shares the
+response arrays and reflects later replacements of those responses.
+"""
+function unsynced_responses(responses::TrackedResponses)
+    response_view(responses.responses, min(pending_start(responses), length(responses) + 1):length(responses))
 end
 
 # Mark as a scalar for broadcasting

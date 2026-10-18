@@ -18,6 +18,8 @@ struct CountingDensity <: DistributionAbilityEstimator
     calls::Base.RefValue{Int}
 end
 
+Aggregators.response_delta_style(::CountingDensity) = MultiplicativeResponseDelta()
+
 struct ConstantLogDensity <: DistributionAbilityEstimator
     value::Float64
 end

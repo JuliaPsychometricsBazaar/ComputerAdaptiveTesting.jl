@@ -4,6 +4,7 @@ struct Speculator{TrackedResponsesT <: TrackedResponses}
 
     function Speculator(responses::TrackedResponsesT,
             size::Int) where {TrackedResponsesT}
+        size >= 0 || throw(ArgumentError("Speculation size must be nonnegative"))
         response_type = ResponseType(responses.item_bank)
         orig_len = length(responses.responses.indices)
         spec_len = orig_len + size
@@ -11,13 +12,13 @@ struct Speculator{TrackedResponsesT <: TrackedResponses}
         values = Array{concrete_response_type(response_type)}(undef, spec_len)
         indices[1:orig_len] = responses.responses.indices
         values[1:orig_len] = responses.responses.values
-        new{TrackedResponsesT}(
-            TrackedResponses(BareResponses(response_type,
-                    indices,
-                    values),
-                responses.item_bank,
-                responses.ability_tracker),
-            size)
+        speculative = TrackedResponses(BareResponses(response_type,
+                indices,
+                values),
+            responses.item_bank,
+            responses.ability_tracker,
+            pending_start(responses))
+        new{typeof(speculative)}(speculative, size)
     end
 end
 

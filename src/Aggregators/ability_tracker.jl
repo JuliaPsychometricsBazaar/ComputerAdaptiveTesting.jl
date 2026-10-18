@@ -4,8 +4,12 @@ end
 
 function Responses.add_response!(tracked_responses::TrackedResponses, response::Response)
     add_response!(tracked_responses.responses, response)
-    track!(tracked_responses)
+    track_append!(tracked_responses, tracked_responses.ability_tracker)
 end
+
+# Explicit track! rebuilds recomputable caches; append updates have their own
+# hook so existing trackers that consume the final response keep their behavior.
+track_append!(responses, tracker::AbilityTracker) = track!(responses, tracker)
 
 function Responses.pop_response!(tracked_responses::TrackedResponses)::TrackedResponses
     pop_response!(tracked_responses.responses)
@@ -63,6 +67,11 @@ end
 function refresh_after_history_edit!(responses, cons::ConsAbilityTracker)
     refresh_after_history_edit!(responses, cons.head)
     refresh_after_history_edit!(responses, cons.tail)
+end
+
+function track_append!(responses, cons::ConsAbilityTracker)
+    track_append!(responses, cons.head)
+    track_append!(responses, cons.tail)
 end
 
 struct VarNormal{T <: Real}
