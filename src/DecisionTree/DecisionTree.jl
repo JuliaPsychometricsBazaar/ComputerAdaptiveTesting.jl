@@ -121,6 +121,20 @@ Base.@kwdef struct DecisionTreeGenerationConfig{
     ability_tracker::AbilityTrackerT = NullAbilityTracker()
 end
 
+# Grid caches are maintained by append/rollback hooks. Preserve the existing
+# per-node refresh for other trackers, which may not implement rollback hooks.
+track_node!(responses, tracker::AbilityTracker) = track!(responses, tracker)
+function track_node!(responses, tracker::Union{GriddedAbilityTracker, LogGridAbilityTracker})
+    cache = tracker.cache
+    if cache === nothing || !Aggregators.cache_prefix_matches(cache, responses, length(responses))
+        track!(responses, tracker)
+    end
+end
+function track_node!(responses, tracker::Aggregators.ConsAbilityTracker)
+    track_node!(responses, tracker.head)
+    track_node!(responses, tracker.tail)
+end
+
 function generate_dt_cat(config::DecisionTreeGenerationConfig, item_bank)
     state_tree = TreePosition(config.max_depth)
     decision_tree_result = MaterializedDecisionTree(config.max_depth)
@@ -128,7 +142,7 @@ function generate_dt_cat(config::DecisionTreeGenerationConfig, item_bank)
         item_bank,
         config.ability_tracker)
     while true
-        track!(responses, config.ability_tracker)
+        track_node!(responses, config.ability_tracker)
         ability = config.ability_estimator(responses)
         next_item = best_item(config.next_item, responses, item_bank)
 

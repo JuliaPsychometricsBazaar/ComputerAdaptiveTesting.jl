@@ -3,7 +3,13 @@ preallocate(obj::Integrator) = PsychometricsBazaarBase.preallocate(obj)
 preallocate(obj::Optimizer) = PsychometricsBazaarBase.preallocate(obj)
 # Log-grid reductions have no numerical scratch buffers. Preserve the shared
 # tracker when preallocating an entire configuration tree.
-preallocate(obj::Union{LogGridIntegrator, LogGridAbilityTracker}) = obj
+function preallocate(obj::Union{
+        LogGridIntegrator, LogGridAbilityTracker, GriddedAbilityTracker})
+    obj
+end
+function preallocate(obj::Aggregators.TrackedLikelihoodIntegrator)
+    Aggregators.TrackedLikelihoodIntegrator(preallocate(obj.integrator), obj.tracker)
+end
 
 # A generated function can only call helpers defined before it (Julia 1.12).
 function preallocate_impl(obj)

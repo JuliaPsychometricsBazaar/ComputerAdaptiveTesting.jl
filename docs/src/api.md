@@ -150,11 +150,12 @@ true
 
 `LogGridIntegrator(grid)` works without a tracker, recomputing the weights on
 each calculation. Before a tracker's first `track!`, it also computes temporary
-weights. Adding, popping or clearing tracked responses refreshes the tracker.
-Integrating a different history (including a speculative response), bank or
-estimator computes temporary weights without modifying the live cache. The
-cache includes a snapshot of response indices and values, so bare-history edits
-cannot reuse stale weights. Treat grid coordinates, item parameters and prior
+weights. Appending tracked responses adds only their log probabilities to the
+cached unnormalized density; popping or clearing rebuilds it. Speculation adds
+its pending log probabilities to temporary values, while a different committed
+history, bank or estimator computes a full temporary density. Neither changes
+the live cache. The cache includes a snapshot of response indices and values,
+so bare-history edits cannot reuse stale weights. Treat grid coordinates, item parameters and prior
 parameters as fixed; explicitly refresh with `track!` after changing them.
 Parallel reads are supported; concurrent mutation of the tracker is not.
 
@@ -165,6 +166,40 @@ No probability-space fallback is supplied for custom estimators lacking
 `logpdf`. An empty grid, a grid with zero density everywhere, or `NaN`/`+Inf`
 log densities raise errors. A grid with insufficient resolution can still miss
 the posterior peak: stable normalization does not correct quadrature error.
+
+## Incremental tracking and speculation
+
+`GriddedAbilityTracker(dist, grid)` caches the ordinary, unnormalized density.
+`AbilityIntegrator(grid, tracker)` infers the distribution from the tracker and
+selects the tracked adapter. It supports fixed, preallocated and iterative
+equal-weight grids, including multidimensional grids and vector/matrix moments.
+The scalar preallocated path applies speculative probabilities during its
+integration pass. Tracking remains opt-in and shared trackers remain shared
+after `preallocate`.
+
+Both grid trackers require the estimator to declare the multiplicative density
+contract via `response_delta_style(dist) == MultiplicativeResponseDelta()`:
+appending responses multiplies the unnormalized density by their probabilities,
+without changing its scale or history-independent factor. Likelihood and
+fixed-prior posterior estimators declare this contract. Custom estimators
+default to `NoResponseDelta()` and can opt in by defining
+`Aggregators.response_delta_style(::MyEstimator) = MultiplicativeResponseDelta()`.
+Guarded estimators, including `SafeLikelihoodAbilityEstimator`, cannot opt in
+in general because a new response may switch the selected density. Use
+untracked integration for such estimators; explicit grid tracking rejects them.
+
+`unsynced_responses(tracked)` returns a zero-copy `BareResponses` view of the
+hypothetical suffix; it is empty for committed histories. `Speculator` records
+this boundary and inherits it when nested, so any number of pending responses
+contributes exactly once. `replace_speculation!` updates that view while leaving
+the committed cache untouched. A stale speculative prefix uses a full temporary
+density rather than a cache for a different history. Calling `track!` on a
+speculative history also leaves the shared committed cache unchanged.
+
+Explicit `track!` rebuilds the complete density, including the prior. Rollback
+and clearing use the same rebuild, avoiding division by zero response
+probabilities. A failed committed update invalidates its cache. Keep the grid,
+bank parameters and estimator configuration fixed until an explicit refresh.
 
 ## Continuous log-density integration
 

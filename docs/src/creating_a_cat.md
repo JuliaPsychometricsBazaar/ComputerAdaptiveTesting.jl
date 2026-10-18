@@ -97,6 +97,15 @@ With `LogSpace()`, requesting a grid tracker constructs `LogGridAbilityTracker`.
 Shared trackers are registered once, including when also used by a stopping
 criterion, and remain shared after `preallocate(rules)`.
 
+Appending responses updates only their probabilities in the grid cache;
+hypothetical responses used by expected-variance selection are applied without
+changing it. Rollback and reset rebuild the cache. Grid tracking requires
+`response_delta_style(dist)` to return `MultiplicativeResponseDelta()`, as it
+does for likelihood and fixed-prior posterior estimators. Custom estimators
+must declare the same contract; guarded estimators should use untracked
+integration. Call `track!` explicitly after changing grid coordinates, item
+parameters or prior configuration.
+
 Continuous log integration additionally needs an optimizer to choose a reference
 log density:
 

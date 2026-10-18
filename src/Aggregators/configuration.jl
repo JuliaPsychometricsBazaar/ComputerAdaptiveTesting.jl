@@ -49,6 +49,8 @@ function get_dist_est_and_integrator(bits...)
 end
 
 matching_tracker(::CalculationSpace, ::AbilityTracker, backend, est) = nothing
+tracker_estimator(_) = nothing
+tracker_estimator(tracker::Union{GriddedAbilityTracker, LogGridAbilityTracker}) = tracker.ability_estimator
 function matching_tracker(::LinSpace, tracker::GriddedAbilityTracker, backend, est)
     tracker.integrator === backend && tracker.ability_estimator === est ? tracker : nothing
 end
