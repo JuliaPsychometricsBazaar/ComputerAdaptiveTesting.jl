@@ -11,16 +11,19 @@ using FittedItemBanks
 using PsychometricsBazaarBase: Integrators
 
 function setup(; space = LinSpace(), backend = Integrators.FixedGridIntegrator,
-        n = 24, history_length = 6)
-    bank = GuessAndSlipItemBank(fill(0.12, n), fill(0.08, n),
-        ItemBank2PL(collect(range(-2, 2; length = n)), fill(1.4, n)))
+        n = 24, history_length = 6,
+        bank = GuessAndSlipItemBank(fill(0.12, n), fill(0.08, n),
+            ItemBank2PL(collect(range(-2, 2; length = n)), fill(1.4, n))))
     grid = backend(collect(range(-4, 4; length = 33)))
     dist = PosteriorAbilityEstimator(space)
     tracker = AbilityTracker(GriddedAbilityTracker, dist, grid)
     integral = AbilityIntegrator(grid, tracker)
     point = MeanAbilityEstimator(dist, integral)
-    history = TrackedResponses(BareResponses(ResponseType(bank),
-        [mod1(i, n) for i in 1:history_length], [isodd(i) for i in 1:history_length]), bank, tracker)
+    bare = BareResponses(ResponseType(bank))
+    for i in 1:history_length
+        add_response!(bare, Response(ResponseType(bank), mod1(i, n), isodd(i)))
+    end
+    history = TrackedResponses(bare, bank, tracker)
     track!(history)
     criterion = ExpectationBasedItemCriterion(PointResponseExpectation(point), AbilityVariance(dist, integral))
     reference_integral = space == LinSpace() ? FunctionIntegrator(grid) : LogGridIntegrator(grid)
@@ -46,6 +49,28 @@ function Distributions.pdf(est::CountedPosterior, history::TrackedResponses)
     end
 end
 
+struct CountedBank{B} <: AbstractItemBank
+    inner::B
+    scalar_calls::Base.RefValue{Int}
+    vector_calls::Base.RefValue{Int}
+end
+Base.length(bank::CountedBank) = length(bank.inner)
+FittedItemBanks.DomainType(bank::CountedBank) = DomainType(bank.inner)
+FittedItemBanks.ResponseType(bank::CountedBank) = ResponseType(bank.inner)
+FittedItemBanks.domdims(bank::CountedBank) = domdims(bank.inner)
+FittedItemBanks.resp(ir::ItemResponse{<:CountedBank}, category, theta) =
+    resp(ItemResponse(ir.item_bank.inner, ir.index), category, theta)
+FittedItemBanks.resp_vec(ir::ItemResponse{<:CountedBank}, theta) =
+    resp_vec(ItemResponse(ir.item_bank.inner, ir.index), theta)
+function FittedItemBanks.log_resp(ir::ItemResponse{<:CountedBank}, category, theta)
+    ir.item_bank.scalar_calls[] += 1
+    log_resp(ItemResponse(ir.item_bank.inner, ir.index), category, theta)
+end
+function FittedItemBanks.log_resp_vec(ir::ItemResponse{<:CountedBank}, theta)
+    ir.item_bank.vector_calls[] += 1
+    log_resp_vec(ItemResponse(ir.item_bank.inner, ir.index), theta)
+end
+
 @testset "Prepared fixed-grid MEPV" begin
     @testset "$space / $backend" for space in (LinSpace(), LogSpace()),
             backend in (Integrators.FixedGridIntegrator, Integrators.IterativeFixedGridIntegrator)
@@ -65,7 +90,8 @@ end
             @test tracker.density == original
         else
             @test prepared.density.log_values !== tracker.density.log_values
-            @test prepared.scratch.weights !== other.scratch.weights
+            @test prepared.scratch[1].weights !== other.scratch[1].weights
+            @test prepared.scratch[1].weights !== prepared.scratch[2].weights
             @test tracker.density.log_values == original.log_values
             @test tracker.density.weights == original.weights
         end
@@ -135,6 +161,49 @@ end
             @test isfinite(actual)
             @test actual ≈ compute_criterion(reference, spec, history, i) rtol=1e-10
         end
+    end
+
+    @testset "Shared native log responses" begin
+        bank = CountedBank(ItemBank2PL([-2.0, 2.0, -40.0, 40.0, -1000.0, 1000.0], ones(6)),
+            Ref(0), Ref(0))
+        (; history, criterion, reference) = setup(; space = LogSpace(), bank,
+            n = length(bank), history_length = 2)
+        state = init_thread(criterion, history)
+        # At these tails the ordinary vector loses a complement, but both
+        # native log outcomes remain finite (even beyond exp's underflow).
+        @test resp_vec(ItemResponse(bank, 3), 0.0)[1] == 0.0
+        @test exp(log_resp_vec(ItemResponse(bank, 3), 0.0)[1]) > 0.0
+        @test all(isfinite, log_resp_vec(ItemResponse(bank, 5), 0.0))
+        bank.scalar_calls[] = bank.vector_calls[] = 0
+        compute_criterion(criterion, state, history, 3)
+        @test bank.scalar_calls[] == 0
+        @test bank.vector_calls[] == length(state.grid) + 1
+
+        original_logs = copy(state.density.log_values)
+        for i in 3:6
+            ir = ItemResponse(bank, i)
+            densities = NextItemRules.candidate_grid_densities!(
+                state.scratch, state.density, ir, state.grid)
+            for (density, category) in zip(densities, responses(ir))
+                @test density.log_values ≈ original_logs .+ log_resp.(Ref(ir), category, state.grid)
+                @test all(isfinite, density.weights)
+                @test sum(density.weights) ≈ 1.0
+                @test isfinite(Integrators.weighted_grid_moments(state.grid, density).variance)
+            end
+            actual = compute_criterion(criterion, state, history, i)
+            @test isfinite(actual)
+            @test actual ≈ compute_criterion(reference, Speculator(history, 1), history, i) rtol=1e-12
+        end
+        @test state.density.log_values == original_logs
+    end
+
+    @testset "Polytomous per-outcome fallback" begin
+        bank = FittedItemBanks.OneDimensionItemBankAdapter(
+            NominalItemBank([[-1.0, 0.0, 1.0]], [1.0], [[-0.5, 0.0, 0.5]]))
+        (; history, criterion, reference) = setup(; space = LogSpace(), bank,
+            n = 1, history_length = 0)
+        @test init_thread(criterion, history).scratch isa Integrators.LogGridWeights
+        @test compute_criteria(criterion, history) ≈ generic_values(reference, history) rtol=1e-12
     end
 end
 
