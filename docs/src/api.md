@@ -151,13 +151,13 @@ true
 `LogGridIntegrator(grid)` works without a tracker, recomputing the weights on
 each calculation. Before a tracker's first `track!`, it also computes temporary
 weights. Appending tracked responses adds only their log probabilities to the
-cached unnormalized density; popping or clearing rebuilds it. Speculation adds
-its pending log probabilities to temporary values, while a different committed
-history, bank or estimator computes a full temporary density. Neither changes
-the live cache. The cache includes a snapshot of response indices and values,
-so bare-history edits cannot reuse stale weights. Treat grid coordinates, item parameters and prior
-parameters as fixed; explicitly refresh with `track!` after changing them.
-Parallel reads are supported; concurrent mutation of the tracker is not.
+stored unnormalized density; popping or clearing rebuilds it. Speculation uses
+a private stacked density and does not change the committed tracker. Recreate
+a speculator after its parent history changes. Edit a bare response history
+only when you can call `track!` before the next tracked read. Also call `track!`
+after changing grid coordinates, item parameters or prior parameters. A tracker
+belongs to one committed history at a time. Parallel reads are supported;
+concurrent mutation of the tracker is not.
 
 Predictions evaluate every response category directly, including nominal
 categories, avoiding cancellation from `1 - P(true)`. Tabulated dichotomous
@@ -189,12 +189,12 @@ in general because a new response may switch the selected density. Use
 untracked integration for such estimators; explicit grid tracking rejects them.
 
 `unsynced_responses(tracked)` returns a zero-copy `BareResponses` view of the
-hypothetical suffix; it is empty for committed histories. `Speculator` records
-this boundary and inherits it when nested, so any number of pending responses
-contributes exactly once. `replace_speculation!` updates that view while leaving
-the committed cache untouched. A stale speculative prefix uses a full temporary
-density rather than a cache for a different history. Calling `track!` on a
-speculative history also leaves the shared committed cache unchanged.
+hypothetical suffix; it is empty for committed histories. `Speculator` gives
+each hypothetical history a private tracker. A grid tracker stacks the new
+response probabilities on its parent's density, including for nested
+speculation. `replace_speculation!` refreshes the private density from its
+parent for each candidate; it never accumulates previous candidates. Create a
+new speculator after changing the parent history or tracker.
 
 Explicit `track!` rebuilds the complete density, including the prior. Rollback
 and clearing use the same rebuild, avoiding division by zero response

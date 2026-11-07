@@ -1,9 +1,3 @@
-struct LogGridCache{WeightsT, BankT, ResponsesT}
-    density::WeightsT
-    item_bank::BankT
-    responses::ResponsesT
-end
-
 """
 $(TYPEDEF)
 
@@ -13,32 +7,29 @@ equal-weight fixed grid. Construct with `LogGridAbilityTracker(estimator, grid)`
 `LogGridIntegrator(tracker)` for means, variances, covariance and predictions.
 
 `track!(responses, tracker)` evaluates `logpdf(estimator, responses)` on the grid.
-`tracker.cache.density` contains `log_values`, normalized `weights`, `log_scale`
+`tracker.density` contains `log_values`, normalized `weights`, `log_scale`
 and `scaled_sum`; the unnormalized grid mass is `exp(log_scale) * scaled_sum`.
 An all-zero density raises `DomainError` rather than manufacturing a posterior.
 
 The estimator must declare `MultiplicativeResponseDelta()` through
 [`response_delta_style`](@ref). Appends add only new response log probabilities
 to the cached unnormalized log density. Rollback and clearing rebuild it.
-The cache records a copy of the response history. Speculation adds pending log
-probabilities to temporary values without modifying this cache. Other histories,
-banks or estimators use a full temporary density. An uninitialized tracker also
-works this way.
-Treat the grid, bank parameters and estimator as fixed; call `track!` after
-changing their contents. Concurrent integrations may read a tracker, but must
-not run concurrently with `track!` on that same tracker.
+Speculation uses a private stacked density. Call `track!` after editing a bare
+response history or changing the bank, grid, or estimator. An uninitialized
+tracker evaluates a temporary density. Concurrent integrations may read a
+tracker, but must not overlap committed updates to it.
 """
 mutable struct LogGridAbilityTracker{EstimatorT <: DistributionAbilityEstimator,
     IntegratorT <: EqualWeightGridIntegrator} <: AbilityTracker
     ability_estimator::EstimatorT
     integrator::IntegratorT
-    cache::Union{Nothing, LogGridCache}
+    density::Union{Nothing, LogGridWeights}
 
     function LogGridAbilityTracker(est::E, integrator::I,
-            cache::Union{Nothing, LogGridCache}) where {
+            density::Union{Nothing, LogGridWeights}) where {
             E <: DistributionAbilityEstimator, I <: EqualWeightGridIntegrator}
         require_response_deltas(est)
-        new{E, I}(est, integrator, cache)
+        new{E, I}(est, integrator, density)
     end
 end
 
@@ -67,31 +58,40 @@ end
 
 function track!(responses::TrackedResponses, tracker::LogGridAbilityTracker)
     responses.speculation_start == 0 || return tracker
-    # Clear first so an unsuccessful refresh cannot leave a stale usable cache.
-    tracker.cache = nothing
+    # Clear first so an unsuccessful refresh cannot leave a stale usable density.
+    tracker.density = nothing
     density = grid_density(tracker.ability_estimator, responses, tracker.integrator)
-    tracker.cache = LogGridCache(density, responses.item_bank, history_snapshot(responses.responses))
+    tracker.density = density
     tracker
 end
 
 function track_append!(responses::TrackedResponses, tracker::LogGridAbilityTracker)
     responses.speculation_start == 0 || return tracker
-    cache = tracker.cache
-    if cache === nothing || length(cache.responses) > length(responses) ||
-       !cache_prefix_matches(cache, responses, length(cache.responses))
-        return track!(responses, tracker)
-    end
-    tracker.cache = nothing
-    delta = response_view(responses.responses, (length(cache.responses) + 1):length(responses))
-    logs = cache.density.log_values .+ grid_log_values(
+    density = tracker.density
+    density === nothing && return track!(responses, tracker)
+    tracker.density = nothing
+    delta = response_view(responses.responses, length(responses):length(responses))
+    logs = density.log_values .+ grid_log_values(
         AbilityLogLikelihood(responses.item_bank, delta), Integrators.get_grid(tracker.integrator))
-    tracker.cache = LogGridCache(LogGridWeights(logs), responses.item_bank,
-        history_snapshot(responses.responses))
+    tracker.density = LogGridWeights(logs)
     tracker
 end
 
 function refresh_after_history_edit!(responses, tracker::LogGridAbilityTracker)
     track!(responses, tracker)
+end
+
+initialize_grid_tracker!(responses, tracker::LogGridAbilityTracker) = track!(responses, tracker)
+
+function grid_delta_density!(scratch::LogGridWeights, tracker::LogGridAbilityTracker,
+        density, responses, start)
+    copyto!(scratch.log_values, density.log_values)
+    start > length(responses) && return LogGridWeights(scratch.log_values,
+        scratch.weights, density.log_scale, density.scaled_sum)
+    delta = response_view(responses.responses, start:length(responses))
+    scratch.log_values .+= grid_log_values(
+        AbilityLogLikelihood(responses.item_bank, delta), Integrators.get_grid(tracker.integrator))
+    normalize_grid_weights!(scratch.log_values, scratch.weights)
 end
 
 """
@@ -151,15 +151,8 @@ function cached_grid_density(::Nothing, est, responses, integrator)
 end
 
 function cached_grid_density(tracker::LogGridAbilityTracker, est, responses, integrator)
-    cache = tracker.cache
-    if cache !== nothing && est === tracker.ability_estimator &&
-       cache_prefix_matches(cache, responses, pending_start(responses) - 1)
-        delta = unsynced_responses(responses)
-        isempty(delta.indices) && return cache.density
-        logs = cache.density.log_values .+ grid_log_values(
-            AbilityLogLikelihood(responses.item_bank, delta), Integrators.get_grid(integrator))
-        return LogGridWeights(logs)
-    end
+    density = speculative_density(tracker, responses.ability_tracker)
+    density !== nothing && est === tracker.ability_estimator && return density
     grid_density(est, responses, integrator)
 end
 

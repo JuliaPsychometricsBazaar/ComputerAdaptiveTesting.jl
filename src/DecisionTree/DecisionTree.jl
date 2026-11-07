@@ -121,14 +121,11 @@ Base.@kwdef struct DecisionTreeGenerationConfig{
     ability_tracker::AbilityTrackerT = NullAbilityTracker()
 end
 
-# Grid caches are maintained by append/rollback hooks. Preserve the existing
-# per-node refresh for other trackers, which may not implement rollback hooks.
+# Grid densities are maintained by append/rollback hooks. Other trackers may
+# not implement rollback hooks and retain their per-node refresh.
 track_node!(responses, tracker::AbilityTracker) = track!(responses, tracker)
 function track_node!(responses, tracker::Union{GriddedAbilityTracker, LogGridAbilityTracker})
-    cache = tracker.cache
-    if cache === nothing || !Aggregators.cache_prefix_matches(cache, responses, length(responses))
-        track!(responses, tracker)
-    end
+    tracker.density === nothing && track!(responses, tracker)
 end
 function track_node!(responses, tracker::Aggregators.ConsAbilityTracker)
     track_node!(responses, tracker.head)
@@ -141,6 +138,7 @@ function generate_dt_cat(config::DecisionTreeGenerationConfig, item_bank)
     responses = TrackedResponses(BareResponses(ResponseType(item_bank)),
         item_bank,
         config.ability_tracker)
+    Aggregators.initialize_grid_tracker!(responses, config.ability_tracker)
     while true
         track_node!(responses, config.ability_tracker)
         ability = config.ability_estimator(responses)

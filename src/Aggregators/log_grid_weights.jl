@@ -21,6 +21,20 @@ function LogGridWeights(log_values::AbstractVector)
     LogGridWeights(logs, weights, shift, total)
 end
 
+# Reuse a speculative tracker's arrays across candidate responses. The returned
+# immutable state carries the new normalization scalars and shares those arrays.
+function normalize_grid_weights!(logs::Vector{T}, weights::Vector{T}) where {T <: AbstractFloat}
+    all(x -> isfinite(x) || x == -Inf, logs) ||
+        throw(DomainError(logs, "Grid log densities must be finite or -Inf"))
+    shift = maximum(logs)
+    isfinite(shift) ||
+        throw(DomainError(shift, "The density has zero mass on the entire grid"))
+    weights .= exp.(logs .- shift)
+    total = sum(weights)
+    weights ./= total
+    LogGridWeights(logs, weights, shift, total)
+end
+
 # Do not form exp(log_values - log_normalizer): adding log(scaled_sum) to
 # an extremely large-magnitude shift can lose all the normalization precision.
 function weighted_grid_mean(f::F, grid, state::LogGridWeights) where {F}

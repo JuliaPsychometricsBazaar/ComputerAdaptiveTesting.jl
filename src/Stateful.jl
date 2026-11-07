@@ -234,6 +234,8 @@ function set_item_bank!(config::StatefulCatRules, item_bank)
         item_bank,
         config.rules.ability_tracker
     )
+    Aggregators.initialize_grid_tracker!(config.tracked_responses[], config.rules.ability_tracker)
+    config.tracked_responses[]
 end
 
 function get_responses(config::StatefulCatRules)

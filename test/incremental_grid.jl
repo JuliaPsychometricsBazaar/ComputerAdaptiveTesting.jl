@@ -92,10 +92,10 @@ reference_integrator(::LogSpace, grid) = LogGridIntegrator(grid)
         @test prepared.next_item.criterion.criterion.integrator.tracker === tracker
         @test Rules.collect_trackers(prepared).head === tracker
         r = TrackedResponses(BareResponses(ResponseType(bank)), bank, prepared.ability_tracker)
-        @test tracker.cache === nothing
+        @test tracker.density === nothing
         @test MeanAbilityEstimator(est, prepared.ability_estimator.integrator)(r) ≈
               MeanAbilityEstimator(est, reference_integrator(space, grid))(r)
-        @test tracker.cache === nothing
+        @test tracker.density === nothing
         second = make_tracker(space, other, grid)
         both = Aggregators.ConsAbilityTracker(tracker, second)
         combined = TrackedResponses(BareResponses(ResponseType(bank)), bank, both)
@@ -104,11 +104,11 @@ reference_integrator(::LogSpace, grid) = LogGridIntegrator(grid)
         for (density, cache_tracker) in ((est, tracker), (other, second))
             @test MeanAbilityEstimator(density, AbilityIntegrator(grid, cache_tracker))(combined) ≈
                   MeanAbilityEstimator(density, reference_integrator(space, grid))(combined)
-            @test length(cache_tracker.cache.responses) == 2
+            @test cache_tracker.density !== nothing
         end
         empty!(combined)
-        @test isempty(tracker.cache.responses.indices)
-        @test isempty(second.cache.responses.indices)
+        @test tracker.density !== nothing
+        @test second.density !== nothing
     end
 end
 
@@ -126,7 +126,7 @@ end
         @test MeanAbilityEstimator(est, integral)(r) ≈
               MeanAbilityEstimator(est, reference)(r)
         track!(r)
-        cache = tracker.cache
+        cache = tracker.density
         function check(history)
             @test Float64(normdenom(integral, est, history)) ≈
                   Float64(normdenom(reference, est, history))
@@ -146,12 +146,14 @@ end
         check(zero.responses)
         @test_throws ArgumentError Speculator(r, -1)
         spec = Speculator(r, 1)
+        scratch = spec.responses.ability_tracker.scratch
         replace_speculation!(spec, [2], [true])
         delta = unsynced_responses(spec.responses)
         @test delta.indices isa SubArray
         @test delta.values == [true]
         check(spec.responses)
         replace_speculation!(spec, [3], [false])
+        @test spec.responses.ability_tracker.scratch === scratch
         @test delta.indices == [3]
         @test delta.values == [false]
         check(spec.responses)
@@ -164,33 +166,55 @@ end
         check(multi.responses)
         track!(spec.responses)
         add_response!(spec.responses, Response(ResponseType(bank), 4, true))
-        @test tracker.cache === cache
+        @test tracker.density === cache
         check(spec.responses)
-        @test tracker.cache === cache
+        @test tracker.density === cache
         check(r)
-        # A changed committed prefix invalidates an old speculative view.
+        # Create a new speculator after changing the committed history.
         add_response!(r, Response(ResponseType(bank), 2, true))
-        newcache = tracker.cache
-        check(nested.responses)
-        @test tracker.cache === newcache
+        newcache = tracker.density
+        fresh = Speculator(r, 1)
+        replace_speculation!(fresh, [4], [true])
+        check(fresh.responses)
+        @test tracker.density === newcache
         check(r)
         pop_response!(r)
         check(r)
         empty!(r)
         check(r)
-        @test isempty(tracker.cache.responses.indices)
+        @test tracker.density !== nothing
         add_response!(r.responses, Response(ResponseType(bank), 1, true))
-        check(r)
         track!(r)
+        check(r)
         r.responses.values[1] = false
-        check(r)
         track!(r)
+        check(r)
         other_bank = ItemBank2PL([-1.2, 0.6, 0.9, 0.0], ones(4))
         other = TrackedResponses(r.responses, other_bank)
         check(other)
         other_est = PosteriorAbilityEstimator(Normal(-0.5, 0.4), space)
         @test MeanAbilityEstimator(other_est, integral)(r) ≈
               MeanAbilityEstimator(other_est, reference)(r)
+    end
+end
+
+@testset "Generic speculation replays pending responses from a copied tracker" begin
+    bank = ItemBank3PL([-0.8, 0.3, 1.4], [0.9, 1.8, 1.1], zeros(3))
+    tracker = ClosedFormNormalAbilityTracker(PosteriorAbilityEstimator(Normal()))
+    committed = TrackedResponses(BareResponses(ResponseType(bank)), bank, tracker)
+    add_response!(committed, Response(ResponseType(bank), 1, true))
+    original = deepcopy(tracker.cur_ability)
+    spec = Speculator(committed, 2)
+    for values in ((true, false), (false, true))
+        expected_tracker = deepcopy(tracker)
+        expected = TrackedResponses(BareResponses(ResponseType(bank), [1], [true]),
+            bank, expected_tracker)
+        add_response!(expected, Response(ResponseType(bank), 2, values[1]))
+        add_response!(expected, Response(ResponseType(bank), 3, values[2]))
+        replace_speculation!(spec, [2, 3], collect(values))
+        @test spec.responses.ability_tracker.cur_ability.mean ≈ expected_tracker.cur_ability.mean
+        @test spec.responses.ability_tracker.cur_ability.var ≈ expected_tracker.cur_ability.var
+        @test tracker.cur_ability == original
     end
 end
 
@@ -213,28 +237,28 @@ end
         empty!(bank.evaluated_items)
         spec = Speculator(r, 2)
         replace_speculation!(spec, [1, 4], [false, true])
-        cache = tracker.cache
+        cache = tracker.density
         normdenom(integral, est, spec.responses)
         @test est.evaluations[] == length(grid.grid)
         @test count(==(1), bank.evaluated_items) == length(grid.grid)
         @test count(==(4), bank.evaluated_items) == length(grid.grid)
         @test all(in((1, 4)), bank.evaluated_items)
-        @test tracker.cache === cache
+        @test tracker.density === cache
         pop_response!(r)
         @test est.evaluations[] == 2length(grid.grid)
         track!(r)
         @test est.evaluations[] == 3length(grid.grid)
         spec = Speculator(r, 1)
         replace_speculation!(spec, [4], [true])
-        cache = tracker.cache
+        cache = tracker.density
         bank.fail[] = true
-        @test_throws ErrorException normdenom(integral, est, spec.responses)
-        @test tracker.cache === cache
+        @test_throws ErrorException replace_speculation!(spec, [4], [true])
+        @test tracker.density === cache
         @test_throws ErrorException add_response!(r, Response(ResponseType(bank), 4, true))
-        @test tracker.cache === nothing
+        @test tracker.density === nothing
         bank.fail[] = false
         pop_response!(r)
-        @test tracker.cache !== nothing
+        @test tracker.density !== nothing
     end
 end
 

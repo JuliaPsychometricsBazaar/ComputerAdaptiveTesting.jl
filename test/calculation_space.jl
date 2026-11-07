@@ -119,13 +119,13 @@ tracker_count(::AbilityTracker) = 1
         tracked = TrackedResponses(history, bank, prepared.ability_tracker)
         track!(tracked)
         @test isfinite(prepared.ability_estimator(tracked))
-        cache = integral.tracker.cache
+        cache = integral.tracker.density
         @test all(isfinite, compute_criteria(prepared.next_item, tracked))
-        @test integral.tracker.cache === cache
+        @test integral.tracker.density === cache
         pop_response!(tracked)
-        @test length(integral.tracker.cache.responses) == 1999
+        @test integral.tracker.density !== nothing
         empty!(tracked)
-        @test length(integral.tracker.cache.responses) == 0
+        @test integral.tracker.density !== nothing
         stopping = StateCriterionThresholdTermination(0.1, AbilityVariance(rules.ability_estimator))
         @test tracker_count(Rules.collect_trackers(rules, stopping)) == 1
     end

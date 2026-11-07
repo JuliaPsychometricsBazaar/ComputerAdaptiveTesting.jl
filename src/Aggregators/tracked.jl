@@ -61,9 +61,9 @@ end
 end
 
 function (integrator::TrackedLikelihoodIntegrator)(f::F, ncomp) where {F}
-    integrator.tracker.cache === nothing &&
+    integrator.tracker.density === nothing &&
         throw(ArgumentError("Call track! before integrating a cache without a response history"))
-    integrate_grid_weights(integrator.integrator, f, integrator.tracker.cur_ability, ncomp)
+    integrate_grid_weights(integrator.integrator, f, integrator.tracker.density, ncomp)
 end
 
 @inline function integrate_grid_delta(backend, f::F, weights, likelihood, ncomp) where {F}
@@ -81,16 +81,11 @@ function (integrator::TrackedLikelihoodIntegrator)(f::F,
         tracked_responses::TrackedResponses;
         kwargs...) where {F}
     tracker = integrator.tracker
-    cache = tracker.cache
-    if cache !== nothing && est === tracker.ability_estimator &&
-       cache_prefix_matches(cache, tracked_responses, pending_start(tracked_responses) - 1)
-        delta = unsynced_responses(tracked_responses)
-        isempty(delta.indices) && return integrator(f, ncomp)
-        likelihood = AbilityLikelihood(tracked_responses.item_bank, delta)
-        return integrate_grid_delta(
-            integrator.integrator, f, tracker.cur_ability, likelihood, ncomp)
+    density = speculative_density(tracker, tracked_responses.ability_tracker)
+    if density !== nothing && est === tracker.ability_estimator
+        return integrate_grid_weights(integrator.integrator, f, density, ncomp)
     end
-    # An uninitialized, mismatched or edited history must not use stale weights.
+    # Uninitialized or mismatched estimators use a temporary full density.
     weights = grid_linear_values(pdf(est, tracked_responses), Integrators.get_grid(integrator.integrator))
     integrate_grid_weights(integrator.integrator, f, weights, ncomp)
 end
@@ -117,14 +112,9 @@ function response_expectation(est::DistributionAbilityEstimator,
     ir = ItemResponse(responses.item_bank, item_idx)
     grid == FittedItemBanks.item_xs(ir) ||
         throw(ArgumentError("The integration grid must match the tabulated item bank grid"))
-    cache = integral.tracker.cache
-    weights = if cache !== nothing && est === integral.tracker.ability_estimator &&
-                 cache_prefix_matches(cache, responses, pending_start(responses) - 1)
-        integral.tracker.cur_ability .* grid_linear_values(
-            AbilityLikelihood(responses.item_bank, unsynced_responses(responses)), grid)
-    else
-        grid_linear_values(pdf(est, responses), grid)
-    end
+    density = speculative_density(integral.tracker, responses.ability_tracker)
+    weights = density !== nothing && est === integral.tracker.ability_estimator ?
+        density : grid_linear_values(pdf(est, responses), grid)
     mass = sum(weights)
     map(FittedItemBanks.responses(ir)) do category
         sum(weights .* FittedItemBanks.item_ys(ir, category)) / mass
