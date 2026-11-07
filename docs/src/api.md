@@ -114,10 +114,9 @@ ordinary values for expectations, but logarithmic numbers for raw integrals and
 `log(mass)` preserves the log mass. An explicit denominator supplied to
 `expectation` is still an unnormalized denominator, not a log denominator.
 
-Use `LogGridAbilityTracker` to cache the grid log densities, normalized weights,
-and normalization scale across calculations. Both new constructors accept config
-bits in any order. Attach the tracker to `TrackedResponses`, or let `CatRules`
-collect it from the integrator embedded in the ability estimator.
+`MeanAbilityEstimator(dist, grid)` tracks supported equal-weight grids by
+default. Use `MeanAbilityEstimator(dist, grid, NullAbilityTracker())` to
+recompute weights on each call. `CatRules` registers the tracker automatically.
 
 ```jldoctest
 julia> using ComputerAdaptiveTesting.Aggregators, ComputerAdaptiveTesting.Responses,
@@ -174,8 +173,7 @@ the posterior peak: stable normalization does not correct quadrature error.
 selects the tracked adapter. It supports fixed, preallocated and iterative
 equal-weight grids, including multidimensional grids and vector/matrix moments.
 The scalar preallocated path applies speculative probabilities during its
-integration pass. Tracking remains opt-in and shared trackers remain shared
-after `preallocate`.
+integration pass. Shared trackers remain shared after `preallocate`.
 
 Both grid trackers require the estimator to declare the multiplicative density
 contract via `response_delta_style(dist) == MultiplicativeResponseDelta()`:

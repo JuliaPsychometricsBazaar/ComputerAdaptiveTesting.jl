@@ -125,13 +125,14 @@ function compatible_tracker(bits...; integrator, ability_estimator, prefer_track
     requested = find1_type(AbilityTracker, bits)
     @returnsome requested_grid_tracker(requested, ability_estimator, integrator)
     if prefer_tracked && requested === nothing && ability_estimator !== nothing
-        return default_grid_tracker(space, ability_estimator, integrator)
+        return automatic_grid_tracker(response_delta_style(ability_estimator),
+            space, ability_estimator, integrator)
     end
     nothing
 end
 
 abstract type AbilityIntegrator <: CatConfigBase end
-function AbilityIntegrator(bits...; ability_estimator = nothing, prefer_tracked = false)
+function AbilityIntegrator(bits...; ability_estimator = nothing, prefer_tracked = true)
     @returnsome find1_instance(AbilityIntegrator, bits)
     zero_arg_intergrators = find1_type(RiemannEnumerationIntegrator, bits)
     if (zero_arg_intergrators !== nothing)
@@ -151,7 +152,7 @@ function AbilityIntegrator(bits...; ability_estimator = nothing, prefer_tracked 
 end
 
 function build_ability_integrator(::LinSpace, integrator, ability_estimator, bits;
-        prefer_tracked = false)
+        prefer_tracked = true)
     tracker = compatible_tracker(bits...;
         integrator = integrator,
         ability_estimator = ability_estimator,

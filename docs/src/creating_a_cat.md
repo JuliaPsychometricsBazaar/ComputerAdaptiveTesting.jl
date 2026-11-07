@@ -74,7 +74,7 @@ julia> ability.integrator isa LogGridIntegrator
 true
 
 julia> rules = CatRules(MeanAbilityEstimator, dist, grid,
-           GriddedAbilityTracker, AbilityVariance, FixedLength(20));
+           AbilityVariance, FixedLength(20));
 
 julia> rules.ability_estimator.integrator isa LogGridIntegrator
 true
@@ -84,6 +84,11 @@ true
 
 julia> rules.ability_estimator.integrator.tracker isa LogGridAbilityTracker
 true
+
+julia> untracked = MeanAbilityEstimator(dist, grid, NullAbilityTracker());
+
+julia> untracked.integrator.tracker === nothing
+true
 ```
 
 `AbilityVariance` here constructs expected post-response variance item selection.
@@ -91,11 +96,6 @@ Use `InformationItemCriterion` in its place for information-based selection.
 The resolved point estimator supplies defaults to newly constructed criteria;
 compatible criteria reuse its integrator and tracker. The integration-space
 choice does not change point predictions into posterior-predictive predictions.
-
-Tracking is optional: omit `GriddedAbilityTracker` to calculate weights on demand.
-With `LogSpace()`, requesting a grid tracker constructs `LogGridAbilityTracker`.
-Shared trackers are registered once, including when also used by a stopping
-criterion, and remain shared after `preallocate(rules)`.
 
 Appending responses updates only their probabilities in the grid cache;
 hypothetical responses used by expected-variance selection are applied without
@@ -139,12 +139,8 @@ log integrators use logarithmic numbers to preserve their absolute scale.
 
 ## CatRules
 
-For stable mean and uncertainty estimates over a fixed grid, use
-`Aggregators.LogGridIntegrator(grid)` with a distribution estimator. To reuse
-the grid density across calculations, construct
-`tracker = Aggregators.LogGridAbilityTracker(distribution_estimator, grid)` and
-pass `Aggregators.LogGridIntegrator(tracker)` to `MeanAbilityEstimator`.
-`CatRules` collects that tracker automatically. See
+`CatRules` registers the tracker from `MeanAbilityEstimator(dist, grid)`,
+including with keyword arguments. See
 [Fixed-grid log normalization and tracking](@ref) for an executable example,
 supported grids and normalization semantics.
 
