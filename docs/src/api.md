@@ -172,8 +172,11 @@ the posterior peak: stable normalization does not correct quadrature error.
 `AbilityIntegrator(grid, tracker)` infers the distribution from the tracker and
 selects the tracked adapter. It supports fixed, preallocated and iterative
 equal-weight grids, including multidimensional grids and vector/matrix moments.
-The scalar preallocated path applies speculative probabilities during its
-integration pass. Shared trackers remain shared after `preallocate`.
+Use `preallocate(FixedFirstItem(1, rule))` to prepare the inner rule's integration
+buffers, including its point or distribution response expectation. Shared grid
+trackers remain shared after `preallocate`. Speculation refreshes its private
+density once per hypothetical history; analytic response deltas are evaluated
+directly into that scratch buffer in both linear and log space.
 
 Both grid trackers require the estimator to declare the multiplicative density
 contract via `response_delta_style(dist) == MultiplicativeResponseDelta()`:
