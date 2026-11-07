@@ -7,14 +7,6 @@ function (product::FunctionProduct)(x::T) where {T}
     return product.f(x) * product.lh_function(x)
 end
 
-struct FunctionArgProduct{F}
-    f::F
-end
-
-function (product::FunctionArgProduct)(x::A, y::B) where {A, B}
-    product.f(x) * y
-end
-
 struct TrackedLikelihoodIntegrator{IntegratorT <: EqualWeightGridIntegrator,
     TrackerT <: GriddedAbilityTracker} <: AbilityIntegrator
     integrator::IntegratorT
@@ -38,26 +30,11 @@ function power_summary(io::IO, integrator::TrackedLikelihoodIntegrator)
     power_summary(indent(io, 2), integrator.integrator)
 end
 
-# The backend's weighted preallocated overload works for scalar grids/results.
-# Other shapes reuse the same grid reduction as log-space integration.
+# Reduce the cached weights directly, using the same weighted reducer as
+# log-space integration. The backend's broadcast path can box scalar coefficient
+# evaluations even with a preallocated buffer (notably nested broadcasts in SqDev).
 function integrate_grid_weights(backend, f::F, weights, ncomp) where {F}
     BareIntegrationResult(weighted_grid_sum(f, Integrators.get_grid(backend), weights))
-end
-
-@inline function integrate_grid_weights(
-        backend::Union{FixedGridIntegrator{Vector{Float64}},
-            PreallocatedFixedGridIntegrator{Vector{Float64}}},
-        f::F,
-        weights,
-        ncomp) where {F}
-    if ncomp == 0
-        # The backend also has an array-valued branch for positive ncomp.
-        # Pin its scalar result here so that branch cannot widen all moments.
-        result = @inline backend(FunctionArgProduct(f), weights, 0)
-        result::BareIntegrationResult{Float64}
-    else
-        BareIntegrationResult(weighted_grid_sum(f, Integrators.get_grid(backend), weights))
-    end
 end
 
 function (integrator::TrackedLikelihoodIntegrator)(f::F, ncomp) where {F}
