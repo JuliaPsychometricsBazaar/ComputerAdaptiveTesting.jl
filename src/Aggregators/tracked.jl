@@ -57,14 +57,25 @@ function (integrator::TrackedLikelihoodIntegrator)(f::F,
         est,
         tracked_responses::TrackedResponses;
         kwargs...) where {F}
+    density = grid_density(est, tracked_responses, integrator)
+    integrate_grid_weights(integrator.integrator, f, density, ncomp)
+end
+
+function grid_density(est, tracked_responses, integrator::TrackedLikelihoodIntegrator)
     tracker = integrator.tracker
     density = speculative_density(tracker, tracked_responses.ability_tracker)
     if density !== nothing && est === tracker.ability_estimator
-        return integrate_grid_weights(integrator.integrator, f, density, ncomp)
+        return density
     end
     # Uninitialized or mismatched estimators use a temporary full density.
-    weights = grid_linear_values(pdf(est, tracked_responses), Integrators.get_grid(integrator.integrator))
-    integrate_grid_weights(integrator.integrator, f, weights, ncomp)
+    grid_linear_values(pdf(est, tracked_responses), Integrators.get_grid(integrator.integrator))
+end
+
+function variance(integrator::TrackedLikelihoodIntegrator{<:ScalarGridIntegrator},
+        est::DistributionAbilityEstimator, responses::TrackedResponses, denom = nothing)
+    density = grid_density(est, responses, integrator)
+    weighted_grid_moments(Integrators.get_grid(integrator.integrator), density;
+        denominator = denom).variance
 end
 
 function (est::MeanAbilityEstimator{E, I})(::DiscreteIndexableDomain,

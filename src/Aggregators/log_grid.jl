@@ -188,6 +188,16 @@ function expectation(rett::IntReturnType, f::F, ncomp, integrator::LogGridIntegr
     rett(BareIntegrationResult(value * correction))
 end
 
+function variance(integrator::LogGridIntegrator{<:ScalarGridIntegrator},
+        est::DistributionAbilityEstimator, responses::TrackedResponses, denom = nothing)
+    density = grid_density(est, responses, integrator)
+    # The public denominator is an absolute mass; the upstream log-state
+    # summary accepts a divisor in normalized-weight units.
+    divisor = denom === nothing ? nothing : unlog(denom / grid_mass(density))
+    weighted_grid_moments(Integrators.get_grid(integrator.integrator), density;
+        denominator = divisor).variance
+end
+
 function (est::MeanAbilityEstimator{E, I})(::DiscreteIndexableDomain,
         rett::IntReturnType, responses::TrackedResponses) where {E, I <: LogGridIntegrator}
     expectation(rett, IntegralCoeffs.id, 0, est.integrator, est.dist_est, responses)

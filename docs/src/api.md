@@ -178,6 +178,14 @@ trackers remain shared after `preallocate`. Speculation refreshes its private
 density once per hypothetical history; analytic response deltas are evaluated
 directly into that scratch buffer in both linear and log space.
 
+MEPV with a `MeanAbilityEstimator` and a scalar tracked grid automatically
+prepares a scan: EAP is computed once, and candidate densities reuse private
+buffers. Linear and log-space variances use PsychometricsBazaarBase's centered
+two-pass moments. Explicit variance denominators remain absolute masses.
+Other criteria, non-scalar grids, and estimators without multiplicative response
+updates use the generic speculative path. A context returned by `init_thread`
+belongs to one scan and history; create a new context after changing responses.
+
 Both grid trackers require the estimator to declare the multiplicative density
 contract via `response_delta_style(dist) == MultiplicativeResponseDelta()`:
 appending responses multiplies the unnormalized density by their probabilities,

@@ -31,6 +31,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
+# Draft-only dependency: replace with a released compat bound before acceptance.
 [weakdeps]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
@@ -47,10 +48,10 @@ DocStringExtensions = " ^0.9"
 EffectSizes = "^1.0.1"
 ElasticArrays = "1.2.12"
 FittedItemBanks = "^0.7.7"
-ForwardDiff = "1"
+ForwardDiff = "1.1"
 HypothesisTests = "^0.10.12, ^0.11.0"
 LinearAlgebra = "^1.12"
-LogarithmicNumbers = "1"
+LogarithmicNumbers = "1.4.1"
 Mmap = "^1.11"
 PrecompileTools = "1.2.1"
 PrettyPrinting = "0.4.2"
