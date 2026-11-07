@@ -75,7 +75,7 @@ end
 end
 
 @testset "Analytic speculative deltas reuse grid scratch" begin
-    for space in (LinSpace(), LogSpace())
+    @testset "$space" for space in (LinSpace(), LogSpace())
         function delta_allocations(points)
             (; dist, tracker, integral, history) = fixture(32; space, points)
             spec = Speculator(history, 1)
