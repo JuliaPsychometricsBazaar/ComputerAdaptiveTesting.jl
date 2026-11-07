@@ -150,7 +150,8 @@ end
     end
 
     @testset "Long native log history" begin
-        (; history, criterion, reference) = setup(; space = LogSpace(), history_length = 1600)
+        (; history, criterion, reference, integral, dist) = setup(;
+            space = LogSpace(), history_length = 1600)
         state = init_thread(criterion, history)
         @test state isa NextItemRules.PreparedGridMEPV
         @test all(isfinite, state.density.log_values)
@@ -161,6 +162,16 @@ end
             @test isfinite(actual)
             @test actual ≈ compute_criterion(reference, spec, history, i) rtol=1e-10
         end
+        # Absolute denominators remain usable even if their normalized ratios
+        # overflow/underflow. Compare with the pre-existing expectation path.
+        mass = normdenom(integral, dist, history)
+        for denom in (1.0, mass * exp(Aggregators.ULogarithmic, -1000.0))
+            expected = invoke(variance,
+                Tuple{AbilityIntegrator, DistributionAbilityEstimator, TrackedResponses, Any},
+                integral, dist, history, denom)
+            @test isequal(variance(integral, dist, history, denom), expected)
+        end
+        @test iszero(variance(integral, dist, history, 1.0))
     end
 
     @testset "Shared native log responses" begin

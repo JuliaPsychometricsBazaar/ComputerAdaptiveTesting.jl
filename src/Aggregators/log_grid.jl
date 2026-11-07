@@ -194,6 +194,13 @@ function variance(integrator::LogGridIntegrator{<:ScalarGridIntegrator},
     # The public denominator is an absolute mass; the upstream log-state
     # summary accepts a divisor in normalized-weight units.
     divisor = denom === nothing ? nothing : unlog(denom / grid_mass(density))
+    if divisor !== nothing && (iszero(divisor) || !isfinite(divisor))
+        # A valid absolute denominator can have an unrepresentable ratio to
+        # the mass. Preserve the generic log-space expectation scaling then.
+        return invoke(variance,
+            Tuple{AbilityIntegrator, DistributionAbilityEstimator, TrackedResponses, Any},
+            integrator, est, responses, denom)
+    end
     weighted_grid_moments(Integrators.get_grid(integrator.integrator), density;
         denominator = divisor).variance
 end
