@@ -36,6 +36,9 @@ Follow the patterns already in the codebase rather than inventing new ones:
 - **Docstrings**: use DocStringExtensions (`$(TYPEDEF)`, `$(SIGNATURES)`);
   see `src/NextItemRules/prelude/abstract.jl` for house style. New public API
   must appear in `docs/src/api.md`.
+- **Documentation**: write from the user's perspective. Show the call or result
+  first, then explain only what the user needs to choose or use it. Prefer short
+  examples to implementation details; remove repeated prose.
 
 ## Build, test, docs
 

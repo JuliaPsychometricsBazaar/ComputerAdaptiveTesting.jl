@@ -10,6 +10,7 @@ using DocStringExtensions
 using FittedItemBanks: AbstractItemBank, ResponseType, ItemResponse, resp_vec
 using ..Aggregators: TrackedResponses, Aggregators, pdf, logpdf, distribution_estimator
 using ..Rules: CatRules
+import ..Rules
 using ..Responses: BareResponses, Response, Responses
 using ..NextItemRules: compute_criteria, best_item
 using ..Sim: CatLoop, Sim, item_label
@@ -183,6 +184,11 @@ struct StatefulCatRules{TrackedResponsesT <: TrackedResponses} <: StatefulCat
 end
 
 function StatefulCatRules(rules::CatRules, item_bank::AbstractItemBank)
+    required_trackers = Rules.collect_trackers(rules.next_item,
+        rules.ability_estimator, rules.termination_condition)
+    registered_trackers = Rules.collect_trackers(rules.ability_tracker)
+    Rules.trackers_registered(required_trackers, registered_trackers) ||
+        throw(ArgumentError("CatRules.ability_tracker must register every tracker used by its components; pass NullAbilityTracker() while constructing the estimator to opt out"))
     bare_responses = BareResponses(ResponseType(item_bank))
     tracked_responses = TrackedResponses(
         bare_responses,
@@ -234,6 +240,8 @@ function set_item_bank!(config::StatefulCatRules, item_bank)
         item_bank,
         config.rules.ability_tracker
     )
+    Aggregators.initialize_grid_tracker!(config.tracked_responses[], config.rules.ability_tracker)
+    config.tracked_responses[]
 end
 
 function get_responses(config::StatefulCatRules)

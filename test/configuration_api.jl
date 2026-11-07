@@ -81,4 +81,45 @@ Aggregators.track!(responses, tracker::CountingTracker) = (tracker.calls += 1)
     @test tracker.calls == 1
 end
 
+@testset "Automatic grid tracking and explicit opt out" begin
+    grid = FixedGridIntegrator(range(-5, 5; length=41))
+    bank = ItemBank2PL([0.0, 0.5, 1.0], [1.0, 1.0, 1.0])
+    for space in (LinSpace(), LogSpace())
+        dist = PosteriorAbilityEstimator(Normal(), space)
+        ability = MeanAbilityEstimator(dist, grid)
+        tracker = ability.integrator.tracker
+        @test tracker isa (space isa LinSpace ? GriddedAbilityTracker : LogGridAbilityTracker)
+        rules = CatRules(;
+            next_item=RandomNextItemRule(),
+            termination_condition=FixedLength(2),
+            ability_estimator=ability)
+        @test rules.ability_tracker.head === tracker
+        cat = Stateful.StatefulCatRules(rules, bank)
+        Stateful.add_response!(cat, 1, true)
+        @test tracker.density !== nothing
+        untracked = MeanAbilityEstimator(dist,
+            AbilityIntegrator(dist, grid, NullAbilityTracker()))
+        @test first(Stateful.get_ability(cat)) ≈ untracked(cat.tracked_responses[])
+
+        disabled = CatRules(;
+            next_item=RandomNextItemRule(),
+            termination_condition=FixedLength(2),
+            ability_estimator=untracked)
+        @test disabled.ability_tracker isa NullAbilityTracker
+        flat_disabled = CatRules(MeanAbilityEstimator, dist, grid,
+            NullAbilityTracker(), RandomNextItemRule(), FixedLength(2))
+        @test flat_disabled.ability_tracker isa NullAbilityTracker
+        @test_throws ArgumentError Stateful.StatefulCatRules(CatRules(;
+            next_item=RandomNextItemRule(),
+            termination_condition=FixedLength(2),
+            ability_estimator=ability,
+            ability_tracker=NullAbilityTracker()), bank)
+        disabled_integral = MeanAbilityEstimator(dist, grid, NullAbilityTracker()).integrator
+        @test space isa LinSpace ? disabled_integral isa FunctionIntegrator :
+              disabled_integral.tracker === nothing
+    end
+    @test MeanAbilityEstimator(SafeLikelihoodAbilityEstimator(), grid).integrator isa
+          FunctionIntegrator
+end
+
 end

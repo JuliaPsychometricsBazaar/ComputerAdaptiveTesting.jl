@@ -58,6 +58,8 @@ export get_integrator
 export LogGridIntegrator, LogGridAbilityTracker
 export LogFunctionIntegrator
 export CalculationSpace, LinSpace, LogSpace, calculation_space
+export unsynced_responses, response_delta_style, MultiplicativeResponseDelta,
+       NoResponseDelta
 # export EnumerationOptimizer
 
 # Basic types
@@ -123,13 +125,14 @@ function compatible_tracker(bits...; integrator, ability_estimator, prefer_track
     requested = find1_type(AbilityTracker, bits)
     @returnsome requested_grid_tracker(requested, ability_estimator, integrator)
     if prefer_tracked && requested === nothing && ability_estimator !== nothing
-        return default_grid_tracker(space, ability_estimator, integrator)
+        return automatic_grid_tracker(response_delta_style(ability_estimator),
+            space, ability_estimator, integrator)
     end
     nothing
 end
 
 abstract type AbilityIntegrator <: CatConfigBase end
-function AbilityIntegrator(bits...; ability_estimator = nothing, prefer_tracked = false)
+function AbilityIntegrator(bits...; ability_estimator = nothing, prefer_tracked = true)
     @returnsome find1_instance(AbilityIntegrator, bits)
     zero_arg_intergrators = find1_type(RiemannEnumerationIntegrator, bits)
     if (zero_arg_intergrators !== nothing)
@@ -137,6 +140,7 @@ function AbilityIntegrator(bits...; ability_estimator = nothing, prefer_tracked 
     end
     est = ability_estimator === nothing ? DistributionAbilityEstimator(bits...) :
           distribution_estimator(ability_estimator)
+    est = est === nothing ? tracker_estimator(find1_instance(AbilityTracker, bits)) : est
     integrator = Integrator(bits...)
     @returnsome inherited_integrator(bits, est, integrator)
     integrator = integrator === nothing ? inherited_backend(bits) : integrator
@@ -148,7 +152,7 @@ function AbilityIntegrator(bits...; ability_estimator = nothing, prefer_tracked 
 end
 
 function build_ability_integrator(::LinSpace, integrator, ability_estimator, bits;
-        prefer_tracked = false)
+        prefer_tracked = true)
     tracker = compatible_tracker(bits...;
         integrator = integrator,
         ability_estimator = ability_estimator,
@@ -187,10 +191,39 @@ estimators.
     responses::BareResponsesT
     item_bank::ItemBankT
     ability_tracker::AbilityTrackerT = NullAbilityTracker()
+    # Zero denotes a committed history; otherwise this is the earliest pending
+    # position, including responses inherited from an enclosing speculation.
+    speculation_start::Int = 0
+end
+
+function TrackedResponses(responses, item_bank, tracker)
+    TrackedResponses(responses, item_bank, tracker, 0)
 end
 
 function TrackedResponses(responses, item_bank)
     TrackedResponses(responses, item_bank, NullAbilityTracker())
+end
+
+function pending_start(responses::TrackedResponses)
+    responses.speculation_start == 0 ?
+    length(responses) + 1 : responses.speculation_start
+end
+
+function response_view(history::BareResponses, positions)
+    BareResponses(history.rt,
+        view(history.indices, positions), view(history.values, positions))
+end
+
+"""
+$(SIGNATURES)
+
+Return a zero-copy `BareResponses` view of the hypothetical responses not in
+the committed tracker cache. Committed histories return an empty view. Nested
+speculation includes its enclosing hypothetical responses. The view shares the
+response arrays and reflects later replacements of those responses.
+"""
+function unsynced_responses(responses::TrackedResponses)
+    response_view(responses.responses, min(pending_start(responses), length(responses) + 1):length(responses))
 end
 
 # Mark as a scalar for broadcasting

@@ -20,6 +20,43 @@
 # falling back to sensible defaults (e.g. a standard normal prior) when
 # nothing more specific is found.
 
+"""
+$(TYPEDEF)
+
+An estimator whose unnormalized density updates by multiplying response
+probabilities, preserving its existing scale and history-independent factor.
+See [`response_delta_style`](@ref).
+"""
+struct MultiplicativeResponseDelta end
+
+"""
+$(TYPEDEF)
+
+An estimator without the multiplicative response-update contract. Such an
+estimator supports untracked integration, but not incremental grid tracking.
+"""
+struct NoResponseDelta end
+
+"""
+$(SIGNATURES)
+
+Declare whether appending responses multiplies an estimator's unnormalized
+density by their response probabilities, with no other history-dependent
+change or renormalization. Defaults to `NoResponseDelta()`. Custom estimators
+may opt in with `response_delta_style(::MyEstimator) = MultiplicativeResponseDelta()`.
+Likelihood and fixed-prior posterior estimators opt in; guarded estimators do
+not, because their guard can change the density selected for the same prefix.
+The contract applies to both `pdf` and native `logpdf` when provided.
+"""
+response_delta_style(::DistributionAbilityEstimator) = NoResponseDelta()
+
+require_response_deltas(est) = require_response_deltas(response_delta_style(est), est)
+require_response_deltas(::MultiplicativeResponseDelta, est) = nothing
+function require_response_deltas(::NoResponseDelta, est)
+    throw(ArgumentError(
+        "Incremental grid tracking requires response_delta_style(::$(typeof(est))) = MultiplicativeResponseDelta(); use untracked integration unless this estimator obeys the multiplicative density contract"))
+end
+
 function Integrators.normdenom(integrator::AbilityIntegrator,
         est::DistributionAbilityEstimator,
         tracked_responses::TrackedResponses)
@@ -86,6 +123,7 @@ retain their usual meaning regardless of this policy.
 """
 calculation_space(::DistributionAbilityEstimator) = LinSpace()
 calculation_space(est::LikelihoodAbilityEstimator) = est.space
+response_delta_style(::LikelihoodAbilityEstimator) = MultiplicativeResponseDelta()
 
 function pdf(::LikelihoodAbilityEstimator,
         tracked_responses::TrackedResponses)
@@ -129,6 +167,7 @@ function PosteriorAbilityEstimator(bits...; ncomp = 0)
 end
 
 calculation_space(est::PosteriorAbilityEstimator) = est.space
+response_delta_style(::PosteriorAbilityEstimator) = MultiplicativeResponseDelta()
 
 function pdf(est::PosteriorAbilityEstimator,
         tracked_responses::TrackedResponses)
@@ -385,8 +424,9 @@ Point ability estimate given by the mean (EAP) of `dist_est`, computed using
 Bag-of-config-bits constructor: uses any given `DistributionAbilityEstimator`
 and `AbilityIntegrator` found in `bits`, or adapts a numerical backend using
 the distribution's [`calculation_space`](@ref). Explicit ability integrators
-override this default. Log-space continuous integration also needs a maximizing
-optimizer config bit; grid tracking can be requested with `GriddedAbilityTracker`.
+override this default. Supported equal-weight grids track automatically; add
+`NullAbilityTracker()` to recompute weights on each call. Log-space continuous
+integration also needs a maximizing optimizer config bit.
 """
 struct MeanAbilityEstimator{
     DistEst <: DistributionAbilityEstimator,

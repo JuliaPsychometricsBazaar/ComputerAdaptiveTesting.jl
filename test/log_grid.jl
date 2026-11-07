@@ -18,6 +18,8 @@ struct CountingDensity <: DistributionAbilityEstimator
     calls::Base.RefValue{Int}
 end
 
+Aggregators.response_delta_style(::CountingDensity) = MultiplicativeResponseDelta()
+
 struct ConstantLogDensity <: DistributionAbilityEstimator
     value::Float64
 end
@@ -102,7 +104,7 @@ end
         @test variance(integral, posterior, tracked) ≈ Float64(v) atol=1e-11
         @test isfinite(log(normdenom(integral, posterior, tracked)))
         @test Float64(normdenom(integral, posterior, tracked)) == 0
-        @test sum(tracker.cache.density.weights) ≈ 1
+        @test sum(tracker.density.weights) ≈ 1
         expected_false = sum(weights ./ (1 .+ exp.(big.(xs))))
         @test response_expectation(posterior, integral, tracked, 1)[1] ≈ Float64(expected_false)
     end
@@ -114,46 +116,46 @@ end
         tracked = TrackedResponses(deepcopy(history), bank, tracker)
         # Lazy use before the first track! is safe.
         @test isfinite(MeanAbilityEstimator(dist, integral)(tracked))
-        @test tracker.cache === nothing
+        @test tracker.density === nothing
         track!(tracked)
         calls = dist.calls[]
-        cache = tracker.cache
+        cache = tracker.density
         μ = MeanAbilityEstimator(dist, integral)(tracked)
         @test isfinite(variance(integral, dist, tracked))
         @test sum(response_expectation(dist, integral, tracked, 1)) ≈ 1
         @test dist.calls[] == calls
-        @test tracker.cache === cache
+        @test tracker.density === cache
 
         other = PosteriorAbilityEstimator(Normal(2, 0.4))
         @test MeanAbilityEstimator(other, integral)(tracked) ≈
               MeanAbilityEstimator(other, LogGridIntegrator(grid))(tracked)
-        @test tracker.cache === cache
+        @test tracker.density === cache
 
         speculator = Speculator(tracked, 1)
         replace_speculation!(speculator, [1], [true])
         speculative_mean = MeanAbilityEstimator(dist, integral)(speculator.responses)
         @test speculative_mean ≈ MeanAbilityEstimator(dist, LogGridIntegrator(grid))(speculator.responses)
         @test speculative_mean > μ
-        @test tracker.cache === cache
+        @test tracker.density === cache
         @test MeanAbilityEstimator(dist, integral)(tracked) == μ
         replace_speculation!(speculator, [1], [false])
         @test MeanAbilityEstimator(dist, integral)(speculator.responses) < μ
 
         add_response!(tracked, Response(ResponseType(bank), 1, true))
-        @test tracker.cache !== cache
+        @test tracker.density !== cache
         @test MeanAbilityEstimator(dist, integral)(tracked) > μ
         pop_response!(tracked)
         @test MeanAbilityEstimator(dist, integral)(tracked) ≈ μ
         empty!(tracked)
-        @test isempty(tracker.cache.responses.indices)
+        @test tracker.density !== nothing
         @test MeanAbilityEstimator(dist, integral)(tracked) ≈
               MeanAbilityEstimator(dist, LogGridIntegrator(grid))(tracked)
 
-        # Mutating a bare history cannot trick the snapshot check.
+        # Bare-history edits require an explicit refresh.
         add_response!(tracked.responses, Response(ResponseType(bank), 1, false))
+        track!(tracked)
         @test MeanAbilityEstimator(dist, integral)(tracked) ≈
               MeanAbilityEstimator(dist, LogGridIntegrator(grid))(tracked)
-        @test isempty(tracker.cache.responses.indices)
         other_bank = ItemBank2PL([3.0, 4.0], [1.0, 1.4])
         other_responses = TrackedResponses(tracked.responses, other_bank)
         @test MeanAbilityEstimator(dist, integral)(other_responses) ≈
@@ -169,10 +171,10 @@ end
         @test rules.ability_tracker isa Aggregators.ConsAbilityTracker
         prepared_rules = preallocate(rules)
         @test prepared_rules.ability_estimator.integrator.tracker === tracker
-        tracker.cache = nothing
+        tracker.density = nothing
         rule_responses = TrackedResponses(deepcopy(history), bank, prepared_rules.ability_tracker)
         track!(rule_responses)
-        @test tracker.cache.responses == history
+        @test tracker.density !== nothing
     end
 
     @testset "Support and rare response categories" begin
@@ -198,12 +200,12 @@ end
             Aggregators.ConsAbilityTracker(tracker, NullAbilityTracker()))
         track!(r)
         @test_throws DomainError add_response!(r, Response(ResponseType(certain), 1, false))
-        @test tracker.cache === nothing
+        @test tracker.density === nothing
         pop_response!(r)
-        @test tracker.cache !== nothing
+        @test tracker.density !== nothing
         add_response!(r, Response(ResponseType(certain), 1, true))
         empty!(r)
-        @test isempty(tracker.cache.responses.indices)
+        @test tracker.density !== nothing
     end
 
     @testset "Matrix moments and nominal predictions" begin

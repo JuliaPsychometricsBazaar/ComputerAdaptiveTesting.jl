@@ -1,12 +1,3 @@
-const EqualWeightGridIntegrator = Union{FixedGridIntegrator,
-    PreallocatedFixedGridIntegrator, Integrators.IterativeFixedGridIntegrator}
-
-struct LogGridCache{WeightsT, BankT, ResponsesT}
-    density::WeightsT
-    item_bank::BankT
-    responses::ResponsesT
-end
-
 """
 $(TYPEDEF)
 
@@ -16,22 +7,30 @@ equal-weight fixed grid. Construct with `LogGridAbilityTracker(estimator, grid)`
 `LogGridIntegrator(tracker)` for means, variances, covariance and predictions.
 
 `track!(responses, tracker)` evaluates `logpdf(estimator, responses)` on the grid.
-`tracker.cache.density` contains `log_values`, normalized `weights`, `log_scale`
+`tracker.density` contains `log_values`, normalized `weights`, `log_scale`
 and `scaled_sum`; the unnormalized grid mass is `exp(log_scale) * scaled_sum`.
 An all-zero density raises `DomainError` rather than manufacturing a posterior.
 
-The cache records a copy of the response history. Integrations for different
-histories (including speculation), banks or estimators use temporary weights
-without modifying this cache. An uninitialized tracker also works this way.
-Treat the grid, bank parameters and estimator as fixed; call `track!` after
-changing their contents. Concurrent integrations may read a tracker, but must
-not run concurrently with `track!` on that same tracker.
+The estimator must declare `MultiplicativeResponseDelta()` through
+[`response_delta_style`](@ref). Appends add only new response log probabilities
+to the cached unnormalized log density. Rollback and clearing rebuild it.
+Speculation uses a private stacked density. Call `track!` after editing a bare
+response history or changing the bank, grid, or estimator. An uninitialized
+tracker evaluates a temporary density. Concurrent integrations may read a
+tracker, but must not overlap committed updates to it.
 """
 mutable struct LogGridAbilityTracker{EstimatorT <: DistributionAbilityEstimator,
-        IntegratorT <: EqualWeightGridIntegrator} <: AbilityTracker
+    IntegratorT <: EqualWeightGridIntegrator} <: AbilityTracker
     ability_estimator::EstimatorT
     integrator::IntegratorT
-    cache::Union{Nothing, LogGridCache}
+    density::Union{Nothing, LogGridWeights}
+
+    function LogGridAbilityTracker(est::E, integrator::I,
+            density::Union{Nothing, LogGridWeights}) where {
+            E <: DistributionAbilityEstimator, I <: EqualWeightGridIntegrator}
+        require_response_deltas(est)
+        new{E, I}(est, integrator, density)
+    end
 end
 
 function LogGridAbilityTracker(bits...)
@@ -42,9 +41,6 @@ function LogGridAbilityTracker(bits...)
 end
 
 grid_log_values(density, grid) = density.(grid)
-
-const TabulatedDichotomousBank = Union{FittedItemBanks.DichotomousPointsItemBank,
-    FittedItemBanks.DichotomousPointsWithLogsItemBank}
 
 function grid_log_values(density::AbilityLogLikelihood{<:AbilityLikelihood{<:TabulatedDichotomousBank}}, grid)
     grid == function_xs(density) ||
@@ -61,16 +57,42 @@ function grid_density(est, responses, integrator)
 end
 
 function track!(responses::TrackedResponses, tracker::LogGridAbilityTracker)
-    # Clear first so an unsuccessful refresh cannot leave a stale usable cache.
-    tracker.cache = nothing
+    responses.speculation_start == 0 || return tracker
+    # Clear first so an unsuccessful refresh cannot leave a stale usable density.
+    tracker.density = nothing
     density = grid_density(tracker.ability_estimator, responses, tracker.integrator)
-    history = responses.responses
-    snapshot = BareResponses(history.rt, copy(history.indices), copy(history.values))
-    tracker.cache = LogGridCache(density, responses.item_bank, snapshot)
+    tracker.density = density
     tracker
 end
 
-refresh_after_history_edit!(responses, tracker::LogGridAbilityTracker) = track!(responses, tracker)
+function track_append!(responses::TrackedResponses, tracker::LogGridAbilityTracker)
+    responses.speculation_start == 0 || return tracker
+    density = tracker.density
+    density === nothing && return track!(responses, tracker)
+    tracker.density = nothing
+    delta = response_view(responses.responses, length(responses):length(responses))
+    logs = density.log_values .+ grid_log_values(
+        AbilityLogLikelihood(responses.item_bank, delta), Integrators.get_grid(tracker.integrator))
+    tracker.density = LogGridWeights(logs)
+    tracker
+end
+
+function refresh_after_history_edit!(responses, tracker::LogGridAbilityTracker)
+    track!(responses, tracker)
+end
+
+initialize_grid_tracker!(responses, tracker::LogGridAbilityTracker) = track!(responses, tracker)
+
+function grid_delta_density!(scratch::LogGridWeights, tracker::LogGridAbilityTracker,
+        density, responses, start)
+    copyto!(scratch.log_values, density.log_values)
+    start > length(responses) && return LogGridWeights(scratch.log_values,
+        scratch.weights, density.log_scale, density.scaled_sum)
+    delta = response_view(responses.responses, start:length(responses))
+    scratch.log_values .+= grid_log_values(
+        AbilityLogLikelihood(responses.item_bank, delta), Integrators.get_grid(tracker.integrator))
+    normalize_grid_weights!(scratch.log_values, scratch.weights)
+end
 
 """
 $(TYPEDEF)
@@ -92,11 +114,12 @@ must be nonempty and have nonzero density somewhere. `NaN` and `+Inf` log
 densities are rejected. No adaptive-quadrature error estimate is provided.
 """
 struct LogGridIntegrator{IntegratorT <: EqualWeightGridIntegrator,
-        TrackerT <: Union{Nothing, LogGridAbilityTracker}} <: AbilityIntegrator
+    TrackerT <: Union{Nothing, LogGridAbilityTracker}} <: AbilityIntegrator
     integrator::IntegratorT
     tracker::TrackerT
 
-    function LogGridIntegrator(integrator::I, tracker::T) where {
+    function LogGridIntegrator(integrator::I,
+            tracker::T) where {
             I <: EqualWeightGridIntegrator, T <: Union{Nothing, LogGridAbilityTracker}}
         check_log_grid(integrator, tracker)
         new{I, T}(integrator, tracker)
@@ -114,7 +137,8 @@ function LogGridIntegrator(bits...)
     tracker = find1_instance(LogGridAbilityTracker, bits)
     integrator = Integrator(bits...)
     if integrator === nothing
-        tracker === nothing && throw(ArgumentError("Supply an equal-weight grid or a LogGridAbilityTracker"))
+        tracker === nothing &&
+            throw(ArgumentError("Supply an equal-weight grid or a LogGridAbilityTracker"))
         integrator = tracker.integrator
     end
     LogGridIntegrator(integrator, tracker)
@@ -122,15 +146,13 @@ end
 
 get_integrator(integrator::LogGridIntegrator) = integrator.integrator
 
-cached_grid_density(::Nothing, est, responses, integrator) = grid_density(est, responses, integrator)
+function cached_grid_density(::Nothing, est, responses, integrator)
+    grid_density(est, responses, integrator)
+end
 
 function cached_grid_density(tracker::LogGridAbilityTracker, est, responses, integrator)
-    cache = tracker.cache
-    if cache !== nothing && est === tracker.ability_estimator &&
-            responses.item_bank === cache.item_bank &&
-            responses.responses == cache.responses
-        return cache.density
-    end
+    density = speculative_density(tracker, responses.ability_tracker)
+    density !== nothing && est === tracker.ability_estimator && return density
     grid_density(est, responses, integrator)
 end
 
@@ -165,7 +187,9 @@ function (est::MeanAbilityEstimator{E, I})(::DiscreteIndexableDomain,
     expectation(rett, IntegralCoeffs.id, 0, est.integrator, est.dist_est, responses)
 end
 
-grid_response_logs(ir, category, grid) = [FittedItemBanks.log_resp(ir, category, x) for x in grid]
+function grid_response_logs(ir, category, grid)
+    [FittedItemBanks.log_resp(ir, category, x) for x in grid]
+end
 
 function grid_response_logs(ir::ItemResponse{<:TabulatedDichotomousBank}, category, grid)
     grid == FittedItemBanks.item_xs(ir) ||
@@ -178,7 +202,8 @@ function grid_response_logs(ir::ItemResponse{<:FittedItemBanks.DichotomousPoints
     grid_response_logs(ItemResponse(bank, ir.index), category, grid)
 end
 
-function response_expectation(est::DistributionAbilityEstimator, integrator::LogGridIntegrator,
+function response_expectation(
+        est::DistributionAbilityEstimator, integrator::LogGridIntegrator,
         tracked_responses::TrackedResponses, item_idx)
     density = grid_density(est, tracked_responses, integrator)
     grid = Integrators.get_grid(integrator.integrator)

@@ -114,10 +114,9 @@ ordinary values for expectations, but logarithmic numbers for raw integrals and
 `log(mass)` preserves the log mass. An explicit denominator supplied to
 `expectation` is still an unnormalized denominator, not a log denominator.
 
-Use `LogGridAbilityTracker` to cache the grid log densities, normalized weights,
-and normalization scale across calculations. Both new constructors accept config
-bits in any order. Attach the tracker to `TrackedResponses`, or let `CatRules`
-collect it from the integrator embedded in the ability estimator.
+`MeanAbilityEstimator(dist, grid)` tracks supported equal-weight grids by
+default. Use `MeanAbilityEstimator(dist, grid, NullAbilityTracker())` to
+recompute weights on each call. `CatRules` registers the tracker automatically.
 
 ```jldoctest
 julia> using ComputerAdaptiveTesting.Aggregators, ComputerAdaptiveTesting.Responses,
@@ -150,13 +149,14 @@ true
 
 `LogGridIntegrator(grid)` works without a tracker, recomputing the weights on
 each calculation. Before a tracker's first `track!`, it also computes temporary
-weights. Adding, popping or clearing tracked responses refreshes the tracker.
-Integrating a different history (including a speculative response), bank or
-estimator computes temporary weights without modifying the live cache. The
-cache includes a snapshot of response indices and values, so bare-history edits
-cannot reuse stale weights. Treat grid coordinates, item parameters and prior
-parameters as fixed; explicitly refresh with `track!` after changing them.
-Parallel reads are supported; concurrent mutation of the tracker is not.
+weights. Appending tracked responses adds only their log probabilities to the
+stored unnormalized density; popping or clearing rebuilds it. Speculation uses
+a private stacked density and does not change the committed tracker. Recreate
+a speculator after its parent history changes. Edit a bare response history
+only when you can call `track!` before the next tracked read. Also call `track!`
+after changing grid coordinates, item parameters or prior parameters. A tracker
+belongs to one committed history at a time. Parallel reads are supported;
+concurrent mutation of the tracker is not.
 
 Predictions evaluate every response category directly, including nominal
 categories, avoiding cancellation from `1 - P(true)`. Tabulated dichotomous
@@ -165,6 +165,39 @@ No probability-space fallback is supplied for custom estimators lacking
 `logpdf`. An empty grid, a grid with zero density everywhere, or `NaN`/`+Inf`
 log densities raise errors. A grid with insufficient resolution can still miss
 the posterior peak: stable normalization does not correct quadrature error.
+
+## Incremental tracking and speculation
+
+`GriddedAbilityTracker(dist, grid)` caches the ordinary, unnormalized density.
+`AbilityIntegrator(grid, tracker)` infers the distribution from the tracker and
+selects the tracked adapter. It supports fixed, preallocated and iterative
+equal-weight grids, including multidimensional grids and vector/matrix moments.
+The scalar preallocated path applies speculative probabilities during its
+integration pass. Shared trackers remain shared after `preallocate`.
+
+Both grid trackers require the estimator to declare the multiplicative density
+contract via `response_delta_style(dist) == MultiplicativeResponseDelta()`:
+appending responses multiplies the unnormalized density by their probabilities,
+without changing its scale or history-independent factor. Likelihood and
+fixed-prior posterior estimators declare this contract. Custom estimators
+default to `NoResponseDelta()` and can opt in by defining
+`Aggregators.response_delta_style(::MyEstimator) = MultiplicativeResponseDelta()`.
+Guarded estimators, including `SafeLikelihoodAbilityEstimator`, cannot opt in
+in general because a new response may switch the selected density. Use
+untracked integration for such estimators; explicit grid tracking rejects them.
+
+`unsynced_responses(tracked)` returns a zero-copy `BareResponses` view of the
+hypothetical suffix; it is empty for committed histories. `Speculator` gives
+each hypothetical history a private tracker. A grid tracker stacks the new
+response probabilities on its parent's density, including for nested
+speculation. `replace_speculation!` refreshes the private density from its
+parent for each candidate; it never accumulates previous candidates. Create a
+new speculator after changing the parent history or tracker.
+
+Explicit `track!` rebuilds the complete density, including the prior. Rollback
+and clearing use the same rebuild, avoiding division by zero response
+probabilities. A failed committed update invalidates its cache. Keep the grid,
+bank parameters and estimator configuration fixed until an explicit refresh.
 
 ## Continuous log-density integration
 

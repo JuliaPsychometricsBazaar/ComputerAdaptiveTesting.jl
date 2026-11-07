@@ -27,7 +27,8 @@ want to write your own CAT loop rather than using hooks.
 
     $(FUNCTIONNAME)(; next_item=..., termination_condition=..., ability_estimator=..., ability_tracker=...)
 
-Explicit constructor for $(FUNCTIONNAME).
+Explicit constructor. Component trackers are registered automatically. To opt
+out, construct `ability_estimator` with `NullAbilityTracker()`.
 
     $(FUNCTIONNAME)(bits...)
 
@@ -36,7 +37,8 @@ or a point estimator type (such as `MeanAbilityEstimator`) together with its
 distribution and numerical backend. Constructors for item/state criteria inherit
 the resolved estimator and compatible integration adapter. Explicitly supplied
 components retain their own configuration. Shared trackers from estimation,
-selection and stopping are registered once.
+selection and stopping are registered once. Add `NullAbilityTracker()` to `bits`
+to disable tracking for a newly built estimator.
 """
 @kw_only struct CatRules{
     NextItemRuleT <: NextItemRule,
@@ -59,7 +61,8 @@ selection and stopping are registered once.
     """
     The ability tracker, which tracks the testee's current ability level.
     """
-    ability_tracker::AbilityTrackerT = NullAbilityTracker()
+    ability_tracker::AbilityTrackerT = collect_trackers(
+        next_item, ability_estimator, termination_condition)
 end
 
 function CatRules(bits...)
@@ -123,6 +126,14 @@ function collect_trackers(configs...)
     end
     foldr(ConsAbilityTracker, trackers; init = NullAbilityTracker())
 end
+
+trackers_registered(::NullAbilityTracker, _) = true
+trackers_registered(required::ConsAbilityTracker, registered) =
+    tracker_registered(required.head, registered) &&
+    trackers_registered(required.tail, registered)
+tracker_registered(_, ::NullAbilityTracker) = false
+tracker_registered(tracker, registered::ConsAbilityTracker) =
+    tracker === registered.head || tracker_registered(tracker, registered.tail)
 
 collect_trackers!(trackers, _) = nothing
 collect_trackers!(trackers, ::NullAbilityTracker) = nothing

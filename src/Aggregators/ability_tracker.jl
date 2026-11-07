@@ -4,8 +4,12 @@ end
 
 function Responses.add_response!(tracked_responses::TrackedResponses, response::Response)
     add_response!(tracked_responses.responses, response)
-    track!(tracked_responses)
+    track_append!(tracked_responses, tracked_responses.ability_tracker)
 end
+
+# Explicit track! rebuilds recomputable caches; append updates have their own
+# hook so existing trackers that consume the final response keep their behavior.
+track_append!(responses, tracker::AbilityTracker) = track!(responses, tracker)
 
 function Responses.pop_response!(tracked_responses::TrackedResponses)::TrackedResponses
     pop_response!(tracked_responses.responses)
@@ -55,6 +59,47 @@ struct ConsAbilityTracker{H <: AbilityTracker, T <: AbilityTracker} <: AbilityTr
     tail::T
 end
 
+# A speculative tracker owns its density while retaining the identity of the
+# committed grid tracker used by an integrator. Nested stacks use their parent
+# stack's density as the base for their own hypothetical suffix.
+mutable struct StackedGridAbilityTracker{T <: AbilityTracker, D} <: AbilityTracker
+    parent::T
+    density::Union{Nothing, D}
+    scratch::D
+    delta_start::Int
+end
+
+StackedGridAbilityTracker(parent, density::D, delta_start) where {D} =
+    StackedGridAbilityTracker{typeof(parent), D}(parent, density, deepcopy(density), delta_start)
+
+base_grid_tracker(tracker::StackedGridAbilityTracker) = base_grid_tracker(tracker.parent)
+base_grid_tracker(tracker) = tracker
+
+function track_delta!(responses::TrackedResponses, tracker::StackedGridAbilityTracker)
+    tracker.density = nothing
+    parent_density = tracker.parent.density
+    parent_density === nothing && throw(ArgumentError("Track the parent before speculating"))
+    tracker.density = grid_delta_density!(tracker.scratch, base_grid_tracker(tracker),
+        parent_density, responses, tracker.delta_start)
+    tracker
+end
+
+track!(responses::TrackedResponses, tracker::StackedGridAbilityTracker) =
+    track_delta!(responses, tracker)
+track_append!(responses::TrackedResponses, tracker::StackedGridAbilityTracker) =
+    track_delta!(responses, tracker)
+refresh_after_history_edit!(responses, tracker::StackedGridAbilityTracker) =
+    track_delta!(responses, tracker)
+
+speculative_density(base, active::AbilityTracker) = active === base ? base.density : nothing
+function speculative_density(base, active::ConsAbilityTracker)
+    density = speculative_density(base, active.head)
+    density === nothing ? speculative_density(base, active.tail) : density
+end
+function speculative_density(base, active::StackedGridAbilityTracker)
+    speculative_density(base, active.parent) === nothing ? nothing : active.density
+end
+
 function track!(responses, cons::ConsAbilityTracker)
     track!(responses, cons.head)
     track!(responses, cons.tail)
@@ -63,6 +108,11 @@ end
 function refresh_after_history_edit!(responses, cons::ConsAbilityTracker)
     refresh_after_history_edit!(responses, cons.head)
     refresh_after_history_edit!(responses, cons.tail)
+end
+
+function track_append!(responses, cons::ConsAbilityTracker)
+    track_append!(responses, cons.head)
+    track_append!(responses, cons.tail)
 end
 
 struct VarNormal{T <: Real}
@@ -74,6 +124,16 @@ include("./ability_trackers/grid.jl")
 include("./ability_trackers/point.jl")
 include("./ability_trackers/closed_form_normal.jl")
 include("./ability_trackers/laplace.jl")
+
+# A new item bank gives the grid trackers a new committed history. Refresh
+# their density before the next read, including when wrapped in a tracker list.
+initialize_grid_tracker!(responses, ::AbilityTracker) = nothing
+initialize_grid_tracker!(responses,
+    tracker::GriddedAbilityTracker) = track!(responses, tracker)
+function initialize_grid_tracker!(responses, tracker::ConsAbilityTracker)
+    initialize_grid_tracker!(responses, tracker.head)
+    initialize_grid_tracker!(responses, tracker.tail)
+end
 
 """
 This method returns a tracked point estimate if it is has the given ability

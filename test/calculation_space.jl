@@ -37,7 +37,8 @@ using PsychometricsBazaarBase.Optimizers: NativeOneDimOptimOptimizer
     @test calculation_space(safe.est) == calculation_space(safe.fallback)
     @test length(safe.fallback.prior) == 2
     @test MeanAbilityEstimator(LikelihoodAbilityEstimator(LogSpace()), grid).integrator isa LogGridIntegrator
-    @test MeanAbilityEstimator(PosteriorAbilityEstimator(LinSpace()), grid).integrator isa FunctionIntegrator
+    @test MeanAbilityEstimator(PosteriorAbilityEstimator(LinSpace()), grid).integrator.tracker isa
+          GriddedAbilityTracker
     explicit = FunctionIntegrator(grid)
     @test MeanAbilityEstimator(PosteriorAbilityEstimator(LogSpace()), explicit).integrator === explicit
     @test MeanAbilityEstimator(PosteriorAbilityEstimator(), LogGridIntegrator(grid)).integrator isa LogGridIntegrator
@@ -84,7 +85,7 @@ end
     other = PosteriorAbilityEstimator(Normal(1.0, 1.0), LinSpace())
     local_criterion = AbilityVariance(other, ability)
     @test local_criterion.dist_est === other
-    @test local_criterion.integrator isa FunctionIntegrator
+    @test local_criterion.integrator.tracker isa GriddedAbilityTracker
     @test get_integrator(local_criterion.integrator) === grid
     explicit = FunctionIntegrator(grid)
     @test AbilityVariance(dist, explicit, ability).integrator === explicit
@@ -119,13 +120,13 @@ tracker_count(::AbilityTracker) = 1
         tracked = TrackedResponses(history, bank, prepared.ability_tracker)
         track!(tracked)
         @test isfinite(prepared.ability_estimator(tracked))
-        cache = integral.tracker.cache
+        cache = integral.tracker.density
         @test all(isfinite, compute_criteria(prepared.next_item, tracked))
-        @test integral.tracker.cache === cache
+        @test integral.tracker.density === cache
         pop_response!(tracked)
-        @test length(integral.tracker.cache.responses) == 1999
+        @test integral.tracker.density !== nothing
         empty!(tracked)
-        @test length(integral.tracker.cache.responses) == 0
+        @test integral.tracker.density !== nothing
         stopping = StateCriterionThresholdTermination(0.1, AbilityVariance(rules.ability_estimator))
         @test tracker_count(Rules.collect_trackers(rules, stopping)) == 1
     end

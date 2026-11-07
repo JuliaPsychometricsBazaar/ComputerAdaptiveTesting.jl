@@ -1,6 +1,6 @@
 # Construction dispatch is kept separate from the numerical implementations.
 function build_ability_integrator(::LogSpace, backend::EqualWeightGridIntegrator,
-        est, bits; prefer_tracked = false)
+        est, bits; prefer_tracked = true)
     tracker = compatible_tracker(bits...; integrator = backend,
         ability_estimator = est, prefer_tracked, space = LogSpace())
     LogGridIntegrator(backend, tracker)
@@ -49,6 +49,8 @@ function get_dist_est_and_integrator(bits...)
 end
 
 matching_tracker(::CalculationSpace, ::AbilityTracker, backend, est) = nothing
+tracker_estimator(_) = nothing
+tracker_estimator(tracker::Union{GriddedAbilityTracker, LogGridAbilityTracker}) = tracker.ability_estimator
 function matching_tracker(::LinSpace, tracker::GriddedAbilityTracker, backend, est)
     tracker.integrator === backend && tracker.ability_estimator === est ? tracker : nothing
 end
@@ -61,6 +63,14 @@ default_grid_tracker(::LogSpace, est, backend::EqualWeightGridIntegrator) =
     LogGridAbilityTracker(est, backend)
 default_grid_tracker(::LogSpace, est, backend::Integrator) =
     throw(ArgumentError("Log-grid tracking requires a supported equal-weight grid"))
+
+# Automatic tracking is available only when the estimator promises a response
+# delta and the grid can reuse it. Explicit tracker requests retain their
+# existing errors for unsupported estimators or backends.
+automatic_grid_tracker(::NoResponseDelta, space, est, backend) = nothing
+automatic_grid_tracker(::MultiplicativeResponseDelta, space, est,
+    backend::EqualWeightGridIntegrator) = default_grid_tracker(space, est, backend)
+automatic_grid_tracker(::MultiplicativeResponseDelta, space, est, backend) = nothing
 
 requested_grid_tracker(::Nothing, est, backend) = nothing
 requested_grid_tracker(::Type{<:AbilityTracker}, est, backend) = nothing
@@ -111,7 +121,7 @@ with_tracker_default(bits, ::NullAbilityTracker) = bits
 with_tracker_default(bits, tracker) = with_default_bit(bits, AbilityTracker, tracker)
 
 function build_ability_integrator(::LogSpace, backend::ContinuousLogBackend,
-        est, bits; prefer_tracked = false)
+        est, bits; prefer_tracked = true)
     optimizer = Optimizer(bits...)
     optimizer = optimizer === nothing ? inherited_reference_optimizer(bits) : optimizer
     optimizer === nothing && throw(ArgumentError(
@@ -134,6 +144,6 @@ reference_optimizer(::AbilityIntegrator) = nothing
 reference_optimizer(integral::LogFunctionIntegrator) = integral.optimizer
 
 function build_ability_integrator(::LogSpace, backend::Integrator,
-        est, bits; prefer_tracked = false)
+        est, bits; prefer_tracked = true)
     throw(ArgumentError("No log-space ability integrator supports $(typeof(backend)); supply a supported backend or an explicit AbilityIntegrator"))
 end
