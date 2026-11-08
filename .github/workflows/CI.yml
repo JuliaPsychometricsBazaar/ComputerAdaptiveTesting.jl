@@ -49,9 +49,24 @@ jobs:
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
-      - uses: coverallsapp/github-action@v2
-        with:
-          file: lcov.info
+      - name: Upload coverage to Coveralls
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_SOURCE_HEADER: github-action
+        run: |
+          # v0.6.22: use the asset API to avoid failing release-page redirects.
+          reporter_dir="${RUNNER_TEMP}/coveralls-v0.6.22"
+          mkdir -p "$reporter_dir"
+          curl --fail --location --silent --show-error --retry 5 --retry-all-errors \
+            --connect-timeout 15 --max-time 60 \
+            --header 'Accept: application/octet-stream' \
+            --output "$reporter_dir/coveralls.tar.gz" \
+            https://api.github.com/repos/coverallsapp/coverage-reporter/releases/assets/521399808
+          printf '%s  %s\n' \
+            cd042b63bcb2c03fd0fd3372c040507331f5013a997828071e2ab7f9584fc7d6 \
+            "$reporter_dir/coveralls.tar.gz" | sha256sum --check
+          tar -xzf "$reporter_dir/coveralls.tar.gz" -C "$reporter_dir"
+          "$reporter_dir/coveralls" report lcov.info
   docs:
     name: Documentation
     runs-on: ubuntu-latest
