@@ -12,9 +12,10 @@ using PsychometricsBazaarBase: Integrators
 
 function setup(; space = LinSpace(), backend = Integrators.FixedGridIntegrator,
         n = 24, history_length = 6,
+        points = collect(range(-4, 4; length = 33)),
         bank = GuessAndSlipItemBank(fill(0.12, n), fill(0.08, n),
             ItemBank2PL(collect(range(-2, 2; length = n)), fill(1.4, n))))
-    grid = backend(collect(range(-4, 4; length = 33)))
+    grid = backend(points)
     dist = PosteriorAbilityEstimator(space)
     tracker = AbilityTracker(GriddedAbilityTracker, dist, grid)
     integral = AbilityIntegrator(grid, tracker)
@@ -76,6 +77,24 @@ function FittedItemBanks.log_resp_vec(ir::ItemResponse{<:CountedBank}, theta)
 end
 
 @testset "Prepared fixed-grid MEPV" begin
+    @testset "Range coordinates are materialized once per scan" begin
+        for space in (LinSpace(), LogSpace()),
+                backend in (Integrators.FixedGridIntegrator, Integrators.IterativeFixedGridIntegrator),
+                points in (range(-4., 4.; length=33), LinRange(-4., 4., 33))
+            config = setup(; space, backend, points)
+            state = init_thread(config.criterion, config.history)
+            @test state.grid isa Vector{Float64}
+            @test state.grid == [points[i] for i in eachindex(points)]
+            @test Integrators.get_grid(config.grid) isa AbstractRange
+            actual = [compute_criterion(config.criterion, state, config.history, i)
+                      for i in eachindex(config.bank)]
+            @test actual ≈ generic_values(config.reference, config.history) rtol=1e-12
+        end
+        points = collect(range(-4., 4.; length=33))
+        config = setup(; points)
+        @test init_thread(config.criterion, config.history).grid === points
+    end
+
     @testset "$space / $backend" for space in (LinSpace(), LogSpace()),
             backend in (Integrators.FixedGridIntegrator, Integrators.IterativeFixedGridIntegrator)
         (; history, criterion, reference, tracker) = setup(; space, backend)

@@ -17,12 +17,17 @@ end
 
 prepare_grid_mepv(criterion, history, domain, delta, integrator) = Speculator(history, 1)
 
+# Reuse range coordinates across candidates instead of recomputing them in each
+# response and moment loop. Other grid containers retain their representation.
+prepare_mepv_grid(grid) = grid
+prepare_mepv_grid(grid::AbstractRange) = collect(grid)
+
 function prepare_grid_mepv(criterion, history, ::OneDimContinuousDomain,
         ::MultiplicativeResponseDelta,
         integrator::Union{
             Aggregators.TrackedLikelihoodIntegrator{<:Aggregators.ScalarGridIntegrator},
             LogGridIntegrator{<:Aggregators.ScalarGridIntegrator}})
-    grid = Integrators.get_grid(get_integrator(integrator))
+    grid = prepare_mepv_grid(Integrators.get_grid(get_integrator(integrator)))
     density = deepcopy(Aggregators.grid_density(criterion.criterion.dist_est, history, integrator))
     theta = criterion.response_expectation.ability_estimator(history)
     PreparedGridMEPV(grid, density, theta,
