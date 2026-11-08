@@ -1,8 +1,8 @@
 const EqualWeightGridIntegrator = Union{FixedGridIntegrator,
     PreallocatedFixedGridIntegrator, Integrators.IterativeFixedGridIntegrator}
-const ScalarGridIntegrator = Union{FixedGridIntegrator{Vector{Float64}},
-    PreallocatedFixedGridIntegrator{Vector{Float64}},
-    Integrators.IterativeFixedGridIntegrator{Vector{Float64}}}
+const ScalarGridIntegrator = Union{FixedGridIntegrator{<:AbstractVector{Float64}},
+    PreallocatedFixedGridIntegrator{<:AbstractVector{Float64}},
+    Integrators.IterativeFixedGridIntegrator{<:AbstractVector{Float64}}}
 const TabulatedDichotomousBank = Union{FittedItemBanks.DichotomousPointsItemBank,
     FittedItemBanks.DichotomousPointsWithLogsItemBank}
 
