@@ -181,7 +181,10 @@ directly into that scratch buffer in both linear and log space.
 MEPV with a `MeanAbilityEstimator` and a scalar tracked grid automatically
 prepares a scan: EAP is computed once, and candidate densities reuse private
 buffers. Linear and log-space variances use PsychometricsBazaarBase's centered
-two-pass moments. Explicit variance denominators remain absolute masses.
+two-pass moments. For transfer banks with stable ordinary response pairs
+(including guess/slip wrappers), linear scans share the outcome probabilities
+and fuse candidate weighting with the first moment pass. Other banks retain
+the scalar response fallback. Explicit variance denominators remain absolute masses.
 Other criteria, non-scalar grids, and estimators without multiplicative response
 updates use the generic speculative path. A context returned by `init_thread`
 belongs to one scan and history; create a new context after changing responses.
@@ -189,8 +192,7 @@ belongs to one scan and history; create a new context after changing responses.
 For binary log-space scans, both hypothetical outcomes are evaluated together
 with FittedItemBanks' native `log_resp_vec`, using separate reusable buffers.
 This preserves rare outcomes even when ordinary probabilities round to zero.
-Linear scans keep scalar response evaluations because `resp_vec` can form
-`1-p` and lose a small complement. Other response types keep the per-outcome path.
+Other response types keep the per-outcome path.
 
 Both grid trackers require the estimator to declare the multiplicative density
 contract via `response_delta_style(dist) == MultiplicativeResponseDelta()`:

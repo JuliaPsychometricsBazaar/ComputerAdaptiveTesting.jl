@@ -58,10 +58,14 @@ Base.length(bank::CountedBank) = length(bank.inner)
 FittedItemBanks.DomainType(bank::CountedBank) = DomainType(bank.inner)
 FittedItemBanks.ResponseType(bank::CountedBank) = ResponseType(bank.inner)
 FittedItemBanks.domdims(bank::CountedBank) = domdims(bank.inner)
-FittedItemBanks.resp(ir::ItemResponse{<:CountedBank}, category, theta) =
+function FittedItemBanks.resp(ir::ItemResponse{<:CountedBank}, category, theta)
+    ir.item_bank.scalar_calls[] += 1
     resp(ItemResponse(ir.item_bank.inner, ir.index), category, theta)
-FittedItemBanks.resp_vec(ir::ItemResponse{<:CountedBank}, theta) =
+end
+function FittedItemBanks.resp_vec(ir::ItemResponse{<:CountedBank}, theta)
+    ir.item_bank.vector_calls[] += 1
     resp_vec(ItemResponse(ir.item_bank.inner, ir.index), theta)
+end
 function FittedItemBanks.log_resp(ir::ItemResponse{<:CountedBank}, category, theta)
     ir.item_bank.scalar_calls[] += 1
     log_resp(ItemResponse(ir.item_bank.inner, ir.index), category, theta)
@@ -87,6 +91,8 @@ end
         if space == LinSpace()
             @test prepared.density !== tracker.density
             @test prepared.scratch !== other.scratch
+            @test prepared.scratch[1] !== other.scratch[1]
+            @test prepared.scratch[1] !== prepared.scratch[2]
             @test tracker.density == original
         else
             @test prepared.density.log_values !== tracker.density.log_values
@@ -180,9 +186,9 @@ end
         (; history, criterion, reference) = setup(; space = LogSpace(), bank,
             n = length(bank), history_length = 2)
         state = init_thread(criterion, history)
-        # At these tails the ordinary vector loses a complement, but both
-        # native log outcomes remain finite (even beyond exp's underflow).
-        @test resp_vec(ItemResponse(bank, 3), 0.0)[1] == 0.0
+        # Ordinary pairs now retain representable tails. Native log outcomes
+        # also remain finite beyond the range of ordinary probabilities.
+        @test resp_vec(ItemResponse(bank, 3), 0.0)[1] > 0.0
         @test exp(log_resp_vec(ItemResponse(bank, 3), 0.0)[1]) > 0.0
         @test all(isfinite, log_resp_vec(ItemResponse(bank, 5), 0.0))
         bank.scalar_calls[] = bank.vector_calls[] = 0
@@ -206,6 +212,43 @@ end
             @test actual ≈ compute_criterion(reference, Speculator(history, 1), history, i) rtol=1e-12
         end
         @test state.density.log_values == original_logs
+    end
+
+    @testset "Shared linear responses and scalar fallback" begin
+        bank = ItemBank2PL([-2., 2., -40., 40.], ones(4))
+        (; history, criterion, reference) = setup(; bank, n=4, history_length=2)
+        state = init_thread(criterion, history)
+        @test state.scratch isa NTuple{2, AbstractVector}
+        before = copy(state.density)
+        @test compute_criteria(criterion, history) ≈ generic_values(reference, history) rtol=1e-12
+        @test state.density == before
+        # The tiny opposite-outcome density is retained, rather than rounded to zero.
+        compute_criterion(criterion, state, history, 3)
+        @test all(>(0), state.scratch[1])
+
+        counted = CountedBank(bank, Ref(0), Ref(0))
+        custom = setup(; bank=counted, n=4, history_length=2)
+        fallback = init_thread(custom.criterion, custom.history)
+        @test fallback.scratch isa AbstractVector
+        counted.scalar_calls[] = counted.vector_calls[] = 0
+        compute_criterion(custom.criterion, fallback, custom.history, 3)
+        @test counted.scalar_calls[] == 2length(fallback.grid)
+        @test counted.vector_calls[] == 1
+        @test compute_criteria(custom.criterion, custom.history) ≈
+              generic_values(custom.reference, custom.history) rtol=1e-12
+
+        certain = GuessAndSlipItemBank(ones(1), zeros(1), ItemBank2PL([0.], [1.]))
+        zero_case = setup(; bank=certain, n=1, history_length=0)
+        ordinary = zero_case.criterion
+        zero_state = init_thread(ordinary, zero_case.history)
+        @test_throws DomainError compute_criterion(ordinary, zero_state, zero_case.history, 1)
+        variance = ordinary.criterion
+        skipping = ExpectationBasedItemCriterion(ordinary.response_expectation,
+            AbilityVariance(variance.dist_est, variance.integrator, true))
+        skip_state = init_thread(skipping, zero_case.history)
+        @test isequal(compute_criterion(skipping, skip_state, zero_case.history, 1),
+            NextItemRules.candidate_expected_variance(skipping.criterion, skip_state,
+                ItemResponse(certain, 1), first(skip_state.scratch)))
     end
 
     @testset "Polytomous per-outcome fallback" begin

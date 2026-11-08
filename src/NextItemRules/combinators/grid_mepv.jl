@@ -26,15 +26,25 @@ function prepare_grid_mepv(criterion, history, ::OneDimContinuousDomain,
     density = deepcopy(Aggregators.grid_density(criterion.criterion.dist_est, history, integrator))
     theta = criterion.response_expectation.ability_estimator(history)
     PreparedGridMEPV(grid, density, theta,
-        candidate_grid_scratch(density, ResponseType(history.item_bank)))
+        candidate_grid_scratch(density, ResponseType(history.item_bank), history.item_bank))
 end
 
 candidate_grid_scratch(density, response_type) = deepcopy(density)
+candidate_grid_scratch(density, response_type, bank) = candidate_grid_scratch(density, response_type)
 
-# The native vector log-response API preserves both tails. The ordinary
-# resp_vec API may form 1-p, so linear scans retain separate scalar evaluations.
+# Native vector log responses preserve both tails for all supported banks.
 candidate_grid_scratch(density::Integrators.LogGridWeights, ::BooleanResponse) =
     (deepcopy(density), deepcopy(density))
+
+# Only opt into paired ordinary responses where FIB preserves both tails.
+# Custom banks retain scalar evaluation: their resp_vec may still form 1-p.
+candidate_grid_scratch(density::AbstractVector, ::BooleanResponse, bank) =
+    candidate_linear_scratch(density, bank)
+candidate_linear_scratch(density, bank::AbstractItemBank) = deepcopy(density)
+candidate_linear_scratch(density, bank::Union{TransferItemBank, SlopeInterceptTransferItemBank,
+    CdfMirtItemBank, SlopeInterceptMirtItemBank}) = (deepcopy(density), deepcopy(density))
+candidate_linear_scratch(density, bank::GuessAndSlipItemBank) =
+    candidate_linear_scratch(density, bank.inner_bank)
 
 function candidate_grid_density!(scratch::AbstractVector, density::AbstractVector,
         ir, category, grid)
@@ -66,6 +76,17 @@ function candidate_expected_variance(criterion, state, ir, scratch)
         value += probability * candidate_grid_variance(criterion, state.grid, density)
     end
     value
+end
+
+function candidate_expected_variance(criterion, state, ir,
+        scratch::NTuple{2, AbstractVector})
+    # Preserve the existing per-outcome Inf convention for zero-mass outcomes.
+    # The fused numerical summary deliberately rejects zero-mass channels.
+    criterion.skip_zero && return candidate_expected_variance(criterion, state, ir, first(scratch))
+    summaries = Integrators.weighted_grid_moments!(x -> resp_vec(ir, x),
+        state.grid, state.density, scratch)
+    probabilities = resp_vec(ir, state.theta)
+    probabilities[1] * summaries[1].variance + probabilities[2] * summaries[2].variance
 end
 
 function candidate_grid_densities!(scratch::NTuple{2, Integrators.LogGridWeights},
