@@ -81,7 +81,7 @@ end
 function candidate_expected_variance(criterion, state, ir,
         scratch::NTuple{2, AbstractVector})
     # Preserve the existing per-outcome Inf convention for zero-mass outcomes.
-    # The fused numerical summary deliberately rejects zero-mass channels.
+    # The shared numerical summary deliberately rejects zero-mass channels.
     criterion.skip_zero && return candidate_expected_variance(criterion, state, ir, first(scratch))
     summaries = Integrators.weighted_grid_moments!(x -> resp_vec(ir, x),
         state.grid, state.density, scratch)
