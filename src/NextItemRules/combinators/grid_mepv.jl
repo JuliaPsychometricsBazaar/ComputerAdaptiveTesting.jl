@@ -102,10 +102,11 @@ end
 
 function candidate_expected_variance(criterion, state, ir,
         scratch::LogGridMEPVScratch)
-    summaries = Integrators.weighted_log_grid_moments!(x -> log_resp_vec(ir, x),
+    log_probabilities = log_resp_vec(ir)
+    summaries = Integrators.weighted_log_grid_moments!(log_probabilities,
         state.grid, state.density.log_values,
         scratch.logs, scratch.weights; skip_checks=true)
-    probabilities = exp.(log_resp_vec(ir, state.theta))
+    probabilities = exp.(log_probabilities(state.theta))
     probabilities[1] * summaries[1].variance + probabilities[2] * summaries[2].variance
 end
 
