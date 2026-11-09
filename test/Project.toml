@@ -12,3 +12,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 [compat]
 Aqua = "^0.8.16"
 JET = "0.11.5, 0.12"
+
+[sources]
+FittedItemBanks = {url = "https://github.com/JuliaPsychometricsBazaar/FittedItemBanks.jl", rev = "codex/shared-log-response-pairs"}
+PsychometricsBazaarBase = {url = "https://github.com/JuliaPsychometricsBazaar/PsychometricsBazaarBase.jl", rev = "codex/fused-log-grid-moments"}

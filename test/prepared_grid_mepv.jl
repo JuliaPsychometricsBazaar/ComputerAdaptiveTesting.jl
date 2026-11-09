@@ -115,8 +115,8 @@ end
             @test tracker.density == original
         else
             @test prepared.density.log_values !== tracker.density.log_values
-            @test prepared.scratch[1].weights !== other.scratch[1].weights
-            @test prepared.scratch[1].weights !== prepared.scratch[2].weights
+            @test prepared.scratch.weights[1] !== other.scratch.weights[1]
+            @test prepared.scratch.weights[1] !== prepared.scratch.weights[2]
             @test tracker.density.log_values == original.log_values
             @test tracker.density.weights == original.weights
         end
@@ -218,15 +218,13 @@ end
         original_logs = copy(state.density.log_values)
         for i in 3:6
             ir = ItemResponse(bank, i)
-            densities = NextItemRules.candidate_grid_densities!(
-                state.scratch, state.density, ir, state.grid)
-            for (density, category) in zip(densities, responses(ir))
-                @test density.log_values ≈ original_logs .+ log_resp.(Ref(ir), category, state.grid)
-                @test all(isfinite, density.weights)
-                @test sum(density.weights) ≈ 1.0
-                @test isfinite(Integrators.weighted_grid_moments(state.grid, density).variance)
-            end
             actual = compute_criterion(criterion, state, history, i)
+            for (logs, weights, category) in zip(state.scratch.logs, state.scratch.weights, responses(ir))
+                @test logs ≈ original_logs .+ log_resp.(Ref(ir), category, state.grid)
+                @test all(isfinite, weights)
+                @test maximum(weights) ≈ 1.0
+                @test isfinite(Integrators.weighted_grid_moments(state.grid, weights).variance)
+            end
             @test isfinite(actual)
             @test actual ≈ compute_criterion(reference, Speculator(history, 1), history, i) rtol=1e-12
         end

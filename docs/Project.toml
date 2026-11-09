@@ -26,3 +26,7 @@ RIrtWrappers = "3c499bf4-8795-40ff-83c0-5639be88f347"
 UrlDownload = "856ac37a-3032-4c1c-9122-f86d88358c8b"
 WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
 ZipFile = "a5390f91-8eb1-5f08-bee0-b1d1ffed6cea"
+
+[sources]
+FittedItemBanks = {url = "https://github.com/JuliaPsychometricsBazaar/FittedItemBanks.jl", rev = "codex/shared-log-response-pairs"}
+PsychometricsBazaarBase = {url = "https://github.com/JuliaPsychometricsBazaar/PsychometricsBazaarBase.jl", rev = "codex/fused-log-grid-moments"}
