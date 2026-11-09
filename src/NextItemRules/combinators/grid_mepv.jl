@@ -50,9 +50,11 @@ candidate_grid_scratch(density::Integrators.LogGridWeights, ::BooleanResponse) =
 # Custom banks retain scalar evaluation: their resp_vec may still form 1-p.
 candidate_grid_scratch(density::AbstractVector, ::BooleanResponse, bank) =
     candidate_linear_scratch(density, bank)
+const NativeResponsePairBanks = Union{TransferItemBank, SlopeInterceptTransferItemBank,
+    CdfMirtItemBank, SlopeInterceptMirtItemBank}
 candidate_linear_scratch(density, bank::AbstractItemBank) = deepcopy(density)
-candidate_linear_scratch(density, bank::Union{TransferItemBank, SlopeInterceptTransferItemBank,
-    CdfMirtItemBank, SlopeInterceptMirtItemBank}) = (deepcopy(density), deepcopy(density))
+candidate_linear_scratch(density, bank::NativeResponsePairBanks) =
+    (deepcopy(density), deepcopy(density))
 candidate_linear_scratch(density, bank::GuessAndSlipItemBank) =
     candidate_linear_scratch(density, bank.inner_bank)
 
@@ -100,13 +102,20 @@ function candidate_expected_variance(criterion, state, ir,
     probabilities[1] * summaries[1].variance + probabilities[2] * summaries[2].variance
 end
 
+# Avoid a log/exp round trip only for banks whose ordinary pair preserves tails.
+# Custom banks and logarithmic wrappers retain the native-log fallback.
+point_response_probabilities(ir, theta, logs, bank) = exp.(logs(theta))
+point_response_probabilities(ir, theta, logs, bank::NativeResponsePairBanks) = resp_vec(ir, theta)
+point_response_probabilities(ir, theta, logs, bank::GuessAndSlipItemBank) =
+    point_response_probabilities(ir, theta, logs, bank.inner_bank)
+
 function candidate_expected_variance(criterion, state, ir,
         scratch::LogGridMEPVScratch)
     log_probabilities = log_resp_vec(ir)
     summaries = Integrators.weighted_log_grid_moments!(log_probabilities,
         state.grid, state.density.log_values,
         scratch.logs, scratch.weights; skip_checks=true)
-    probabilities = exp.(log_probabilities(state.theta))
+    probabilities = point_response_probabilities(ir, state.theta, log_probabilities, ir.item_bank)
     probabilities[1] * summaries[1].variance + probabilities[2] * summaries[2].variance
 end
 

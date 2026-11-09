@@ -28,5 +28,5 @@ WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
 ZipFile = "a5390f91-8eb1-5f08-bee0-b1d1ffed6cea"
 
 [sources]
-FittedItemBanks = {url = "https://github.com/JuliaPsychometricsBazaar/FittedItemBanks.jl", rev = "ad929b52a2e8271a88963205c3565523497e7602"}
+FittedItemBanks = {url = "https://github.com/JuliaPsychometricsBazaar/FittedItemBanks.jl", rev = "c2a882bdd50d0b41b39679d13bfe1fb577649947"}
 PsychometricsBazaarBase = {url = "https://github.com/JuliaPsychometricsBazaar/PsychometricsBazaarBase.jl", rev = "3e230268e2a9ca78837774eba277faf9fe88d8ba"}

@@ -231,6 +231,16 @@ end
         @test state.density.log_values == original_logs
     end
 
+    @testset "Logarithmic item wrappers retain floating criteria" begin
+        ordinary = setup(; space=LogSpace())
+        wrapped = setup(; space=LogSpace(), bank=LogItemBank(ordinary.bank))
+        state = init_thread(wrapped.criterion, wrapped.history)
+        actual = [compute_criterion(wrapped.criterion, state, wrapped.history, i)
+                  for i in eachindex(wrapped.bank)]
+        @test eltype(actual) == Float64
+        @test actual ≈ compute_criteria(ordinary.criterion, ordinary.history) rtol=1e-12
+    end
+
     @testset "Shared linear responses and scalar fallback" begin
         bank = ItemBank2PL([-2., 2., -40., 40.], ones(4))
         (; history, criterion, reference) = setup(; bank, n=4, history_length=2)
