@@ -31,14 +31,19 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - name: Isolate the test workspace from documentation dependencies
+        id: project
         run: |
           julia -e '
             using TOML
             project = TOML.parsefile("Project.toml")
+            open(ENV["GITHUB_OUTPUT"], "a") do io
+              println(io, "has_sources=", !isempty(get(project, "sources", Dict())))
+            end
             project["workspace"]["projects"] = ["test"]
             open(io -> TOML.print(io, project), "Project.toml", "w")'
       - uses: julia-actions/julia-downgrade-compat@v2
-        if: ${{ matrix.version == '1.12' }}
+        # Resume minimum-version testing after replacing draft sources with releases.
+        if: ${{ matrix.version == '1.12' && steps.project.outputs.has_sources != 'true' }}
         with:
           projects: '.,test'
       - uses: julia-actions/cache@v1

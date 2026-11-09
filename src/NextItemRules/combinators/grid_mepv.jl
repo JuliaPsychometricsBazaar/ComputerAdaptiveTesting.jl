@@ -88,8 +88,9 @@ function candidate_expected_variance(criterion, state, ir,
     # Preserve the existing per-outcome Inf convention for zero-mass outcomes.
     # The shared numerical summary deliberately rejects zero-mass channels.
     criterion.skip_zero && return candidate_expected_variance(criterion, state, ir, first(scratch))
+    # Prepared buffers are disjoint and equally indexed; these banks return a pair.
     summaries = Integrators.weighted_grid_moments!(x -> resp_vec(ir, x),
-        state.grid, state.density, scratch)
+        state.grid, state.density, scratch; skip_checks=true)
     probabilities = resp_vec(ir, state.theta)
     probabilities[1] * summaries[1].variance + probabilities[2] * summaries[2].variance
 end
