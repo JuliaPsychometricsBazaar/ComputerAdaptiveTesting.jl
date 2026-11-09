@@ -65,5 +65,5 @@ Test = "^1.11"
 julia = "^1.12"
 
 [sources]
-FittedItemBanks = {url = "https://github.com/JuliaPsychometricsBazaar/FittedItemBanks.jl", rev = "codex/shared-log-response-pairs"}
-PsychometricsBazaarBase = {url = "https://github.com/JuliaPsychometricsBazaar/PsychometricsBazaarBase.jl", rev = "codex/fused-log-grid-moments"}
+FittedItemBanks = {url = "https://github.com/JuliaPsychometricsBazaar/FittedItemBanks.jl", rev = "ad929b52a2e8271a88963205c3565523497e7602"}
+PsychometricsBazaarBase = {url = "https://github.com/JuliaPsychometricsBazaar/PsychometricsBazaarBase.jl", rev = "3e230268e2a9ca78837774eba277faf9fe88d8ba"}
