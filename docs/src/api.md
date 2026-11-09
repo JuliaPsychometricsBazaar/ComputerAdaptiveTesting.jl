@@ -172,27 +172,8 @@ the posterior peak: stable normalization does not correct quadrature error.
 `AbilityIntegrator(grid, tracker)` infers the distribution from the tracker and
 selects the tracked adapter. It supports fixed, preallocated and iterative
 equal-weight grids, including multidimensional grids and vector/matrix moments.
-Use `preallocate(FixedFirstItem(1, rule))` to prepare the inner rule's integration
-buffers, including its point or distribution response expectation. Shared grid
-trackers remain shared after `preallocate`. Speculation refreshes its private
-density once per hypothetical history; analytic response deltas are evaluated
-directly into that scratch buffer in both linear and log space.
-
-MEPV with a `MeanAbilityEstimator` and a scalar tracked grid automatically
-prepares a scan: EAP is computed once, and candidate densities reuse private
-buffers. Linear and log-space variances use PsychometricsBazaarBase's centered
-two-pass moments. For transfer banks with stable ordinary response pairs
-(including guess/slip wrappers), linear scans share outcome probability
-evaluations. Other banks retain
-the scalar response fallback. Explicit variance denominators remain absolute masses.
-Other criteria, non-scalar grids, and estimators without multiplicative response
-updates use the generic speculative path. A context returned by `init_thread`
-belongs to one scan and history; create a new context after changing responses.
-
-For binary log-space scans, both hypothetical outcomes are evaluated together
-with FittedItemBanks' native `log_resp_vec`, using separate reusable buffers.
-This preserves rare outcomes even when ordinary probabilities round to zero.
-Other response types keep the per-outcome path.
+The scalar preallocated path applies speculative probabilities during its
+integration pass. Shared trackers remain shared after `preallocate`.
 
 Both grid trackers require the estimator to declare the multiplicative density
 contract via `response_delta_style(dist) == MultiplicativeResponseDelta()`:
