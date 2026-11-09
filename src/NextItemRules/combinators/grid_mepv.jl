@@ -27,29 +27,55 @@ function prepare_grid_mepv(criterion, history, ::OneDimContinuousDomain,
         integrator::Union{
             Aggregators.TrackedLikelihoodIntegrator{<:Aggregators.ScalarGridIntegrator},
             LogGridIntegrator{<:Aggregators.ScalarGridIntegrator}})
-    grid = prepare_mepv_grid(Integrators.get_grid(get_integrator(integrator)))
+    coordinates = Integrators.get_grid(get_integrator(integrator))
+    bank = history.item_bank
+    paired = paired_mepv_bank(bank)
+    # Custom banks retain their existing Float64 path. On Float32 grids
+    # speculation can accommodate wider responses without rounding them.
+    eltype(coordinates) === Float32 && !paired && return Speculator(history, 1)
+    grid = prepare_mepv_grid(coordinates)
     density = deepcopy(Aggregators.grid_density(criterion.criterion.dist_est, history, integrator))
+    scratch = if paired
+        T = candidate_factor_type(density, bank, eltype(grid))
+        isconcretetype(T) || return Speculator(history, 1)
+        candidate_pair_scratch(density, T)
+    else
+        candidate_grid_scratch(density, ResponseType(bank))
+    end
     theta = criterion.response_expectation.ability_estimator(history)
-    PreparedGridMEPV(grid, density, theta,
-        candidate_grid_scratch(density, ResponseType(history.item_bank), history.item_bank))
+    PreparedGridMEPV(grid, density, theta, scratch)
+end
+
+const PairedMEPVBank = Union{TransferItemBank, SlopeInterceptTransferItemBank,
+    CdfMirtItemBank, SlopeInterceptMirtItemBank}
+paired_mepv_bank(::AbstractItemBank) = false
+paired_mepv_bank(::PairedMEPVBank) = true
+paired_mepv_bank(bank::GuessAndSlipItemBank) = paired_mepv_bank(bank.inner_bank)
+
+function candidate_factor_type(density, bank, coordinate_type)
+    response_pair = density isa Integrators.LogGridWeights ? log_resp_vec : resp_vec
+    # A bank with abstractly typed parameters may vary precision by item.
+    # Specialize the buffers only if one factor type covers the entire scan.
+    eltype(Base.promote_op(response_pair, ItemResponse{typeof(bank)}, coordinate_type))
+end
+
+function candidate_pair_scratch(density::AbstractVector, factor_type)
+    T = promote_type(eltype(density), factor_type)
+    (similar(density, T), similar(density, T))
+end
+
+function candidate_pair_scratch(density::Integrators.LogGridWeights, factor_type)
+    T = promote_type(eltype(density.log_values), factor_type)
+    template = T === eltype(density.log_values) ? density :
+        Integrators.LogGridWeights(T.(density.log_values))
+    (deepcopy(template), deepcopy(template))
 end
 
 candidate_grid_scratch(density, response_type) = deepcopy(density)
-candidate_grid_scratch(density, response_type, bank) = candidate_grid_scratch(density, response_type)
 
 # Native vector log responses preserve both tails for all supported banks.
 candidate_grid_scratch(density::Integrators.LogGridWeights, ::BooleanResponse) =
     (deepcopy(density), deepcopy(density))
-
-# Only opt into paired ordinary responses where FIB preserves both tails.
-# Custom banks retain scalar evaluation: their resp_vec may still form 1-p.
-candidate_grid_scratch(density::AbstractVector, ::BooleanResponse, bank) =
-    candidate_linear_scratch(density, bank)
-candidate_linear_scratch(density, bank::AbstractItemBank) = deepcopy(density)
-candidate_linear_scratch(density, bank::Union{TransferItemBank, SlopeInterceptTransferItemBank,
-    CdfMirtItemBank, SlopeInterceptMirtItemBank}) = (deepcopy(density), deepcopy(density))
-candidate_linear_scratch(density, bank::GuessAndSlipItemBank) =
-    candidate_linear_scratch(density, bank.inner_bank)
 
 function candidate_grid_density!(scratch::AbstractVector, density::AbstractVector,
         ir, category, grid)
@@ -75,7 +101,7 @@ end
 
 function candidate_expected_variance(criterion, state, ir, scratch)
     probabilities = resp_vec(ir, state.theta)
-    value = 0.0
+    value = zero(state.theta)
     for (probability, category) in zip(probabilities, responses(ir))
         density = candidate_grid_density!(scratch, state.density, ir, category, state.grid)
         value += probability * candidate_grid_variance(criterion, state.grid, density)
@@ -115,7 +141,7 @@ function candidate_expected_variance(criterion, state, ir,
 end
 
 function candidate_grid_variance(criterion, grid, density::AbstractVector)
-    criterion.skip_zero && all(iszero, density) && return Inf
+    criterion.skip_zero && all(iszero, density) && return oftype(float(zero(eltype(density))), Inf)
     Integrators.weighted_grid_moments(grid, density).variance
 end
 

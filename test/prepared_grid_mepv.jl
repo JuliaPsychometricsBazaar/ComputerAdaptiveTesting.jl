@@ -1,9 +1,10 @@
 module PreparedGridMEPVTests
 
 using Test
-using Distributions: Normal, pdf, logpdf
+using Distributions: Logistic, Normal, pdf, logpdf
 import Distributions
-using ComputerAdaptiveTesting: Aggregators, NextItemRules
+using ComputerAdaptiveTesting: Aggregators, NextItemRules, Stateful, TerminationConditions
+using ComputerAdaptiveTesting.Rules: CatRules
 using ComputerAdaptiveTesting.Aggregators
 using ComputerAdaptiveTesting.NextItemRules
 using ComputerAdaptiveTesting.Responses
@@ -37,6 +38,120 @@ end
 function generic_values(criterion, history)
     spec = Speculator(history, 1)
     [compute_criterion(criterion, spec, history, i) for i in eachindex(history.item_bank)]
+end
+
+function reference_2pl(grid, prior, difficulties, slopes, history)
+    xs = Float64.(grid)
+    p(i, x, y) = inv(1 + exp((y ? -1 : 1) * slopes[i] * (x - difficulties[i])))
+    density = [pdf(prior, x) * prod(p(r.index, x, r.value) for r in history; init=1.0)
+               for x in xs]
+    theta = sum(xs .* density) / sum(density)
+    scores = map(eachindex(difficulties)) do i
+        sum((false, true)) do y
+            weights = density .* p.(i, xs, y)
+            mean = sum(xs .* weights) / sum(weights)
+            p(i, theta, y) * sum(weights .* (xs .- mean).^2) / sum(weights)
+        end
+    end
+    (; density, theta, scores)
+end
+
+density_values(density::AbstractVector) = density
+density_values(density::Integrators.LogGridWeights) = exp.(density.log_values)
+density_eltype(density::AbstractVector) = eltype(density)
+density_eltype(density::Integrators.LogGridWeights) = eltype(density.weights)
+
+@testset "Float32 fixed-grid MEPV" for space in (LinSpace(), LogSpace())
+    xs = range(-4f0, 4f0; length=33)
+    grid = Integrators.FixedGridIntegrator(xs)
+    prior = Normal(0.35f0, 1.1f0)
+    difficulties = Float32[-1.7, -0.9, -0.3, 0.6, 1.4, 2.1]
+    slopes = Float32[0.9, 1.6, 1.1, 1.4, 1.3, 0.8]
+    bank = TransferItemBank(Logistic(0f0, 1f0), difficulties, slopes)
+    dist = PosteriorAbilityEstimator(prior, space)
+    tracker = AbilityTracker(GriddedAbilityTracker, dist, grid)
+    integral = AbilityIntegrator(grid, tracker)
+    point = MeanAbilityEstimator(dist, integral)
+    rules = preallocate(CatRules(; ability_estimator=point,
+        next_item=ItemCriterionRule(point, AbilityVariance(dist, integral)),
+        termination_condition=TerminationConditions.RunForever()))
+    cat = Stateful.StatefulCat(rules, bank)
+    history = cat.tracked_responses[]
+    criterion = cat.rules.next_item.criterion
+
+    function check(history, committed)
+        ref = reference_2pl(xs, prior, difficulties, slopes, history.responses)
+        state = init_thread(criterion, history)
+        @test state isa NextItemRules.PreparedGridMEPV
+        @test state.grid isa Vector{Float32}
+        @test state.theta isa Float32
+        @test state.theta ≈ ref.theta atol=2e-6
+        @test density_eltype(state.density) === Float32
+        @test density_values(state.density) ≈ ref.density rtol=2e-6
+        @test all(s -> density_eltype(s) === Float32, state.scratch)
+        actual = committed ? Stateful.item_criteria(cat) : compute_criteria(criterion, history)
+        @test eltype(actual) === Float32
+        @test actual ≈ ref.scores rtol=3e-6
+        if committed
+            available = setdiff(eachindex(bank), history.responses.indices)
+            @test Stateful.next_item(cat) == available[argmin(ref.scores[available])]
+        end
+    end
+
+    likelihood = AbilityLikelihood(bank, history.responses)
+    loglikelihood = AbilityLogLikelihood(likelihood)
+    @test likelihood(0f0) === 1f0
+    @test loglikelihood(0f0) === 0f0
+    track!(history)
+    @test density_eltype(tracker.density) === Float32
+    check(history, true)
+
+    for (i, outcome) in ((1, true), (2, false))
+        Stateful.add_response!(cat, i, outcome)
+        @test likelihood(0f0) isa Float32
+        @test loglikelihood(0f0) isa Float32
+        @test density_eltype(tracker.density) === Float32
+        check(history, true)
+    end
+    committed_density = copy(density_values(tracker.density))
+    spec = Speculator(history, 1)
+    for outcome in (true, false)
+        replace_speculation!(spec, [3], [outcome])
+        @test density_eltype(spec.responses.ability_tracker.head.scratch) === Float32
+        check(spec.responses, false)
+        @test density_values(tracker.density) == committed_density
+    end
+    Stateful.rollback!(cat)
+    check(history, true)
+    Stateful.reset!(cat)
+    check(history, true)
+    add_response!(history.responses, Response(ResponseType(bank), 4, true))
+    track!(history)
+    check(history, true)
+
+    # A wider prior and a wider bank both promote the computation. In the
+    # latter case, the empty cache itself still uses the Float32 prior.
+    for wide_prior in (true, false)
+        mixed_dist = PosteriorAbilityEstimator(wide_prior ? Normal() : prior, space)
+        mixed_bank = wide_prior ? bank :
+            TransferItemBank(Logistic(), Float64.(difficulties), Float64.(slopes))
+        mixed_tracker = AbilityTracker(GriddedAbilityTracker, mixed_dist, grid)
+        mixed_integral = AbilityIntegrator(grid, mixed_tracker)
+        mixed_point = MeanAbilityEstimator(mixed_dist, mixed_integral)
+        mixed_criterion = ExpectationBasedItemCriterion(PointResponseExpectation(mixed_point),
+            AbilityVariance(mixed_dist, mixed_integral))
+        mixed = TrackedResponses(BareResponses(ResponseType(mixed_bank)), mixed_bank, mixed_tracker)
+        track!(mixed)
+        @test density_eltype(mixed_tracker.density) === (wide_prior ? Float64 : Float32)
+        @test all(s -> density_eltype(s) === Float64, init_thread(mixed_criterion, mixed).scratch)
+        mixed_spec = Speculator(mixed, 1)
+        replace_speculation!(mixed_spec, [1], [true])
+        @test mixed_point(mixed_spec.responses) isa Float64
+        @test density_eltype(mixed_spec.responses.ability_tracker.scratch) === Float64
+        add_response!(mixed, Response(ResponseType(mixed_bank), 1, true))
+        @test density_eltype(mixed_tracker.density) === Float64
+        @test eltype(compute_criteria(mixed_criterion, mixed)) === Float64
+    end
 end
 
 struct CountedPosterior <: DistributionAbilityEstimator
@@ -255,6 +370,11 @@ end
         @test counted.vector_calls[] == 1
         @test compute_criteria(custom.criterion, custom.history) ≈
               generic_values(custom.reference, custom.history) rtol=1e-12
+        custom32 = setup(; bank=counted, n=4, history_length=2,
+            points=range(-4f0, 4f0; length=33))
+        @test init_thread(custom32.criterion, custom32.history) isa Speculator
+        @test compute_criteria(custom32.criterion, custom32.history) ≈
+              generic_values(custom32.reference, custom32.history) rtol=3e-6
 
         certain = GuessAndSlipItemBank(ones(1), zeros(1), ItemBank2PL([0.], [1.]))
         zero_case = setup(; bank=certain, n=1, history_length=0)

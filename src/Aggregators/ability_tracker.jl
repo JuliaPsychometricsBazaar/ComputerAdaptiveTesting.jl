@@ -69,8 +69,11 @@ mutable struct StackedGridAbilityTracker{T <: AbilityTracker, D} <: AbilityTrack
     delta_start::Int
 end
 
-StackedGridAbilityTracker(parent, density::D, delta_start) where {D} =
-    StackedGridAbilityTracker{typeof(parent), D}(parent, density, deepcopy(density), delta_start)
+StackedGridAbilityTracker(parent, density::Vector, delta_start) =
+    StackedGridAbilityTracker{typeof(parent), Vector}(parent, density, copy(density), delta_start)
+StackedGridAbilityTracker(parent, density::LogGridWeights, delta_start) =
+    StackedGridAbilityTracker{typeof(parent), LogGridWeights}(
+        parent, density, deepcopy(density), delta_start)
 
 base_grid_tracker(tracker::StackedGridAbilityTracker) = base_grid_tracker(tracker.parent)
 base_grid_tracker(tracker) = tracker
@@ -79,10 +82,16 @@ function track_delta!(responses::TrackedResponses, tracker::StackedGridAbilityTr
     tracker.density = nothing
     parent_density = tracker.parent.density
     parent_density === nothing && throw(ArgumentError("Track the parent before speculating"))
-    tracker.density = grid_delta_density!(tracker.scratch, base_grid_tracker(tracker),
+    density = grid_delta_density!(tracker.scratch, base_grid_tracker(tracker),
         parent_density, responses, tracker.delta_start)
+    tracker.scratch = updated_grid_scratch(tracker.scratch, density)
+    tracker.density = density
     tracker
 end
+
+updated_grid_scratch(scratch, density) = density
+updated_grid_scratch(scratch::LogGridWeights, density::LogGridWeights) =
+    scratch.log_values === density.log_values ? scratch : density
 
 track!(responses::TrackedResponses, tracker::StackedGridAbilityTracker) =
     track_delta!(responses, tracker)

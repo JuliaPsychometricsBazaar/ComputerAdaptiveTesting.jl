@@ -319,12 +319,16 @@ function mean(
         denom)
 end
 
+# Scalar coordinates and their estimated mean can have different precisions.
+squared_deviation(mean::Real) = x -> abs2(x - mean)
+squared_deviation(mean) = IntegralCoeffs.SqDev(mean)
+
 function variance_given_mean(integrator::AbilityIntegrator,
         est::DistributionAbilityEstimator,
         tracked_responses::TrackedResponses,
         mean,
         denom = normdenom(integrator, est, tracked_responses))
-    expectation(IntegralCoeffs.SqDev(mean),
+    expectation(squared_deviation(mean),
         0,
         integrator,
         est,

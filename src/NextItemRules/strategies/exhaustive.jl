@@ -28,7 +28,10 @@ function exhaustive_search(objective::ItemCriterionT,
         Int,
         Float64
 } where {ItemCriterionT <: ItemCriterion, TrackedResponseT <: TrackedResponses}
-    objective_state = init_thread(objective, responses)
+    exhaustive_search(objective, init_thread(objective, responses), responses, items)
+end
+
+function exhaustive_search(objective, objective_state, responses, items)
     return exhaustive_search(responses.responses.indices, items) do item_idx
         return compute_criterion(objective, objective_state, responses, item_idx)
     end
