@@ -39,6 +39,9 @@ function generic_values(criterion, history)
     [compute_criterion(criterion, spec, history, i) for i in eachindex(history.item_bank)]
 end
 
+candidate_allocations(criterion, state, history) =
+    @allocated compute_criterion(criterion, state, history, 1)
+
 struct CountedPosterior <: DistributionAbilityEstimator
     calls::Base.RefValue{Int}
 end
@@ -77,6 +80,14 @@ function FittedItemBanks.log_resp_vec(ir::ItemResponse{<:CountedBank}, theta)
 end
 
 @testset "Prepared fixed-grid MEPV" begin
+    @testset "Prepared candidates reuse their workspace" begin
+        for space in (LinSpace(), LogSpace())
+            (; criterion, history) = setup(; space)
+            state = init_thread(criterion, history)
+            candidate_allocations(criterion, state, history)
+            @test candidate_allocations(criterion, state, history) == 0
+        end
+    end
     @testset "Range coordinates are materialized once per scan" begin
         for space in (LinSpace(), LogSpace()),
                 backend in (Integrators.FixedGridIntegrator, Integrators.IterativeFixedGridIntegrator),

@@ -104,9 +104,9 @@ end
 
 # Avoid a log/exp round trip only for banks whose ordinary pair preserves tails.
 # Custom banks and logarithmic wrappers retain the native-log fallback.
-point_response_probabilities(ir, theta, logs, bank) = exp.(logs(theta))
-point_response_probabilities(ir, theta, logs, bank::NativeResponsePairBanks) = resp_vec(ir, theta)
-point_response_probabilities(ir, theta, logs, bank::GuessAndSlipItemBank) =
+@inline point_response_probabilities(ir, theta, logs, bank) = exp.(logs(theta))
+@inline point_response_probabilities(ir, theta, logs, bank::NativeResponsePairBanks) = resp_vec(ir, theta)
+@inline point_response_probabilities(ir, theta, logs, bank::GuessAndSlipItemBank) =
     point_response_probabilities(ir, theta, logs, bank.inner_bank)
 
 function candidate_expected_variance(criterion, state, ir,
