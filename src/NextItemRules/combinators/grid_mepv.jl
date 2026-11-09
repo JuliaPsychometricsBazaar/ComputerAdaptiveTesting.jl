@@ -38,16 +38,23 @@ candidate_grid_scratch(density, response_type) = deepcopy(density)
 candidate_grid_scratch(density, response_type, bank) = candidate_grid_scratch(density, response_type)
 
 # Native vector log responses preserve both tails for all supported banks.
+struct LogGridMEPVScratch{L, W}
+    logs::L
+    weights::W
+end
 candidate_grid_scratch(density::Integrators.LogGridWeights, ::BooleanResponse) =
-    (deepcopy(density), deepcopy(density))
+    LogGridMEPVScratch((similar(density.log_values), similar(density.log_values)),
+        (similar(density.weights), similar(density.weights)))
 
 # Only opt into paired ordinary responses where FIB preserves both tails.
 # Custom banks retain scalar evaluation: their resp_vec may still form 1-p.
 candidate_grid_scratch(density::AbstractVector, ::BooleanResponse, bank) =
     candidate_linear_scratch(density, bank)
+const NativeResponsePairBanks = Union{TransferItemBank, SlopeInterceptTransferItemBank,
+    CdfMirtItemBank, SlopeInterceptMirtItemBank}
 candidate_linear_scratch(density, bank::AbstractItemBank) = deepcopy(density)
-candidate_linear_scratch(density, bank::Union{TransferItemBank, SlopeInterceptTransferItemBank,
-    CdfMirtItemBank, SlopeInterceptMirtItemBank}) = (deepcopy(density), deepcopy(density))
+candidate_linear_scratch(density, bank::NativeResponsePairBanks) =
+    (deepcopy(density), deepcopy(density))
 candidate_linear_scratch(density, bank::GuessAndSlipItemBank) =
     candidate_linear_scratch(density, bank.inner_bank)
 
@@ -95,23 +102,21 @@ function candidate_expected_variance(criterion, state, ir,
     probabilities[1] * summaries[1].variance + probabilities[2] * summaries[2].variance
 end
 
-function candidate_grid_densities!(scratch::NTuple{2, Integrators.LogGridWeights},
-        density::Integrators.LogGridWeights, ir, grid)
-    first_logs, second_logs = scratch[1].log_values, scratch[2].log_values
-    @inbounds for j in eachindex(grid, first_logs, second_logs, density.log_values)
-        logs = log_resp_vec(ir, grid[j])
-        first_logs[j] = density.log_values[j] + logs[1]
-        second_logs[j] = density.log_values[j] + logs[2]
-    end
-    map(s -> Integrators.normalize_grid_weights!(s.log_values, s.weights), scratch)
-end
+# Avoid a log/exp round trip only for banks whose ordinary pair preserves tails.
+# Custom banks and logarithmic wrappers retain the native-log fallback.
+@inline point_response_probabilities(ir, theta, logs, bank) = exp.(logs(theta))
+@inline point_response_probabilities(ir, theta, logs, bank::NativeResponsePairBanks) = resp_vec(ir, theta)
+@inline point_response_probabilities(ir, theta, logs, bank::GuessAndSlipItemBank) =
+    point_response_probabilities(ir, theta, logs, bank.inner_bank)
 
 function candidate_expected_variance(criterion, state, ir,
-        scratch::NTuple{2, Integrators.LogGridWeights})
-    densities = candidate_grid_densities!(scratch, state.density, ir, state.grid)
-    probabilities = exp.(log_resp_vec(ir, state.theta))
-    probabilities[1] * candidate_grid_variance(criterion, state.grid, densities[1]) +
-        probabilities[2] * candidate_grid_variance(criterion, state.grid, densities[2])
+        scratch::LogGridMEPVScratch)
+    log_probabilities = log_resp_vec(ir)
+    summaries = Integrators.weighted_log_grid_moments!(log_probabilities,
+        state.grid, state.density.log_values,
+        scratch.logs, scratch.weights; skip_checks=true)
+    probabilities = point_response_probabilities(ir, state.theta, log_probabilities, ir.item_bank)
+    probabilities[1] * summaries[1].variance + probabilities[2] * summaries[2].variance
 end
 
 function candidate_grid_variance(criterion, grid, density::AbstractVector)
