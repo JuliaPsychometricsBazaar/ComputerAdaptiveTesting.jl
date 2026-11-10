@@ -29,6 +29,8 @@ using .Dummy
     include("./log_objective_optimization.jl")
     include("./log_grid.jl")
     include("./incremental_grid.jl")
+    include("./grid_preallocation.jl")
+    include("./prepared_grid_mepv.jl")
     include("./log_function.jl")
     include("./calculation_space.jl")
     include("./configuration_api.jl")

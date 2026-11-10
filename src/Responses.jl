@@ -166,8 +166,12 @@ end
 
 function (log_likelihood::AbilityLogLikelihood)(θ)
     likelihood = log_likelihood.likelihood
-    sum((log_resp(ItemResponse(likelihood.item_bank, response.index), response.value, θ)
-         for response in likelihood.responses); init = 0.0)
+    # As in AbilityLikelihood, traverse the response arrays directly. Iterating
+    # BareResponses carries a nested generator in its state, which can escape
+    # and allocate at every grid point when coverage instrumentation is enabled.
+    sum((log_resp(ItemResponse(likelihood.item_bank, likelihood.responses.indices[i]),
+             likelihood.responses.values[i], θ)
+         for i in axes(likelihood.responses.indices, 1)); init = 0.0)
 end
 
 function (ability_lh::AbilityLikelihood)(θ)

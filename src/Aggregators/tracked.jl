@@ -7,14 +7,6 @@ function (product::FunctionProduct)(x::T) where {T}
     return product.f(x) * product.lh_function(x)
 end
 
-struct FunctionArgProduct{F}
-    f::F
-end
-
-function (product::FunctionArgProduct)(x::A, y::B) where {A, B}
-    product.f(x) * y
-end
-
 struct TrackedLikelihoodIntegrator{IntegratorT <: EqualWeightGridIntegrator,
     TrackerT <: GriddedAbilityTracker} <: AbilityIntegrator
     integrator::IntegratorT
@@ -38,26 +30,11 @@ function power_summary(io::IO, integrator::TrackedLikelihoodIntegrator)
     power_summary(indent(io, 2), integrator.integrator)
 end
 
-# The backend's weighted preallocated overload works for scalar grids/results.
-# Other shapes reuse the same grid reduction as log-space integration.
+# Reduce the cached weights directly, using the same weighted reducer as
+# log-space integration. The backend's broadcast path can box scalar coefficient
+# evaluations even with a preallocated buffer (notably nested broadcasts in SqDev).
 function integrate_grid_weights(backend, f::F, weights, ncomp) where {F}
     BareIntegrationResult(weighted_grid_sum(f, Integrators.get_grid(backend), weights))
-end
-
-@inline function integrate_grid_weights(
-        backend::Union{FixedGridIntegrator{Vector{Float64}},
-            PreallocatedFixedGridIntegrator{Vector{Float64}}},
-        f::F,
-        weights,
-        ncomp) where {F}
-    if ncomp == 0
-        # The backend also has an array-valued branch for positive ncomp.
-        # Pin its scalar result here so that branch cannot widen all moments.
-        result = @inline backend(FunctionArgProduct(f), weights, 0)
-        result::BareIntegrationResult{Float64}
-    else
-        BareIntegrationResult(weighted_grid_sum(f, Integrators.get_grid(backend), weights))
-    end
 end
 
 function (integrator::TrackedLikelihoodIntegrator)(f::F, ncomp) where {F}
@@ -80,14 +57,25 @@ function (integrator::TrackedLikelihoodIntegrator)(f::F,
         est,
         tracked_responses::TrackedResponses;
         kwargs...) where {F}
+    density = grid_density(est, tracked_responses, integrator)
+    integrate_grid_weights(integrator.integrator, f, density, ncomp)
+end
+
+function grid_density(est, tracked_responses, integrator::TrackedLikelihoodIntegrator)
     tracker = integrator.tracker
     density = speculative_density(tracker, tracked_responses.ability_tracker)
     if density !== nothing && est === tracker.ability_estimator
-        return integrate_grid_weights(integrator.integrator, f, density, ncomp)
+        return density
     end
     # Uninitialized or mismatched estimators use a temporary full density.
-    weights = grid_linear_values(pdf(est, tracked_responses), Integrators.get_grid(integrator.integrator))
-    integrate_grid_weights(integrator.integrator, f, weights, ncomp)
+    grid_linear_values(pdf(est, tracked_responses), Integrators.get_grid(integrator.integrator))
+end
+
+function variance(integrator::TrackedLikelihoodIntegrator{<:ScalarGridIntegrator},
+        est::DistributionAbilityEstimator, responses::TrackedResponses, denom = nothing)
+    density = grid_density(est, responses, integrator)
+    weighted_grid_moments(Integrators.get_grid(integrator.integrator), density;
+        denominator = denom).variance
 end
 
 function (est::MeanAbilityEstimator{E, I})(::DiscreteIndexableDomain,

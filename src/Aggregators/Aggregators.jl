@@ -30,7 +30,10 @@ using PsychometricsBazaarBase.Integrators: Integrators,
                                            IntReturnType,
                                            IntValue, Integrator,
                                            PreallocatedFixedGridIntegrator,
-                                           normdenom
+                                           normdenom, LogGridWeights,
+                                           normalize_grid_weights!, weighted_grid_mean,
+                                           weighted_grid_sum, weighted_grid_moments,
+                                           grid_mass, scale_grid_value
 using PsychometricsBazaarBase.Optimizers: OneDimOptimOptimizer, Optimizer, Optimizers
 using PsychometricsBazaarBase.ConstDistributions: std_normal, std_mv_normal
 using PsychometricsBazaarBase.IndentWrappers: indent
@@ -282,7 +285,6 @@ include("./riemann.jl")
 include("./ability_estimator.jl")
 include("./ability_tracker.jl")
 include("./tracked.jl")
-include("./log_grid_weights.jl")
 include("./log_grid.jl")
 include("./log_function.jl")
 include("./configuration.jl")

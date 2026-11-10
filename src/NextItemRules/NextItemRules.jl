@@ -28,6 +28,9 @@ using PsychometricsBazaarBase: Differentiation
 using PsychometricsBazaarBase.IndentWrappers: indent
 import PsychometricsBazaarBase.IntegralCoeffs
 using FittedItemBanks: AbstractItemBank, DiscreteDomain, DomainType,
+                       TransferItemBank, SlopeInterceptTransferItemBank,
+                       CdfMirtItemBank, SlopeInterceptMirtItemBank, GuessAndSlipItemBank,
+                       ResponseType, BooleanResponse,
                        ItemResponse, OneDimContinuousDomain, domdims, item_params,
                        resp, resp_vec, log_resp, log_resp_vec, responses, subset_view
 using ..Aggregators
@@ -94,6 +97,7 @@ include("./combinators/likelihood.jl")
 include("./criteria/item/information.jl")
 include("./criteria/item/urry.jl")
 include("./criteria/state/ability_variance.jl")
+include("./combinators/grid_mepv.jl")
 include("./criteria/pointwise/information_special.jl")
 include("./criteria/pointwise/information_support.jl")
 include("./criteria/pointwise/information.jl")

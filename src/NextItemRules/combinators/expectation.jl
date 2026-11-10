@@ -30,6 +30,9 @@ struct PointResponseExpectation{
     ability_estimator::PointAbilityEstimatorT
 end
 
+preallocate(expectation::PointResponseExpectation) =
+    PointResponseExpectation(preallocate(expectation.ability_estimator))
+
 function Aggregators.response_expectation(
         point_response_expectation::PointResponseExpectation,
         tracked_responses,
@@ -52,6 +55,10 @@ struct DistributionResponseExpectation{
     ability_estimator::DistributionAbilityEstimatorT
     integrator::AbilityIntegratorT
 end
+
+preallocate(expectation::DistributionResponseExpectation) =
+    DistributionResponseExpectation(expectation.ability_estimator,
+        preallocate(expectation.integrator))
 
 function power_summary(io::IO, expectation::DistributionResponseExpectation)
     println(io, "Expected response over the ability distribution")

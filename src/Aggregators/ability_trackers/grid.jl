@@ -1,5 +1,8 @@
 const EqualWeightGridIntegrator = Union{FixedGridIntegrator,
     PreallocatedFixedGridIntegrator, Integrators.IterativeFixedGridIntegrator}
+const ScalarGridIntegrator = Union{FixedGridIntegrator{<:AbstractVector{Float64}},
+    PreallocatedFixedGridIntegrator{<:AbstractVector{Float64}},
+    Integrators.IterativeFixedGridIntegrator{<:AbstractVector{Float64}}}
 const TabulatedDichotomousBank = Union{FittedItemBanks.DichotomousPointsItemBank,
     FittedItemBanks.DichotomousPointsWithLogsItemBank}
 
@@ -12,6 +15,12 @@ end
 function grid_linear_values(density::IntegralCoeffs.PriorApply, grid)
     grid_linear_values(density.func, grid) .* pdf.(Ref(density.prior.dist), grid)
 end
+
+# Keep analytic delta evaluation lazy so the tracker can broadcast directly into
+# its destination. Tabulated banks require their grid adapter, not pointwise resp.
+grid_delta_values(likelihood, grid) = Base.Broadcast.broadcasted(likelihood, grid)
+grid_delta_values(likelihood::AbilityLikelihood{<:TabulatedDichotomousBank}, grid) =
+    grid_linear_values(likelihood, grid)
 
 """
 $(TYPEDEF)
@@ -70,7 +79,7 @@ function track_append!(responses::TrackedResponses, tracker::GriddedAbilityTrack
     tracker.density = nothing
     delta = response_view(responses.responses, length(responses):length(responses))
     likelihood = AbilityLikelihood(responses.item_bank, delta)
-    density .*= grid_linear_values(likelihood, Integrators.get_grid(tracker.integrator))
+    density .*= grid_delta_values(likelihood, Integrators.get_grid(tracker.integrator))
     tracker.density = density
     tracker
 end
@@ -81,9 +90,8 @@ end
 
 function grid_delta_density!(scratch::Vector{Float64}, tracker::GriddedAbilityTracker,
         density, responses, start)
-    copyto!(scratch, density)
-    start > length(responses) && return scratch
+    start > length(responses) && return copyto!(scratch, density)
     delta = response_view(responses.responses, start:length(responses))
     likelihood = AbilityLikelihood(responses.item_bank, delta)
-    scratch .*= grid_linear_values(likelihood, Integrators.get_grid(tracker.integrator))
+    scratch .= density .* grid_delta_values(likelihood, Integrators.get_grid(tracker.integrator))
 end

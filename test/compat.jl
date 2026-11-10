@@ -16,9 +16,8 @@
     #using .Dummy
     using Random
 
-    rng = Random.default_rng(42)
     (item_bank, abilities, true_responses) = dummy_full(
-        Random.default_rng(42),
+        Random.Xoshiro(42),
         SimpleItemBankSpec(StdModel3PL(), OneDimContinuousDomain(), BooleanResponse());
         num_questions = 4,
         num_testees = 1
@@ -37,7 +36,9 @@
                     criteria="MI",
                     method
                 )
-                @test -6.0 <= rules.ability_estimator(tracked_responses) <= 6.0
+                # EAP uses the integration interval. MAP and ML use the optimizer's bounds.
+                limit = method == "EAP" ? 6.0 : 20.0
+                @test -limit <= rules.ability_estimator(tracked_responses) <= limit
             end
         end
         for criteria in ("MI", "MEPV")

@@ -1,4 +1,5 @@
 preallocate(obj) = obj
+preallocate(objs::Union{Tuple, NamedTuple}) = map(preallocate, objs)
 preallocate(obj::Integrator) = PsychometricsBazaarBase.preallocate(obj)
 preallocate(obj::Optimizer) = PsychometricsBazaarBase.preallocate(obj)
 # Log-grid reductions have no numerical scratch buffers. Preserve the shared

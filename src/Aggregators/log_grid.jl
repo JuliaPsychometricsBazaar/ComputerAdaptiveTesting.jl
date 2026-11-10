@@ -52,6 +52,9 @@ function grid_log_values(density::LogPosteriorDensity, grid)
     grid_log_values(density.likelihood, grid) .+ logpdf.(Ref(density.prior), grid)
 end
 
+grid_delta_values(likelihood::AbilityLogLikelihood{<:AbilityLikelihood{<:TabulatedDichotomousBank}}, grid) =
+    grid_log_values(likelihood, grid)
+
 function grid_density(est, responses, integrator)
     LogGridWeights(grid_log_values(logpdf(est, responses), Integrators.get_grid(integrator)))
 end
@@ -85,11 +88,14 @@ initialize_grid_tracker!(responses, tracker::LogGridAbilityTracker) = track!(res
 
 function grid_delta_density!(scratch::LogGridWeights, tracker::LogGridAbilityTracker,
         density, responses, start)
-    copyto!(scratch.log_values, density.log_values)
-    start > length(responses) && return LogGridWeights(scratch.log_values,
-        scratch.weights, density.log_scale, density.scaled_sum)
+    if start > length(responses)
+        copyto!(scratch.log_values, density.log_values)
+        copyto!(scratch.weights, density.weights)
+        return LogGridWeights(scratch.log_values,
+            scratch.weights, density.log_scale, density.scaled_sum)
+    end
     delta = response_view(responses.responses, start:length(responses))
-    scratch.log_values .+= grid_log_values(
+    scratch.log_values .= density.log_values .+ grid_delta_values(
         AbilityLogLikelihood(responses.item_bank, delta), Integrators.get_grid(tracker.integrator))
     normalize_grid_weights!(scratch.log_values, scratch.weights)
 end
@@ -180,6 +186,23 @@ function expectation(rett::IntReturnType, f::F, ncomp, integrator::LogGridIntegr
     # precision from adding a moment's logarithm to a huge log normalization scale.
     correction = denom === nothing ? 1.0 : unlog(grid_mass(density) / denom)
     rett(BareIntegrationResult(value * correction))
+end
+
+function variance(integrator::LogGridIntegrator{<:ScalarGridIntegrator},
+        est::DistributionAbilityEstimator, responses::TrackedResponses, denom = nothing)
+    density = grid_density(est, responses, integrator)
+    # The public denominator is an absolute mass; the upstream log-state
+    # summary accepts a divisor in normalized-weight units.
+    divisor = denom === nothing ? nothing : unlog(denom / grid_mass(density))
+    if divisor !== nothing && (iszero(divisor) || !isfinite(divisor))
+        # A valid absolute denominator can have an unrepresentable ratio to
+        # the mass. Preserve the generic log-space expectation scaling then.
+        return invoke(variance,
+            Tuple{AbilityIntegrator, DistributionAbilityEstimator, TrackedResponses, Any},
+            integrator, est, responses, denom)
+    end
+    weighted_grid_moments(Integrators.get_grid(integrator.integrator), density;
+        denominator = divisor).variance
 end
 
 function (est::MeanAbilityEstimator{E, I})(::DiscreteIndexableDomain,
