@@ -10,8 +10,8 @@ equal-weight fixed grid. Construct with `LogGridAbilityTracker(estimator, grid)`
 `tracker.density` contains `log_values`, normalized `weights`, `log_scale`
 and `scaled_sum`; the unnormalized grid mass is `exp(log_scale) * scaled_sum`.
 An all-zero density raises `DomainError` rather than manufacturing a posterior.
-Float32 coordinates, prior parameters and native Float32 log responses keep
-the cached log densities and weights in Float32. Wider inputs promote them.
+The cached log densities and weights use the floating-point type supported
+by PsychometricsBazaarBase's `LogGridWeights` for the evaluated log densities.
 
 The estimator must declare `MultiplicativeResponseDelta()` through
 [`response_delta_style`](@ref). Appends add only new response log probabilities

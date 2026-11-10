@@ -1,6 +1,6 @@
 const EqualWeightGridIntegrator = Union{FixedGridIntegrator,
     PreallocatedFixedGridIntegrator, Integrators.IterativeFixedGridIntegrator}
-const ScalarGrid = Union{AbstractVector{Float32}, AbstractVector{Float64}}
+const ScalarGrid = AbstractVector{<:Real}
 const ScalarGridIntegrator = Union{FixedGridIntegrator{<:ScalarGrid},
     PreallocatedFixedGridIntegrator{<:ScalarGrid},
     Integrators.IterativeFixedGridIntegrator{<:ScalarGrid}}
@@ -28,7 +28,8 @@ $(TYPEDEF)
 
 Cache an unnormalized density on an equal-weight fixed grid. The estimator
 must declare `MultiplicativeResponseDelta()` through [`response_delta_style`](@ref).
-The density uses the precision of the evaluated prior and responses.
+Scalar grids accept real coordinates. The density uses the numeric types
+produced by the prior and responses.
 Use Float32 coordinates, prior parameters and a Float32 2PL transfer bank
 for Float32 EAP and prepared MEPV. FittedItemBanks 0.7.7 widens Float32
 guess/slip responses to Float64.

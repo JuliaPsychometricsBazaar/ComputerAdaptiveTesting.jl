@@ -167,9 +167,9 @@ end
 # With no responses there is no probability type to use. Take the identity
 # from the ability coordinate, without evaluating any item in the bank.
 likelihood_unit(θ) = 1.0
-likelihood_unit(θ::Number) = one(float(θ))
+likelihood_unit(θ::Number) = one(θ)
 likelihood_unit(θ::AbstractArray{T}) where {T <: Number} =
-    isconcretetype(T) ? one(float(T)) : 1.0
+    isconcretetype(T) ? one(T) : 1.0
 
 function (log_likelihood::AbilityLogLikelihood)(θ)
     likelihood = log_likelihood.likelihood

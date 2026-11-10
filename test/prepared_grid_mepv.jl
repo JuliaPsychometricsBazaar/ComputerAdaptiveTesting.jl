@@ -41,7 +41,7 @@ function generic_values(criterion, history)
 end
 
 function reference_2pl(grid, prior, difficulties, slopes, history)
-    xs = Float64.(grid)
+    xs = promote_type(Float64, eltype(grid)).(grid)
     p(i, x, y) = inv(1 + exp((y ? -1 : 1) * slopes[i] * (x - difficulties[i])))
     density = [pdf(prior, x) * prod(p(r.index, x, r.value) for r in history; init=1.0)
                for x in xs]
@@ -372,7 +372,7 @@ end
               generic_values(custom.reference, custom.history) rtol=1e-12
         custom32 = setup(; bank=counted, n=4, history_length=2,
             points=range(-4f0, 4f0; length=33))
-        @test init_thread(custom32.criterion, custom32.history) isa Speculator
+        @test init_thread(custom32.criterion, custom32.history).scratch isa Vector{Float64}
         @test compute_criteria(custom32.criterion, custom32.history) ≈
               generic_values(custom32.reference, custom32.history) rtol=3e-6
 
@@ -390,12 +390,56 @@ end
                 ItemResponse(certain, 1), first(skip_state.scratch)))
     end
 
+    @testset "Other real coordinate types" for space in (LinSpace(), LogSpace())
+        for T in (Float16, BigFloat)
+            xs = T.(range(-4, 4; length=33))
+            prior = Normal(zero(T), one(T))
+            difficulties = T[-2, -1, 0, 1, 2]
+            slopes = ones(T, 5)
+            bank = TransferItemBank(Logistic(zero(T), one(T)), difficulties, slopes)
+            grid = Integrators.FixedGridIntegrator(xs)
+            dist = PosteriorAbilityEstimator(prior, space)
+            tracker = AbilityTracker(GriddedAbilityTracker, dist, grid)
+            integral = AbilityIntegrator(grid, tracker)
+            point = MeanAbilityEstimator(dist, integral)
+            criterion = ExpectationBasedItemCriterion(PointResponseExpectation(point),
+                AbilityVariance(dist, integral))
+            history = TrackedResponses(BareResponses(ResponseType(bank)), bank, tracker)
+            track!(history)
+            add_response!(history, Response(ResponseType(bank), 1, true))
+            state = init_thread(criterion, history)
+            @test state isa NextItemRules.PreparedGridMEPV
+            @test state.theta isa T
+            @test density_eltype(state.density) === T
+            @test all(s -> density_eltype(s) === T, state.scratch)
+            @test compute_criterion(criterion.criterion, history) isa T
+            ref = reference_2pl(xs, prior, difficulties, slopes, history.responses)
+            actual = compute_criteria(criterion, history)
+            @test eltype(actual) === T
+            @test actual ≈ ref.scores rtol=16eps(T)
+        end
+
+        config = setup(; space, points=range(-4//1, 4//1; length=33))
+        @test init_thread(config.criterion, config.history) isa NextItemRules.PreparedGridMEPV
+        @test compute_criteria(config.criterion, config.history) ≈
+            generic_values(config.reference, config.history) rtol=1e-12
+        likelihood = AbilityLikelihood(config.bank, BareResponses(ResponseType(config.bank)))
+        @test likelihood(0//1) === 1//1
+    end
+
+    @testset "Exhaustive selection keeps criterion precision" begin
+        bank = ItemBank2PL([-1.0, 0.0, 1.0], ones(3))
+        scores = [1 + 2eps(BigFloat), 1 + eps(BigFloat), 1 + 3eps(BigFloat)]
+        @test NextItemRules.exhaustive_search(i -> scores[i], Int[], bank) ===
+            (2, scores[2])
+    end
+
     @testset "Polytomous per-outcome fallback" begin
         bank = FittedItemBanks.OneDimensionItemBankAdapter(
             NominalItemBank([[-1.0, 0.0, 1.0]], [1.0], [[-0.5, 0.0, 0.5]]))
         (; history, criterion, reference) = setup(; space = LogSpace(), bank,
             n = 1, history_length = 0)
-        @test init_thread(criterion, history).scratch isa Integrators.LogGridWeights
+        @test init_thread(criterion, history) isa NextItemRules.PreparedGridMEPV
         @test compute_criteria(criterion, history) ≈ generic_values(reference, history) rtol=1e-12
     end
 end
