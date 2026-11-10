@@ -28,28 +28,55 @@ function prepare_grid_mepv(criterion, history, ::OneDimContinuousDomain,
             Aggregators.TrackedLikelihoodIntegrator{<:Aggregators.ScalarGridIntegrator},
             LogGridIntegrator{<:Aggregators.ScalarGridIntegrator}})
     grid = prepare_mepv_grid(Integrators.get_grid(get_integrator(integrator)))
-    density = deepcopy(Aggregators.grid_density(criterion.criterion.dist_est, history, integrator))
+    bank = history.item_bank
+    density = Aggregators.grid_density(criterion.criterion.dist_est, history, integrator)
+    paired = paired_mepv_bank(density, bank)
+    T = candidate_weight_type(density, ItemResponse{typeof(bank)}, eltype(grid),
+        eltype(history.responses.values), paired)
+    scratch = if isconcretetype(T) && T <: Real
+        candidate_grid_scratch(density, T, paired)
+    elseif paired
+        return Speculator(history, 1)
+    else
+        # Let each outcome determine its own buffer type.
+        nothing
+    end
     theta = criterion.response_expectation.ability_estimator(history)
-    PreparedGridMEPV(grid, density, theta,
-        candidate_grid_scratch(density, ResponseType(history.item_bank), history.item_bank))
+    PreparedGridMEPV(grid, deepcopy(density), theta, scratch)
 end
 
-candidate_grid_scratch(density, response_type) = deepcopy(density)
-candidate_grid_scratch(density, response_type, bank) = candidate_grid_scratch(density, response_type)
+const PairedMEPVBank = Union{TransferItemBank, SlopeInterceptTransferItemBank,
+    CdfMirtItemBank, SlopeInterceptMirtItemBank}
+paired_mepv_bank(::AbstractItemBank) = false
+paired_mepv_bank(::PairedMEPVBank) = true
+paired_mepv_bank(bank::GuessAndSlipItemBank) = paired_mepv_bank(bank.inner_bank)
 
-# Native vector log responses preserve both tails for all supported banks.
-candidate_grid_scratch(density::Integrators.LogGridWeights, ::BooleanResponse) =
-    (deepcopy(density), deepcopy(density))
+paired_mepv_bank(::AbstractVector, bank) = paired_mepv_bank(bank)
+paired_mepv_bank(::Integrators.LogGridWeights, bank) = ResponseType(bank) isa BooleanResponse
 
-# Only opt into paired ordinary responses where FIB preserves both tails.
-# Custom banks retain scalar evaluation: their resp_vec may still form 1-p.
-candidate_grid_scratch(density::AbstractVector, ::BooleanResponse, bank) =
-    candidate_linear_scratch(density, bank)
-candidate_linear_scratch(density, bank::AbstractItemBank) = deepcopy(density)
-candidate_linear_scratch(density, bank::Union{TransferItemBank, SlopeInterceptTransferItemBank,
-    CdfMirtItemBank, SlopeInterceptMirtItemBank}) = (deepcopy(density), deepcopy(density))
-candidate_linear_scratch(density, bank::GuessAndSlipItemBank) =
-    candidate_linear_scratch(density, bank.inner_bank)
+function candidate_weight_type(::AbstractVector{W}, ::Type{IR},
+        ::Type{X}, ::Type{C}, paired) where {W, IR, X, C}
+    paired ? Base.promote_op((w, ir, x, i) -> w * resp_vec(ir, x)[i], W, IR, X, Int) :
+        Base.promote_op((w, ir, c, x) -> w * resp(ir, c, x), W, IR, C, X)
+end
+
+function candidate_weight_type(::Integrators.LogGridWeights{W}, ::Type{IR},
+        ::Type{X}, ::Type{C}, paired) where {W, IR, X, C}
+    paired ? Base.promote_op((w, ir, x, i) -> w + log_resp_vec(ir, x)[i], W, IR, X, Int) :
+        Base.promote_op((w, ir, c, x) -> w + log_resp(ir, c, x), W, IR, C, X)
+end
+
+function candidate_grid_scratch(density::AbstractVector, T, paired)
+    scratch = similar(density, T)
+    paired ? (scratch, similar(scratch)) : scratch
+end
+
+function candidate_grid_scratch(density::Integrators.LogGridWeights, T, paired)
+    template = T === eltype(density.log_values) ? density :
+        Integrators.LogGridWeights(T.(density.log_values))
+    scratch = deepcopy(template)
+    paired ? (scratch, deepcopy(template)) : scratch
+end
 
 function candidate_grid_density!(scratch::AbstractVector, density::AbstractVector,
         ir, category, grid)
@@ -67,6 +94,14 @@ function candidate_grid_density!(scratch::Integrators.LogGridWeights,
     Integrators.normalize_grid_weights!(scratch.log_values, scratch.weights)
 end
 
+function candidate_grid_density!(::Nothing, density::AbstractVector, ir, category, grid)
+    density .* resp.(Ref(ir), Ref(category), grid)
+end
+
+function candidate_grid_density!(::Nothing, density::Integrators.LogGridWeights, ir, category, grid)
+    Integrators.LogGridWeights(density.log_values .+ log_resp.(Ref(ir), Ref(category), grid))
+end
+
 function compute_criterion(criterion::GridMEPVCriterion, state::PreparedGridMEPV,
         history::TrackedResponses, item_idx)
     ir = ItemResponse(history.item_bank, item_idx)
@@ -75,7 +110,7 @@ end
 
 function candidate_expected_variance(criterion, state, ir, scratch)
     probabilities = resp_vec(ir, state.theta)
-    value = 0.0
+    value = zero(state.theta)
     for (probability, category) in zip(probabilities, responses(ir))
         density = candidate_grid_density!(scratch, state.density, ir, category, state.grid)
         value += probability * candidate_grid_variance(criterion, state.grid, density)
@@ -115,7 +150,7 @@ function candidate_expected_variance(criterion, state, ir,
 end
 
 function candidate_grid_variance(criterion, grid, density::AbstractVector)
-    criterion.skip_zero && all(iszero, density) && return Inf
+    criterion.skip_zero && all(iszero, density) && return oftype(float(zero(eltype(density))), Inf)
     Integrators.weighted_grid_moments(grid, density).variance
 end
 

@@ -10,6 +10,8 @@ equal-weight fixed grid. Construct with `LogGridAbilityTracker(estimator, grid)`
 `tracker.density` contains `log_values`, normalized `weights`, `log_scale`
 and `scaled_sum`; the unnormalized grid mass is `exp(log_scale) * scaled_sum`.
 An all-zero density raises `DomainError` rather than manufacturing a posterior.
+The cached log densities and weights use the floating-point type supported
+by PsychometricsBazaarBase's `LogGridWeights` for the evaluated log densities.
 
 The estimator must declare `MultiplicativeResponseDelta()` through
 [`response_delta_style`](@ref). Appends add only new response log probabilities
@@ -89,15 +91,16 @@ initialize_grid_tracker!(responses, tracker::LogGridAbilityTracker) = track!(res
 function grid_delta_density!(scratch::LogGridWeights, tracker::LogGridAbilityTracker,
         density, responses, start)
     if start > length(responses)
-        copyto!(scratch.log_values, density.log_values)
-        copyto!(scratch.weights, density.weights)
-        return LogGridWeights(scratch.log_values,
-            scratch.weights, density.log_scale, density.scaled_sum)
+        logs = copy_grid_buffer!(scratch.log_values, density.log_values)
+        weights = copy_grid_buffer!(scratch.weights, density.weights)
+        return LogGridWeights(logs, weights, density.log_scale, density.scaled_sum)
     end
     delta = response_view(responses.responses, start:length(responses))
-    scratch.log_values .= density.log_values .+ grid_delta_values(
-        AbilityLogLikelihood(responses.item_bank, delta), Integrators.get_grid(tracker.integrator))
-    normalize_grid_weights!(scratch.log_values, scratch.weights)
+    factors = grid_delta_values(AbilityLogLikelihood(responses.item_bank, delta),
+        Integrators.get_grid(tracker.integrator))
+    logs = update_grid_buffer!(scratch.log_values, +, density.log_values, factors)
+    weights = eltype(logs) === eltype(scratch.weights) ? scratch.weights : similar(logs)
+    normalize_grid_weights!(logs, weights)
 end
 
 """
@@ -184,7 +187,8 @@ function expectation(rett::IntReturnType, f::F, ncomp, integrator::LogGridIntegr
     value = weighted_grid_mean(f, Integrators.get_grid(integrator.integrator), density)
     # Cancel the mass before multiplying by the moment. This also avoids loss of
     # precision from adding a moment's logarithm to a huge log normalization scale.
-    correction = denom === nothing ? 1.0 : unlog(grid_mass(density) / denom)
+    denom === nothing && return rett(BareIntegrationResult(value))
+    correction = unlog(grid_mass(density) / denom)
     rett(BareIntegrationResult(value * correction))
 end
 

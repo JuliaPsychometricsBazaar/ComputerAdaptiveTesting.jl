@@ -1,8 +1,9 @@
 const EqualWeightGridIntegrator = Union{FixedGridIntegrator,
     PreallocatedFixedGridIntegrator, Integrators.IterativeFixedGridIntegrator}
-const ScalarGridIntegrator = Union{FixedGridIntegrator{<:AbstractVector{Float64}},
-    PreallocatedFixedGridIntegrator{<:AbstractVector{Float64}},
-    Integrators.IterativeFixedGridIntegrator{<:AbstractVector{Float64}}}
+const ScalarGrid = AbstractVector{<:Real}
+const ScalarGridIntegrator = Union{FixedGridIntegrator{<:ScalarGrid},
+    PreallocatedFixedGridIntegrator{<:ScalarGrid},
+    Integrators.IterativeFixedGridIntegrator{<:ScalarGrid}}
 const TabulatedDichotomousBank = Union{FittedItemBanks.DichotomousPointsItemBank,
     FittedItemBanks.DichotomousPointsWithLogsItemBank}
 
@@ -27,6 +28,11 @@ $(TYPEDEF)
 
 Cache an unnormalized density on an equal-weight fixed grid. The estimator
 must declare `MultiplicativeResponseDelta()` through [`response_delta_style`](@ref).
+Scalar grids accept real coordinates. The density uses the numeric types
+produced by the prior and responses.
+Use Float32 coordinates, prior parameters and a Float32 2PL transfer bank
+for Float32 EAP and prepared MEPV. FittedItemBanks 0.7.7 widens Float32
+guess/slip responses to Float64.
 Appending responses multiplies only their probabilities into `density`;
 `track!`, rollback and clearing rebuild the density, including its prior.
 
@@ -41,10 +47,10 @@ mutable struct GriddedAbilityTracker{
 } <: AbilityTracker
     ability_estimator::AbilityEstimatorT
     integrator::IntegratorT
-    density::Union{Nothing, Vector{Float64}}
+    density::Union{Nothing, Vector}
 
     function GriddedAbilityTracker(est::E, integrator::I,
-            density::Union{Nothing, Vector{Float64}}) where {
+            density::Union{Nothing, Vector}) where {
             E <: DistributionAbilityEstimator, I <: EqualWeightGridIntegrator}
         require_response_deltas(est)
         density === nothing || length(density) == length(Integrators.get_grid(integrator)) ||
@@ -67,8 +73,8 @@ end
 function track!(responses::TrackedResponses, tracker::GriddedAbilityTracker)
     responses.speculation_start == 0 || return tracker
     tracker.density = nothing
-    tracker.density = grid_linear_values(pdf(tracker.ability_estimator, responses),
-        Integrators.get_grid(tracker.integrator))
+    tracker.density = collect(grid_linear_values(pdf(tracker.ability_estimator, responses),
+        Integrators.get_grid(tracker.integrator)))
     tracker
 end
 
@@ -79,8 +85,8 @@ function track_append!(responses::TrackedResponses, tracker::GriddedAbilityTrack
     tracker.density = nothing
     delta = response_view(responses.responses, length(responses):length(responses))
     likelihood = AbilityLikelihood(responses.item_bank, delta)
-    density .*= grid_delta_values(likelihood, Integrators.get_grid(tracker.integrator))
-    tracker.density = density
+    factors = grid_delta_values(likelihood, Integrators.get_grid(tracker.integrator))
+    tracker.density = update_grid_buffer!(density, *, density, factors)
     tracker
 end
 
@@ -88,10 +94,24 @@ function refresh_after_history_edit!(responses, tracker::GriddedAbilityTracker)
     track!(responses, tracker)
 end
 
-function grid_delta_density!(scratch::Vector{Float64}, tracker::GriddedAbilityTracker,
+# Widen when a response has more precision than the existing buffer. In
+# particular, an empty history's density has not seen the bank's response type.
+function update_grid_buffer!(buffer, op, density, factors)
+    values = Base.Broadcast.broadcasted(op, density, factors)
+    if Base.Broadcast.combine_eltypes(values.f, values.args) === eltype(buffer)
+        return Base.materialize!(buffer, values)
+    end
+    Base.materialize(values)
+end
+
+copy_grid_buffer!(scratch::Vector{T}, density::Vector{T}) where {T} = copyto!(scratch, density)
+copy_grid_buffer!(scratch, density) = copy(density)
+
+function grid_delta_density!(scratch::Vector, tracker::GriddedAbilityTracker,
         density, responses, start)
-    start > length(responses) && return copyto!(scratch, density)
+    start > length(responses) && return copy_grid_buffer!(scratch, density)
     delta = response_view(responses.responses, start:length(responses))
     likelihood = AbilityLikelihood(responses.item_bank, delta)
-    scratch .= density .* grid_delta_values(likelihood, Integrators.get_grid(tracker.integrator))
+    factors = grid_delta_values(likelihood, Integrators.get_grid(tracker.integrator))
+    update_grid_buffer!(scratch, *, density, factors)
 end

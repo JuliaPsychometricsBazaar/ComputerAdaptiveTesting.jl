@@ -136,13 +136,14 @@ function compute_criterion(
         tracked_responses,
         item_idx)
     possible_responses = responses(ItemResponse(tracked_responses.item_bank, item_idx))
-    res = 0.0
+    res = nothing
     for (prob, possible_response) in zip(exp_resp, possible_responses)
         replace_speculation!(speculator, SVector(item_idx), SVector(possible_response))
-        res += prob *
+        value = prob *
                _generic_criterion(item_criterion.criterion, speculator.responses, item_idx, possible_response)
+        res = res === nothing ? value : res + value
     end
-    res
+    something(res, 0.0)
 end
 
 function power_summary(io::IO, item_criterion::ExpectationBasedItemCriterion)

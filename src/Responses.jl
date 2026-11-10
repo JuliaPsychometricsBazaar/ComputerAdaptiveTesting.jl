@@ -164,17 +164,26 @@ function AbilityLogLikelihood(item_bank::AbstractItemBank, responses::BareRespon
     AbilityLogLikelihood(AbilityLikelihood(item_bank, responses))
 end
 
+# With no responses there is no probability type to use. Take the identity
+# from the ability coordinate, without evaluating any item in the bank.
+likelihood_unit(θ) = 1.0
+likelihood_unit(θ::Number) = one(θ)
+likelihood_unit(θ::AbstractArray{T}) where {T <: Number} =
+    isconcretetype(T) ? one(T) : 1.0
+
 function (log_likelihood::AbilityLogLikelihood)(θ)
     likelihood = log_likelihood.likelihood
+    isempty(likelihood.responses.indices) && return zero(likelihood_unit(θ))
     # As in AbilityLikelihood, traverse the response arrays directly. Iterating
     # BareResponses carries a nested generator in its state, which can escape
     # and allocate at every grid point when coverage instrumentation is enabled.
-    sum((log_resp(ItemResponse(likelihood.item_bank, likelihood.responses.indices[i]),
+    sum(log_resp(ItemResponse(likelihood.item_bank, likelihood.responses.indices[i]),
              likelihood.responses.values[i], θ)
-         for i in axes(likelihood.responses.indices, 1)); init = 0.0)
+        for i in axes(likelihood.responses.indices, 1))
 end
 
 function (ability_lh::AbilityLikelihood)(θ)
+    isempty(ability_lh.responses.indices) && return likelihood_unit(θ)
     return prod(
         resp(
             ItemResponse(
@@ -184,8 +193,7 @@ function (ability_lh::AbilityLikelihood)(θ)
             ability_lh.responses.values[resp_idx],
             θ
         )
-        for resp_idx in axes(ability_lh.responses.indices, 1);
-        init = 1.0
+        for resp_idx in axes(ability_lh.responses.indices, 1)
     )
 end
 

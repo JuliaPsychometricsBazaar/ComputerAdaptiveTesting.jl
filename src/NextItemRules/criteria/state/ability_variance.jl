@@ -23,7 +23,7 @@ function AbilityVariance(bits...)
 end
 
 function compute_criterion(criterion::AbilityVariance,
-        tracked_responses::TrackedResponses)::Float64
+        tracked_responses::TrackedResponses)
     # XXX: Not sure if the estimator should come from somewhere else here
     denom = normdenom(criterion.integrator,
         criterion.dist_est,
@@ -38,7 +38,7 @@ end
 function compute_criterion(criterion::AbilityVariance,
         ::Union{OneDimContinuousDomain, DiscreteDomain},
         tracked_responses::TrackedResponses,
-        denom)::Float64
+        denom)
     return variance(
         criterion.integrator,
         criterion.dist_est,

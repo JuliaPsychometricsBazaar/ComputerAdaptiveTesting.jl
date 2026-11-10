@@ -2,9 +2,9 @@ function exhaustive_search(
         callback,
         answered_items::AbstractVector{Int},
         items::AbstractItemBank
-)::Tuple{Int, Float64}
+)
     min_obj_idx::Int = -1
-    min_obj_val::Float64 = Inf
+    min_obj_val = Inf
     for item_idx in eachindex(items)
         # TODO: Add these back in
         #@init irf_states_storage = zeros(Int, length(responses) + 1)
@@ -22,13 +22,12 @@ function exhaustive_search(
     return (min_obj_idx, min_obj_val)
 end
 
-function exhaustive_search(objective::ItemCriterionT,
-        responses::TrackedResponseT,
-        items::AbstractItemBank)::Tuple{
-        Int,
-        Float64
-} where {ItemCriterionT <: ItemCriterion, TrackedResponseT <: TrackedResponses}
-    objective_state = init_thread(objective, responses)
+function exhaustive_search(objective::ItemCriterion, responses::TrackedResponses,
+        items::AbstractItemBank)
+    exhaustive_search(objective, init_thread(objective, responses), responses, items)
+end
+
+function exhaustive_search(objective, objective_state, responses, items)
     return exhaustive_search(responses.responses.indices, items) do item_idx
         return compute_criterion(objective, objective_state, responses, item_idx)
     end
