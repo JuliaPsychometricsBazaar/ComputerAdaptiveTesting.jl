@@ -39,7 +39,8 @@ julia> using Pkg
 julia> Pkg.add("ComputerAdaptiveTesting")
 ```
 
-For the current development version (e.g. before filing an issue), install like so:
+The current development version requires Julia 1.13 or later in the 1.x series.
+To install it (e.g. before filing an issue):
 
 ```
 julia> using Pkg

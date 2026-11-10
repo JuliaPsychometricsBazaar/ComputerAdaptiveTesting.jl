@@ -13,8 +13,7 @@ primary documentation for humans too.
   (ability estimation), `NextItemRules` (item selection), `TerminationConditions`,
   `Sim` (simulation loop), `Stateful` (step-wise interface), `DecisionTree`,
   `Compat`/`Comparison` (R catR/mirtCAT shims and cross-checks).
-- Workspaces: `test/` and `docs/` have their own `Project.toml` (Julia 1.12
-  workspace feature).
+- Workspaces: `test/` and `docs/` have their own `Project.toml`.
 
 ## Style — DRY and reuse first
 
@@ -42,7 +41,7 @@ Follow the patterns already in the codebase rather than inventing new ones:
 
 ## Build, test, docs
 
-- Julia 1.12 (`Project.toml` compat; CI tests only 1.12).
+- Julia 1.13 or later in the 1.x series (`Project.toml` compat). CI tests 1.13.
 - Test: `julia --project=test test/runtests.jl` (includes Aqua and JET
   checks). `Pkg.test()` currently does not work — see issue #52.
 - Docs: `cd docs && ./build.sh` (needs R via CondaPkg; CI uses
